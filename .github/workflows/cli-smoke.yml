@@ -1,0 +1,40 @@
+name: cli-smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  live-cli-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run live CLI JSON and Markdown smoke
+        run: |
+          mkdir -p artifacts
+          python -m src.model_scout.scout "bert" --limit 3 --format markdown --top-n 3 > artifacts/model-scout-bert.md
+          python -m src.model_scout.scout "bert" --limit 3 --format json > artifacts/model-scout-bert.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          md = Path("artifacts/model-scout-bert.md").read_text(encoding="utf-8")
+          data = json.loads(Path("artifacts/model-scout-bert.json").read_text(encoding="utf-8"))
+
+          assert md.startswith("# MINDLE MODEL SCOUT REPORT\n")
+          assert "## Shortlist" in md
+          assert data["query"] == "bert"
+          assert data["candidate_count"] > 0
+          assert len(data["candidates"]) > 0
+          PY
+      - name: Upload live CLI smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-cli-smoke
+          path: artifacts/
+          if-no-files-found: error
