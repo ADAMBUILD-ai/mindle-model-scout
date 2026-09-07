@@ -80,13 +80,24 @@ def scout(query: str, limit: int = 10) -> dict[str, Any]:
     candidates.sort(key=lambda x: (x.status == "LICENSE_REVIEW_REQUIRED", -x.score, -x.downloads))
     return {"query": query, "candidate_count": len(candidates), "candidates": [asdict(c) for c in candidates]}
 
+def render_output(result: dict[str, Any], output_format: str = "json", top_n: int = 5) -> str:
+    if output_format == "json":
+        return json.dumps(result, ensure_ascii=False, indent=2)
+    if output_format == "markdown":
+        from .report import build_report, render_markdown
+        return render_markdown(build_report(result, top_n=top_n))
+    raise ValueError(f"unsupported output format: {output_format}")
+
 def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description="MINDLE MODEL SCOUT - Hugging Face MVP")
     parser.add_argument("query")
     parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    parser.add_argument("--top-n", type=int, default=5)
     args = parser.parse_args()
-    print(json.dumps(scout(args.query, args.limit), ensure_ascii=False, indent=2))
+    result = scout(args.query, args.limit)
+    print(render_output(result, args.format, args.top_n), end="" if args.format == "markdown" else "\n")
 
 if __name__ == "__main__":
     main()
