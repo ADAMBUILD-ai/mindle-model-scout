@@ -81,11 +81,14 @@ def scout(query: str, limit: int = 10) -> dict[str, Any]:
     return {"query": query, "candidate_count": len(candidates), "candidates": [asdict(c) for c in candidates]}
 
 def render_output(result: dict[str, Any], output_format: str = "json", top_n: int = 5) -> str:
+    from .report import build_report, render_markdown
+    report = build_report(result, top_n=top_n)
     if output_format == "json":
-        return json.dumps(result, ensure_ascii=False, indent=2)
+        enriched = dict(result)
+        enriched["model_cards"] = report["model_cards"]
+        return json.dumps(enriched, ensure_ascii=False, indent=2)
     if output_format == "markdown":
-        from .report import build_report, render_markdown
-        return render_markdown(build_report(result, top_n=top_n))
+        return render_markdown(report)
     raise ValueError(f"unsupported output format: {output_format}")
 
 def main() -> None:
