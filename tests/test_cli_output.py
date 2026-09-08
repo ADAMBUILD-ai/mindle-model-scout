@@ -36,9 +36,25 @@ def _result():
     }
 
 
-def test_render_output_json_preserves_payload():
-    rendered = render_output(_result(), "json")
-    assert json.loads(rendered) == _result()
+def test_render_output_json_preserves_payload_and_adds_model_cards():
+    source = _result()
+    rendered = render_output(source, "json")
+    payload = json.loads(rendered)
+
+    assert payload["query"] == source["query"]
+    assert payload["candidate_count"] == source["candidate_count"]
+    assert payload["candidates"] == source["candidates"]
+
+    assert len(payload["model_cards"]) == 2
+    approved, review_required = payload["model_cards"]
+    assert approved["model_id"] == "org/approved-model"
+    assert approved["source_url"] == "https://huggingface.co/org/approved-model"
+    assert approved["status"] == "APPROVED"
+    assert approved["checked_at"]
+    assert review_required["model_id"] == "org/review-model"
+    assert review_required["status"] == "LICENSE_REVIEW_REQUIRED"
+    assert review_required["license"] is None
+    assert review_required["checked_at"]
 
 
 def test_render_output_markdown_uses_report_layer():
