@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .model_card import build_model_card, render_model_card_markdown
+
 
 def build_report(result: dict[str, Any], top_n: int = 5) -> dict[str, Any]:
     candidates = list(result.get("candidates") or [])[:top_n]
@@ -11,6 +13,7 @@ def build_report(result: dict[str, Any], top_n: int = 5) -> dict[str, Any]:
         "candidate_count": result.get("candidate_count", len(candidates)),
         "recommended": recommended,
         "shortlist": candidates,
+        "model_cards": [build_model_card(candidate) for candidate in candidates],
         "warnings": [
             f"{c.get('model_id')}: LICENSE_REVIEW_REQUIRED"
             for c in candidates
@@ -36,7 +39,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(
             f"- {candidate.get('model_id')} | score={candidate.get('score')} | status={candidate.get('status')} | license={candidate.get('license') or 'UNKNOWN'}"
         )
+
+    cards = report.get("model_cards") or []
+    if cards:
+        lines.extend(["", "## Model Cards", ""])
+        for card in cards:
+            rendered = render_model_card_markdown(card).strip().splitlines()
+            if rendered:
+                rendered[0] = rendered[0].replace("# MODEL CARD —", "###", 1)
+            lines.extend(rendered)
+            lines.append("")
+
     if report.get("warnings"):
-        lines.extend(["", "## Warnings"])
+        lines.extend(["## Warnings"])
         lines.extend(f"- {warning}" for warning in report["warnings"])
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines).rstrip() + "\n"
