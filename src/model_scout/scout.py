@@ -2,7 +2,12 @@ from __future__ import annotations
 import json, urllib.parse, urllib.request
 from dataclasses import dataclass, asdict
 from typing import Any
+
+from .filters import filter_candidates
+from .requirements import parse_requirement
+
 HF_API = "https://huggingface.co/api/models"
+
 
 @dataclass
 class Candidate:
@@ -16,11 +21,13 @@ class Candidate:
     status: str
     reason: str
 
+
 def _license_from_tags(tags: list[str]) -> str | None:
     for tag in tags:
         if isinstance(tag, str) and tag.startswith("license:"):
             return tag.split(":", 1)[1]
     return None
+
 
 def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
     tags = raw.get("tags") or []
@@ -33,6 +40,7 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
         "license": _license_from_tags(tags),
         "tags": tags,
     }
+
 
 def score_model(model: dict[str, Any]) -> tuple[int, str, str]:
     score = 25
@@ -64,6 +72,7 @@ def score_model(model: dict[str, Any]) -> tuple[int, str, str]:
         status = "REJECT"
     return score, status, note
 
+
 def search_huggingface(query: str, limit: int = 10, timeout: int = 20) -> list[dict[str, Any]]:
     params = urllib.parse.urlencode({"search": query, "limit": limit, "full": "true"})
     req = urllib.request.Request(f"{HF_API}?{params}", headers={"User-Agent": "mindle-model-scout/0.1"})
@@ -71,14 +80,37 @@ def search_huggingface(query: str, limit: int = 10, timeout: int = 20) -> list[d
         data = json.load(resp)
     return [normalize_model(item) for item in data]
 
+
 def scout(query: str, limit: int = 10) -> dict[str, Any]:
+    profile = parse_requirement(query)
     models = search_huggingface(query, limit)
+    filtered_models = filter_candidates(models, profile)
+
     candidates = []
-    for model in models:
+    for model in filtered_models:
         score, status, reason = score_model(model)
-        candidates.append(Candidate(model["model_id"], model["pipeline_tag"], model["downloads"], model["likes"], model["library_name"], model["license"], score, status, reason))
+        candidates.append(
+            Candidate(
+                model["model_id"],
+                model["pipeline_tag"],
+                model["downloads"],
+                model["likes"],
+                model["library_name"],
+                model["license"],
+                score,
+                status,
+                reason,
+            )
+        )
     candidates.sort(key=lambda x: (x.status == "LICENSE_REVIEW_REQUIRED", -x.score, -x.downloads))
-    return {"query": query, "candidate_count": len(candidates), "candidates": [asdict(c) for c in candidates]}
+    return {
+        "query": query,
+        "requirement_profile": profile,
+        "searched_candidate_count": len(models),
+        "candidate_count": len(candidates),
+        "candidates": [asdict(c) for c in candidates],
+    }
+
 
 def render_output(result: dict[str, Any], output_format: str = "json", top_n: int = 5) -> str:
     from .report import build_report, render_markdown
@@ -91,6 +123,7 @@ def render_output(result: dict[str, Any], output_format: str = "json", top_n: in
         return render_markdown(report)
     raise ValueError(f"unsupported output format: {output_format}")
 
+
 def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description="MINDLE MODEL SCOUT - Hugging Face MVP")
@@ -101,6 +134,7 @@ def main() -> None:
     args = parser.parse_args()
     result = scout(args.query, args.limit)
     print(render_output(result, args.format, args.top_n), end="" if args.format == "markdown" else "\n")
+
 
 if __name__ == "__main__":
     main()
