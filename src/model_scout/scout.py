@@ -131,7 +131,20 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
     parser.add_argument("--top-n", type=int, default=5)
+    parser.add_argument(
+        "--watch-snapshot",
+        metavar="PATH",
+        help="run one watch cycle using PATH as the persisted candidate snapshot; emits JSON delta evidence",
+    )
     args = parser.parse_args()
+
+    if args.watch_snapshot:
+        from .watch import run_watch
+
+        result = run_watch(args.query, args.watch_snapshot, args.limit)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     result = scout(args.query, args.limit)
     print(render_output(result, args.format, args.top_n), end="" if args.format == "markdown" else "\n")
 
