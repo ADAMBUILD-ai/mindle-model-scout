@@ -40,6 +40,14 @@ Markdown 보고서:
 python -m model_scout.scout "상업용 TTS 라이선스 필요 다운로드 1000 이상" --limit 20 --format markdown --top-n 5
 ```
 
+리소스 선택(모델·데이터셋·Space·전체):
+
+```bash
+python -m src.model_scout.scout "squad" --resource dataset --limit 10
+python -m src.model_scout.scout "image generation" --resource space --limit 10
+python -m src.model_scout.scout "document AI" --resource all --limit 10
+```
+
 반복 Watch / Snapshot 변화 감지:
 
 ```bash
@@ -64,7 +72,7 @@ Snapshot 기반 반복 실행에서 다음 변화를 구분한다.
 - 완료는 코드가 아니라 `tests + live hf-e2e + cli-smoke + artifact` Evidence로 판단한다.
 
 ## Current Phase
-SCOUT-GATE-03 — Final Product Completion and Hardening
+SCOUT-GATE-04 — Multi Resource Scout Expansion
 
 Gate tracking: GitHub Issue #23 and `CURRENT_EXECUTION_CONTROL.md`.
 

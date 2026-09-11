@@ -5,6 +5,7 @@ from typing import Any
 
 from .filters import filter_candidates
 from .requirements import parse_requirement
+from .resources import SUPPORTED_RESOURCE_TYPES, search_resource
 
 HF_API = "https://huggingface.co/api/models"
 
@@ -24,6 +25,9 @@ class Candidate:
     score: int
     status: str
     reason: str
+    resource_type: str = "model"
+    source_url: str | None = None
+    last_modified: str | None = None
 
 
 def _license_from_tags(tags: list[str]) -> str | None:
@@ -48,24 +52,27 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def score_model(model: dict[str, Any]) -> tuple[int, str, str]:
-    score = 25
-    score += min(20, 5 + model["likes"] // 100 + model["downloads"] // 100000)
+def _license_status(license_name: str | None, commercial_use: bool = False) -> str:
+    value = (license_name or "").lower()
+    if not value or value in {"other", "unknown", "proprietary"}:
+        return "LICENSE_REVIEW_REQUIRED"
+    if commercial_use and ("-nc" in value or "non-commercial" in value):
+        return "LICENSE_NOT_PERMITTED"
+    return "LICENSE_ALLOWED"
+
+
+def score_model(model: dict[str, Any], profile: dict[str, Any] | None = None) -> tuple[int, str, str]:
+    profile = profile or {}
+    popularity = min(25, 5 + int(model.get("likes") or 0) // 100 + int(model.get("downloads") or 0) // 100000)
+    task_match = 15 if not profile.get("task_hint") or model.get("pipeline_tag") == profile.get("task_hint") else 0
+    metadata = 15 if model.get("metadata_complete") else (10 if model.get("library_name") else 5)
+    license_state = _license_status(model.get("license"), bool(profile.get("commercial_use")))
+    license_points = 20 if license_state == "LICENSE_ALLOWED" else 0
+    score = min(100, 25 + popularity + task_match + metadata + license_points)
     lic = model.get("license")
-    if lic:
-        score += 15
-        note = f"license:{lic}"
-    else:
-        note = "LICENSE_REVIEW_REQUIRED"
-    score += 10 if model.get("library_name") else 5
-    score += 10
-    score += 5
-    score += 5 if model["downloads"] > 0 else 2
-    score += 5
-    score += 5
-    score = min(100, score)
-    if not lic:
-        status = "LICENSE_REVIEW_REQUIRED"
+    components = f"popularity={popularity}; task_match={task_match}; metadata={metadata}; license={license_points}"
+    if license_state != "LICENSE_ALLOWED":
+        status = license_state
     elif score >= 90:
         status = "PRIORITY"
     elif score >= 80:
@@ -76,7 +83,7 @@ def score_model(model: dict[str, Any]) -> tuple[int, str, str]:
         status = "HOLD"
     else:
         status = "REJECT"
-    return score, status, note
+    return score, status, (status if status != "LICENSE_ALLOWED" and status.startswith("LICENSE_") else f"{components}; license:{lic or 'UNKNOWN'}")
 
 
 def search_huggingface(query: str, limit: int = 10, timeout: int = 20) -> list[dict[str, Any]]:
@@ -108,15 +115,32 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
     return str(profile.get("task_hint") or profile.get("query") or profile.get("raw") or "").strip()
 
 
-def scout(query: str, limit: int = 10) -> dict[str, Any]:
+def _query_plan(profile: dict[str, Any]) -> list[str]:
+    values = [profile.get("query"), profile.get("task_hint")]
+    return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
+
+
+def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str, Any]:
+    if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "all"):
+        raise ValueError("resource_type must be model, dataset, space, or all")
     profile = parse_requirement(query)
+    query_plan = _query_plan(profile)
     search_query = _upstream_search_query(profile)
-    models = search_huggingface(search_query, limit)
+    types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
+    models: list[dict[str, Any]] = []
+    for kind in types:
+        if kind == "model":
+            models.extend(search_huggingface(search_query, limit))
+        else:
+            for planned_query in query_plan:
+                models.extend(search_resource(kind, planned_query, limit))
+    deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
+    models = list(deduped.values())
     filtered_models = filter_candidates(models, profile)
 
     candidates = []
     for model in filtered_models:
-        score, status, reason = score_model(model)
+        score, status, reason = score_model(model, profile)
         candidates.append(
             Candidate(
                 model["model_id"],
@@ -128,12 +152,17 @@ def scout(query: str, limit: int = 10) -> dict[str, Any]:
                 score,
                 status,
                 reason,
+                model.get("resource_type", "model"),
+                model.get("source_url"),
+                model.get("last_modified"),
             )
         )
-    candidates.sort(key=lambda x: (x.status == "LICENSE_REVIEW_REQUIRED", -x.score, -x.downloads))
+    candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))
     return {
         "query": query,
         "search_query": search_query,
+        "query_plan": query_plan,
+        "resource_type": resource_type,
         "requirement_profile": profile,
         "searched_candidate_count": len(models),
         "candidate_count": len(candidates),
@@ -147,6 +176,9 @@ def render_output(result: dict[str, Any], output_format: str = "json", top_n: in
     if output_format == "json":
         enriched = dict(result)
         enriched["model_cards"] = report["model_cards"]
+        enriched["recommended"] = report["recommended"]
+        enriched["comparison"] = report["comparison"]
+        enriched["warnings"] = report["warnings"]
         return json.dumps(enriched, ensure_ascii=False, indent=2)
     if output_format == "markdown":
         return render_markdown(report)
@@ -160,6 +192,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
     parser.add_argument("--top-n", type=int, default=5)
+    parser.add_argument("--resource", choices=("model", "dataset", "space", "all"), default="model")
     parser.add_argument(
         "--watch-snapshot",
         metavar="PATH",
@@ -170,11 +203,11 @@ def main() -> None:
     if args.watch_snapshot:
         from .watch import run_watch
 
-        result = run_watch(args.query, args.watch_snapshot, args.limit)
+        result = run_watch(args.query, args.watch_snapshot, args.limit, resource_type=args.resource)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
-    result = scout(args.query, args.limit)
+    result = scout(args.query, args.limit, args.resource)
     print(render_output(result, args.format, args.top_n), end="" if args.format == "markdown" else "\n")
 
 
