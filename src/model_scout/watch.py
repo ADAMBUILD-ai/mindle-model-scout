@@ -12,22 +12,26 @@ class SnapshotError(RuntimeError):
 
 
 def _sorted_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return sorted((dict(item) for item in candidates), key=lambda item: str(item.get("model_id") or ""))
+    return sorted((dict(item) for item in candidates), key=lambda item: (str(item.get("resource_type") or "model"), str(item.get("model_id") or "")))
+
+
+def _identity(item: dict[str, Any]) -> tuple[str, str]:
+    return (str(item.get("resource_type") or "model"), str(item.get("model_id") or ""))
 
 
 def diff_candidates(previous: list[dict[str, Any]], current: list[dict[str, Any]]) -> dict[str, list]:
-    prev = {item.get("model_id"): item for item in previous if item.get("model_id")}
-    curr = {item.get("model_id"): item for item in current if item.get("model_id")}
+    prev = {_identity(item): item for item in previous if item.get("model_id")}
+    curr = {_identity(item): item for item in current if item.get("model_id")}
 
     added = [curr[key] for key in sorted(curr.keys() - prev.keys())]
     removed = [prev[key] for key in sorted(prev.keys() - curr.keys())]
     changed = []
     for key in sorted(curr.keys() & prev.keys()):
         before, after = prev[key], curr[key]
-        fields = ("downloads", "likes", "license", "pipeline_tag", "status", "score")
+        fields = ("downloads", "likes", "license", "pipeline_tag", "status", "score", "last_modified")
         delta = {field: (before.get(field), after.get(field)) for field in fields if before.get(field) != after.get(field)}
         if delta:
-            changed.append({"model_id": key, "changes": delta})
+            changed.append({"model_id": key[1], "changes": delta})
 
     return {"added": added, "removed": removed, "changed": changed}
 
@@ -79,6 +83,7 @@ def run_watch(
     snapshot_path: str | Path,
     limit: int = 10,
     scout_fn: Callable[[str, int], dict[str, Any]] | None = None,
+    resource_type: str = "model",
 ) -> dict[str, Any]:
     """Run one deterministic watch cycle and atomically persist its current candidates."""
     previous = load_snapshot(snapshot_path)
@@ -87,7 +92,7 @@ def run_watch(
     if scout_fn is None:
         from .scout import scout
 
-        scout_fn = scout
+        scout_fn = lambda value, count: scout(value, count, resource_type)
 
     result = scout_fn(query, limit)
     current = result.get("candidates")
@@ -100,6 +105,7 @@ def run_watch(
 
     return {
         "query": query,
+        "resource_type": resource_type,
         "snapshot_path": str(Path(snapshot_path)),
         "first_run": first_run,
         "previous_candidate_count": len(previous),

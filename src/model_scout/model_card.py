@@ -13,9 +13,12 @@ def build_model_card(candidate: dict[str, Any], checked_at: str | None = None) -
     if not license_name:
         status = "LICENSE_REVIEW_REQUIRED"
 
+    resource_type = candidate.get("resource_type") or "model"
+    segment = "datasets/" if resource_type == "dataset" else "spaces/" if resource_type == "space" else ""
     return {
         "model_id": model_id,
-        "source_url": f"{HF_BASE_URL}/{model_id}" if model_id else None,
+        "resource_type": resource_type,
+        "source_url": candidate.get("source_url") or (f"{HF_BASE_URL}/{segment}{model_id}" if model_id else None),
         "pipeline_tag": candidate.get("pipeline_tag"),
         "library_name": candidate.get("library_name"),
         "license": license_name,

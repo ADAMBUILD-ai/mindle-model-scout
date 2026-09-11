@@ -13,6 +13,8 @@ class RequirementProfile:
     commercial_use: bool = False
     min_downloads: int = 0
     min_likes: int = 0
+    languages: list[str] | None = None
+    library_hint: str | None = None
 
 
 def parse_requirement(text: str) -> dict:
@@ -26,6 +28,12 @@ def parse_requirement(text: str) -> dict:
         "automatic-speech-recognition": ["speech recognition", "asr", "음성 인식"],
         "text-to-speech": ["tts", "text to speech", "음성 합성"],
         "image-classification": ["image classification", "이미지 분류"],
+        "feature-extraction": ["embedding", "embeddings", "임베딩"],
+        "image-segmentation": ["segmentation", "세그멘테이션", "분할"],
+        "object-detection": ["object detection", "객체 탐지"],
+        "text-classification": ["text classification", "텍스트 분류"],
+        "token-classification": ["ner", "named entity", "개체명"],
+        "image-to-text": ["image to text", "이미지 설명"],
     }
     for task, keywords in task_keywords.items():
         if any(keyword in lowered for keyword in keywords):
@@ -45,6 +53,8 @@ def parse_requirement(text: str) -> dict:
         min_likes = int(m.group(1).replace(",", ""))
 
     query = normalized
+    languages = [lang for lang in ("korean", "한국어", "english", "영어", "multilingual", "다국어") if lang in lowered]
+    library_hint = next((name for name in ("transformers", "diffusers", "sentence-transformers", "pytorch", "onnx") if name in lowered), None)
     return asdict(
         RequirementProfile(
             raw=normalized,
@@ -54,5 +64,7 @@ def parse_requirement(text: str) -> dict:
             commercial_use=commercial_use,
             min_downloads=min_downloads,
             min_likes=min_likes,
+            languages=languages,
+            library_hint=library_hint,
         )
     )
