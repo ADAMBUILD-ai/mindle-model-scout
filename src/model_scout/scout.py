@@ -111,7 +111,7 @@ def search_huggingface(query: str, limit: int = 10, timeout: int = 20) -> list[d
 
 
 def _upstream_search_query(profile: dict[str, Any]) -> str:
-    """Prefer a recognized task hint over a long natural-language constraint sentence."""
+    """Return the legacy primary query for evidence/backward compatibility."""
     return str(profile.get("task_hint") or profile.get("query") or profile.get("raw") or "").strip()
 
 
@@ -128,12 +128,14 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     search_query = _upstream_search_query(profile)
     types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
     models: list[dict[str, Any]] = []
+
     for kind in types:
-        if kind == "model":
-            models.extend(search_huggingface(search_query, limit))
-        else:
-            for planned_query in query_plan:
+        for planned_query in query_plan:
+            if kind == "model":
+                models.extend(search_huggingface(planned_query, limit))
+            else:
                 models.extend(search_resource(kind, planned_query, limit))
+
     deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
     models = list(deduped.values())
     filtered_models = filter_candidates(models, profile)
