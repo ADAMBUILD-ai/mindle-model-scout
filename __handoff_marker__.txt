@@ -1,1 +1,0 @@
-MODEL SCOUT handoff integration marker
