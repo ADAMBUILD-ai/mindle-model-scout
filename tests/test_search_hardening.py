@@ -1,9 +1,12 @@
+import importlib
 import urllib.error
 
 import pytest
 
-import model_scout.scout as scout_module
-from model_scout.scout import HuggingFaceSearchError, scout, search_huggingface
+scout_module = importlib.import_module("src.model_scout.scout")
+HuggingFaceSearchError = scout_module.HuggingFaceSearchError
+scout = scout_module.scout
+search_huggingface = scout_module.search_huggingface
 
 
 class _DummyResponse:
