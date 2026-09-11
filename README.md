@@ -112,3 +112,47 @@ python -m uvicorn src.model_scout_api.main:app --host 0.0.0.0 --port 8080
 - 미설정 시 `/health`는 공개, API 라우트는 보호되지 않습니다.
 
 자세한 통합 가이드는 [`docs/API.md`](docs/API.md)를 참조하세요.
+## Local Web UI
+
+Minimal local web UI has been added and runs on top of the existing `scout` engine.
+Core logic stays unchanged; the web layer only formats existing candidate payloads.
+
+```bash
+python -m src.model_scout.web --host 127.0.0.1 --port 8765
+```
+
+Open `http://127.0.0.1:8765` after startup.
+
+### Scripts
+
+```powershell
+./run_web_ui.ps1
+```
+
+```cmd
+.\run_web_ui.bat
+```
+
+### What the UI shows
+
+- query input
+- resource selector (`model / dataset / space / all`)
+- limit input (`1`~`100`)
+- search button
+- top recommendation card
+- comparison table (candidate / type / license / score / status / downloads / source link)
+- license/status warning list
+- clear error output for invalid request and search failures
+
+### EXE packaging preparation path
+
+After UI validation on your PC, you can package the same entrypoint with:
+
+```bash
+python -m pip install pyinstaller
+pyinstaller --onefile --name model-scout-webui src/model_scout/web.py
+```
+
+Use this only after the web UI checks are verified:
+- `python -m src.model_scout.web --host 127.0.0.1 --port 8765`
+- load one search case in browser and confirm no crash paths or empty top-recommendation for valid results
