@@ -88,3 +88,27 @@ SCOUT-GATE-04 — Multi Resource Scout Expansion — **COMPLETED**
 신작가님
 → 아키 사령관
 → MODEL SCOUT 개발·검수·통합
+
+## API
+
+기존 코어를 재작성하지 않고 공통 API 레이어를 추가했습니다.
+
+- `GET /health`
+- `GET /v1/capabilities`
+- `GET /v1/scout`
+- `POST /v1/scout`
+
+### 실행
+
+```bash
+cp .env.example .env
+python -m pip install -r requirements.txt
+python -m uvicorn src.model_scout_api.main:app --host 0.0.0.0 --port 8080
+```
+
+### 인증
+
+- `MODEL_SCOUT_API_KEY`를 설정하면 `X-API-KEY` 헤더가 필수입니다.
+- 미설정 시 `/health`는 공개, API 라우트는 보호되지 않습니다.
+
+자세한 통합 가이드는 [`docs/API.md`](docs/API.md)를 참조하세요.
