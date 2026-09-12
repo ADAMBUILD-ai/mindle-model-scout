@@ -93,7 +93,8 @@ def ui_index_html() -> str:
     <h1>MODEL SCOUT</h1>
     <form id=\"search-form\">
       <div class=\"row\">
-        <label>query<input id=\"query\" type=\"text\" placeholder=\"예: commercial tts\" required /></label>
+        <label>query<input id=\"query\" type=\"text\" placeholder=\"e.g. commercial tts\" required /></label>
+        <label>api key<input id=\"api-key\" type=\"password\" placeholder=\"if required\" autocomplete=\"off\" /></label>
         <label>resource
           <select id=\"resource\">
             <option value=\"model\" selected>model</option>
@@ -135,6 +136,7 @@ def ui_index_html() -> str:
     const form = document.getElementById("search-form");
     const queryInput = document.getElementById("query");
     const resourceInput = document.getElementById("resource");
+    const apiKeyInput = document.getElementById("api-key");
     const limitInput = document.getElementById("limit");
     const runButton = document.getElementById("run-btn");
     const errorEl = document.getElementById("error");
@@ -163,7 +165,7 @@ def ui_index_html() -> str:
     function renderRecommendation(payload) {
       const rec = payload.recommended;
       if (!rec) {
-        topReco.textContent = "추천 가능한 후보가 없습니다. WARNINGS를 확인하세요.";
+        topReco.textContent = "No eligible recommendation. Check warnings.";
         return;
       }
       const license = (rec.license || "UNKNOWN");
@@ -202,7 +204,7 @@ def ui_index_html() -> str:
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       clearError();
-      statusEl.textContent = "검색 중...";
+      statusEl.textContent = "Searching...";
       runButton.disabled = true;
       tbody.innerHTML = "";
       comparisonEmpty.classList.remove("hidden");
@@ -212,6 +214,9 @@ def ui_index_html() -> str:
         resource: resourceInput.value,
         limit: limitInput.value || "10",
       });
+      if (apiKeyInput.value) {
+        params.set("api_key", apiKeyInput.value.trim());
+      }
 
       try {
         const response = await fetch(`/api/search?${params.toString()}`);
@@ -228,7 +233,7 @@ def ui_index_html() -> str:
         renderRecommendation(data);
         renderComparison(data);
         renderWarnings(data);
-        statusEl.textContent = `완료: searched ${data.searched_candidate_count} / visible ${data.comparison?.length || 0}`;
+        statusEl.textContent = `Completed: searched ${data.searched_candidate_count} / visible ${data.comparison?.length || 0}`;
       } catch (error) {
         showError(String(error.message || error));
         renderRecommendation({});

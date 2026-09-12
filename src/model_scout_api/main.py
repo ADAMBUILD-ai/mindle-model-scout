@@ -4,10 +4,12 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Literal
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from src.model_scout.report import build_report
 from src.model_scout.scout import HuggingFaceSearchError, scout as run_scout_core
+from src.model_scout.web import ui_index_html
 
 
 ResourceType = Literal["model", "dataset", "space", "all"]
@@ -24,11 +26,22 @@ def _api_key_required() -> str | None:
     return (os.environ.get("MODEL_SCOUT_API_KEY") or "").strip() or None
 
 
-def require_api_key(x_api_key: str | None = Header(default=None, alias="X-API-KEY")):
+def require_api_key(
+    request: Request,
+    x_api_key: str | None = Header(default=None, alias="X-API-KEY"),
+):
     expected = _api_key_required()
     if expected is None:
         return
-    if x_api_key != expected:
+    provided = x_api_key
+    if provided is None:
+        provided = request.headers.get("x-api-key")
+    if provided is None:
+        provided = request.headers.get("X-API-KEY")
+    if provided is None:
+        provided = request.query_params.get("api_key")
+
+    if provided != expected:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key missing or invalid",
@@ -93,6 +106,22 @@ def health_check():
         "version": app.version,
         "checked_at": _utcnow_iso(),
     }
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def ui_index() -> str:
+    return ui_index_html()
+
+
+@app.get("/api/search", include_in_schema=False)
+def ui_search(
+    query: str = Query(..., min_length=1),
+    limit: int = Query(10, ge=1, le=100),
+    resource: ResourceType = Query("model"),
+    _: None = Depends(require_api_key),
+):
+    request = ScoutRequest(query=query, limit=limit, top_n=min(limit, 20), resource=resource)
+    return _build_scout_payload(request)
 
 
 @app.get("/v1/capabilities")
