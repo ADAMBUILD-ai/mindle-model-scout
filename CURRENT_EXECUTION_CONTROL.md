@@ -11,14 +11,15 @@ Status source: GitHub Evidence only. This file exists so the next executor can c
 - SCOUT-GATE-04 multi-resource redevelopment (PR #25): completed and merged.
 - Common FastAPI layer (PR #27): completed and merged.
 - UI/API validation recovery (PR #29): completed and merged as `b1ce066922219e61513e9e26898761b45c8974ce`.
+- WARREN–BUFFETT Hugging Face scout integration (Issue #28 / PR #30): completed and merged as `0ba3266849959af7684437bdfd2e5cbe50537c46`.
 
-## Issue #28 — WARREN–BUFFETT HF scout
-Status: REPORT EVIDENCE COMPLETE; PR #30 pending final merge.
-
-Verified report evidence on `recovery/issue-28-execution-owner-20260912`:
+## Issue #28 — completed evidence
+Verified report evidence integrated on main:
 - execution handoff commit `9cc6ed86cc2b7f65c0568b2c798bb7769c11aa73`
 - JSON report commit `b1e9f25d6ecf55414356f09fabb1e3da8daf161e`
 - Markdown report commit `e8294cae46d64e25102c63d37bc7bc654c052656`
+- execution-control acceptance commit `8289bbfd49708f637eab71508336f42d2e2f5ce4`
+- merge commit `0ba3266849959af7684437bdfd2e5cbe50537c46`
 - report paths:
   - `reports/warren_buffett/issue-28-scout.json`
   - `reports/warren_buffett/issue-28-scout.md`
@@ -27,16 +28,17 @@ Verified report evidence on `recovery/issue-28-execution-owner-20260912`:
 - license gate applied: permissive permitted, CC BY attribution required, unknown license review-required, non-commercial rejected
 - watch/snapshot criteria included
 
-PR #30 head before this execution-control refresh: `e8294cae46d64e25102c63d37bc7bc654c052656`.
-Verified CI on that head:
-- tests `34705782176` — SUCCESS
-- hf-e2e `34705782193` — SUCCESS
-- cli-smoke `34705782303` — SUCCESS
+Final PR #30 head `8289bbfd49708f637eab71508336f42d2e2f5ce4` validation:
+- tests `34709986188` — SUCCESS
+- hf-e2e `34709986180` — SUCCESS
+- cli-smoke `34709986195` — SUCCESS
 
-Evidence boundary: the committed WARREN–BUFFETT reports were generated from live public Hugging Face page verification. The repository Model Scout CLI was not independently executed for all 11 role queries in that recovery run; CLI-run provenance is therefore not claimed. This does not invalidate the live lookup evidence required by Issue #28, but downstream adoption remains subject to each candidate's recorded license/review status.
+Evidence boundary: the WARREN–BUFFETT reports were generated from live public Hugging Face page verification. The repository Model Scout CLI was not independently executed for all 11 role queries in that recovery run; CLI-run provenance is not claimed. Downstream adoption remains subject to each candidate's recorded license/review status.
 
-## Acceptance / next action
-Issue #28 completion criteria are satisfied by committed live Hugging Face lookup evidence, 11-role mapping, explicit license gating, committed JSON + Markdown paths, and passing repository CI. The safe next integration action is to merge PR #30 after this execution-control update receives fresh `tests + hf-e2e + cli-smoke` PASS, then close Issue #28 as completed and set Active next execution gate to NONE unless a new issue is opened.
+## Active next execution gate
+NONE.
+
+No open implementation gate is currently authorized by repository evidence. Quiet time with no new issue/PR/commit is not a stall until a new executable gate exists.
 
 ## Evidence-first operating rule
 - Never report development progress without a commit, PR, CI/test result, artifact, or exact verified blocker.
