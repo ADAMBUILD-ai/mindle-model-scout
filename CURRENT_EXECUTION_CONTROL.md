@@ -42,7 +42,7 @@ Authoritative execution sources:
 - Issue #32: `AURA P0 — Approved Model Shopping / Deliver TESTED_PASS Assets`
 - PR #31: `feat: add AURA execution order for MODEL SCOUT handoff`
 - Handoff document: `AURA_FINAL_EXECUTION_ORDER.md` on branch `feat/aura-execution-order-20260913`
-- Current PR #31 head at recovery audit: `466c50f265c76979185b47ad82e205ccb1f2f69c`
+- Current PR #31 head: `2dfa006fedd92f21a62b7897b4c19f706daf6de6`
 
 Execution authority:
 - User approval is delegated for free/public Hugging Face scouting, download, execution testing, lightweight replacement selection, re-scouting, Evidence generation, safe document/test/branch/PR updates, and AURA handoff.
@@ -56,6 +56,36 @@ Immediate next executable step:
 4. Record model ID/revision/license/source/local path/file size/SHA/runtime/VRAM/input/output/settings/log/PASS-FAIL reason.
 5. Package Evidence as `AURA_MODEL_SCOUT_DELIVERY_20260913` (JSON + Markdown + real output assets) and commit/push it for AURA handoff.
 6. `PASS 0` is not a valid completion state.
+
+## P0 SYSTEM RECOVERY GATE — ACTIVE
+The cross-project operating failure is also an active P0 gate and must not be hidden behind the AURA lane.
+
+Authoritative recovery sources:
+- Issue #36: `[P0 RECOVERY] Request ingestion + execution dispatcher + TESTED_PASS runner`
+- PR #37: `docs: activate P0 request-ingestion recovery gate`
+- Branch: `recovery/request-ingestion-gate-20260913`
+
+Verified failure classification after repeated Evidence gap:
+- repository/write permission: HEALTHY (`admin/maintain/push/pull=true`)
+- remote branch/PR path: HEALTHY; PR #37 is open and mergeable
+- Actions/CI: HEALTHY; PR #37 head `420254033accf96e750ff1c934b69df998ee92c2` passed tests/hf-e2e/cli-smoke
+- local-only work: UNVERIFIED; no remote code Evidence exists
+- execution handoff reachability: FAILED — recovery requirements existed only in Issue #36 / PR #37 while this control file still exposed only AURA as the active gate
+- integration owner: PRESENT (Issue #36 assigned to ADAMBUILD-ai)
+- remote push/integration path: HEALTHY
+
+Exact cause: `INSTRUCTION/HANDOFF FAILURE`, followed by executor inactivity. The P0 system recovery gate was not reachable from the executor's primary control document.
+
+Immediate recovery action:
+1. Treat Issue #36 and PR #37 as an active parallel P0 gate from this control file.
+2. Next development Evidence must be implementation code, not another planning-only document.
+3. First executable slice: implement deterministic request envelope normalization + fingerprint dedupe + queue state model with tests.
+4. Second slice: add configured GitHub request discovery adapter and callback metadata.
+5. Third slice: dispatcher claims QUEUED requests and invokes the existing scout core.
+6. Runtime TESTED_PASS runner may follow as a separate adapter, but queue/dispatcher Evidence must start first.
+7. Keep AURA Issue #32 active in parallel; system recovery must not erase the AURA delivery obligation.
+
+Completion Evidence for this recovery gate requires code commit + deterministic tests + PR update + fresh CI. A document-only PR is not completion.
 
 Recovery note (2026-09-13): the previous version of this file incorrectly stated `Active next execution gate: NONE` even though Issue #32 and PR #31 had already established an executable AURA gate. That stale SSOT/handoff state was classified as an instruction/handoff failure and corrected here so the executor has a reachable next-action trigger from `main`.
 
