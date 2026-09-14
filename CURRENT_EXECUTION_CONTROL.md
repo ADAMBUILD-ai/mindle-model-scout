@@ -25,7 +25,7 @@ Verified boundary:
 
 Execution authority:
 - Safe/free/public scouting, download, local execution testing, re-scouting, Evidence generation, branch/PR/test/document updates are authorized without another user prompt.
-- Approval is required only for login/additional permission, cost/paid GPU, external publication, destructive or hard-to-reverse change, secret rotation, production deployment, or another irreversible action.
+- Approval is required only for login/additional permission, cost/paid GPU, external publication, destructive or hard-to-reverse change, secret rotation/access, production deployment, or another irreversible action.
 
 ## Parallel active gate B — P0 complete automation recovery
 Authoritative sources:
@@ -42,23 +42,26 @@ The following recovery slices are already implemented on PR #37 and MUST NOT be 
 5. SQLite persistent queue + restart-safe state recovery + persisted source/callback metadata/evidence pointer.
 6. Watchdog stale-request recovery for `QUEUED`/`RUNNING`, with retry counter/error/attempt metadata; `EVIDENCE_READY` is excluded from scout rerun.
 7. Concrete GitHub Issue-comment callback transport with injected token/API boundary, sanitized non-2xx/network failures, and deterministic success/failure/retry integration tests.
+8. Approval-aware runtime validation boundary: safe/free/local/non-destructive work may run automatically; login/additional permission, paid cost, secret access/rotation, production deployment, external publication, destructive or other irreversible work transitions to `BLOCKED_APPROVAL`. `TESTED_PASS` requires a real output file and deterministic metadata/size/SHA-256 verification.
 
 Latest implementation commits:
+- `0d916c92050a134e6f73aabac0afd02cdf8929bf` — approval-aware runtime TESTED_PASS validation boundary.
+- `a7099309cb18ba01c43d0470914e9167ed2d5c75` — deterministic runtime Evidence / approval-boundary tests.
 - `1ab1d1092ea371cade6d436e335f5627929a5834` — concrete GitHub Issue-comment callback transport.
 - `d77d9251db199f3a0d98e1b2fe31dee460546e01` — transport boundary + delivery retry tests.
 - `b5c69519bed7fad7f00daf6cb08d019074d1590b` — SQLite persistent queue and stale requeue implementation.
 - `ef102ea996df0c199db93e03b653aa2ec5e24a3d` — persistence/restart/watchdog deterministic tests.
 
-Verified CI on `d77d9251db199f3a0d98e1b2fe31dee460546e01`:
-- tests `34810731755` — SUCCESS; pytest `75 passed, 1 warning`
-- hf-e2e `34810731703` — SUCCESS
-- cli-smoke `34810731706` — SUCCESS
+Verified CI on `a7099309cb18ba01c43d0470914e9167ed2d5c75`:
+- tests `34864857252` — SUCCESS; pytest `81 passed, 1 warning`
+- hf-e2e `34864857262` — SUCCESS
+- cli-smoke `34864857600` — SUCCESS
 
 ### Current exact next executable work
-1. Add the runtime-validation runner boundary for requests explicitly requiring execution Evidence. Safe/free/local/non-destructive work may auto-run; login/additional permission, cost/paid GPU, secret access/rotation, production deployment, external publication, destructive or other irreversible work must transition to `BLOCKED_APPROVAL`.
-2. Add deterministic tests proving `TESTED_PASS` cannot be produced without real runtime output/log/settings/runtime/hash Evidence and proving approval-gated requests are blocked without execution.
-3. Run a real cross-repo lifecycle proof using at least two project requests and record: source request -> discovery -> normalization/dedupe -> persistence -> queue -> dispatch -> evidence -> source callback -> `DELIVERED`.
-4. Exercise one duplicate request and one retryable failure/recovery path.
+1. Execute a real cross-repo lifecycle proof using at least two project requests and record: source request -> discovery -> normalization/dedupe -> persistence -> queue -> dispatch/runtime validation -> evidence -> source callback -> `DELIVERED`.
+2. Exercise one duplicate request and prove it is not executed twice.
+3. Exercise one retryable failure and prove watchdog/requeue recovery without rerunning already-`EVIDENCE_READY` work.
+4. Preserve exact source issue, fingerprint, queue states, callback Evidence, commit/PR/CI identifiers for the lifecycle proof.
 5. Keep AURA Issue #32 active in parallel; do not claim AURA `TESTED_PASS` without the real delivery package.
 
 ### Closeout definition
@@ -68,7 +71,8 @@ Required closeout Evidence:
 - code commits
 - deterministic persistence/watchdog/callback/approval/E2E tests
 - `tests + hf-e2e + cli-smoke` PASS on the final PR head
-- real cross-repo lifecycle Evidence
+- real cross-repo lifecycle Evidence from at least two project requests
+- duplicate-request and retryable-failure recovery Evidence
 - AURA runtime output Evidence for any `TESTED_PASS` claim
 
 ## Evidence-first operating rule
@@ -76,4 +80,4 @@ Required closeout Evidence:
 - If meaningful development Evidence is unchanged for two consecutive checks, audit in this order: repository/write permission -> remote branch/PR/commit and possible local-only work -> Actions/CI -> SSOT/handoff reachability -> integration owner/next-action trigger -> remote push/integration path.
 - Classify the exact verified cause and execute the smallest safe corrective action immediately when approval is not required.
 - Local-only work is `UNVERIFIED` until pushed.
-- Do not merge `main`, deploy Production, incur cost, rotate secrets, publish externally, or perform destructive changes without explicit user approval.
+- Do not merge `main`, deploy Production, incur cost, rotate/access secrets, publish externally, or perform destructive changes without explicit user approval.
