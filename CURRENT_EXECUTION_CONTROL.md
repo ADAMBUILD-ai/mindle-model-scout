@@ -30,7 +30,7 @@ Execution authority:
 ## Parallel active gate B — P0 complete automation recovery
 Authoritative sources:
 - Issue #36: `[P0 RECOVERY] Request ingestion + execution dispatcher + TESTED_PASS runner`
-- PR #37: `feat: add P0 request queue normalization and dedupe recovery slice`
+- PR #37: `feat: complete MODEL SCOUT P0 automation recovery foundation`
 - Branch: `recovery/request-ingestion-gate-20260913`
 
 ### Verified implemented Evidence
@@ -41,26 +41,25 @@ The following recovery slices are already implemented on PR #37 and MUST NOT be 
 4. Retry-safe callback-delivery state contract: `EVIDENCE_READY -> DELIVERED`; callback failure leaves the item at `EVIDENCE_READY` and does not rerun scout core.
 5. SQLite persistent queue + restart-safe state recovery + persisted source/callback metadata/evidence pointer.
 6. Watchdog stale-request recovery for `QUEUED`/`RUNNING`, with retry counter/error/attempt metadata; `EVIDENCE_READY` is excluded from scout rerun.
+7. Concrete GitHub Issue-comment callback transport with injected token/API boundary, sanitized non-2xx/network failures, and deterministic success/failure/retry integration tests.
 
 Latest implementation commits:
-- `1be5393da4de33c85d520f89e0bdff18cb71c087` — retry-safe source callback delivery.
-- `08826d088cd195c026d8220de6036709afc4548a` — callback delivery/retry tests; prior CI all PASS.
+- `1ab1d1092ea371cade6d436e335f5627929a5834` — concrete GitHub Issue-comment callback transport.
+- `d77d9251db199f3a0d98e1b2fe31dee460546e01` — transport boundary + delivery retry tests.
 - `b5c69519bed7fad7f00daf6cb08d019074d1590b` — SQLite persistent queue and stale requeue implementation.
 - `ef102ea996df0c199db93e03b653aa2ec5e24a3d` — persistence/restart/watchdog deterministic tests.
 
-Prior verified CI on `08826d088...`:
-- tests `34791747433` — SUCCESS
-- hf-e2e `34791747422` — SUCCESS
-- cli-smoke `34791747413` — SUCCESS
-
-Fresh CI for the persistence/watchdog head is REQUIRED before that slice is accepted. Do not claim PASS until GitHub Actions reports it.
+Verified CI on `d77d9251db199f3a0d98e1b2fe31dee460546e01`:
+- tests `34810731755` — SUCCESS; pytest `75 passed, 1 warning`
+- hf-e2e `34810731703` — SUCCESS
+- cli-smoke `34810731706` — SUCCESS
 
 ### Current exact next executable work
-1. Wire a concrete GitHub issue-comment callback transport adapter to the existing callback delivery contract; test callback success/failure/retry against the transport boundary.
-2. Add runtime-validation runner boundary for requests explicitly requiring execution Evidence. Safe/free/local/non-destructive work may auto-run; approval-gated operations must transition to `BLOCKED_APPROVAL`.
+1. Add the runtime-validation runner boundary for requests explicitly requiring execution Evidence. Safe/free/local/non-destructive work may auto-run; login/additional permission, cost/paid GPU, secret access/rotation, production deployment, external publication, destructive or other irreversible work must transition to `BLOCKED_APPROVAL`.
+2. Add deterministic tests proving `TESTED_PASS` cannot be produced without real runtime output/log/settings/runtime/hash Evidence and proving approval-gated requests are blocked without execution.
 3. Run a real cross-repo lifecycle proof using at least two project requests and record: source request -> discovery -> normalization/dedupe -> persistence -> queue -> dispatch -> evidence -> source callback -> `DELIVERED`.
 4. Exercise one duplicate request and one retryable failure/recovery path.
-5. Only after code Evidence exists, refresh this file again with exact commit/CI/lifecycle Evidence.
+5. Keep AURA Issue #32 active in parallel; do not claim AURA `TESTED_PASS` without the real delivery package.
 
 ### Closeout definition
 MODEL SCOUT is NOT complete until a development team can place a valid request in its own configured repository and receive verified scout/runtime Evidence back without manual mirroring, manual assignment, manual requeue, or user intervention for safe/free work.
