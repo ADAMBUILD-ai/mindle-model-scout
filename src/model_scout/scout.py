@@ -117,7 +117,7 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
 
 
 def _query_plan(profile: dict[str, Any]) -> list[str]:
-    values = [profile.get("query"), *(profile.get("fallback_queries") or []), profile.get("task_hint")]
+    values = [profile.get("query"), profile.get("task_hint")]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
 
 
@@ -167,7 +167,6 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
         "query_plan": query_plan,
         "resource_type": resource_type,
         "requirement_profile": profile,
-        "semantic_intent": profile.get("semantic_intent"),
         "searched_candidate_count": len(models),
         "candidate_count": len(candidates),
         "candidates": [asdict(c) for c in candidates],
