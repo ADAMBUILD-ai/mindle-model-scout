@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/run_fast_delivery.py'
       - 'scripts/post_fast_delivery_callback.py'
+      - 'src/model_scout/delivery_ledger.py'
       - '.github/workflows/fast-delivery.yml'
   workflow_dispatch:
 
@@ -29,9 +30,9 @@ jobs:
           python -m pip install "transformers==4.57.3" "huggingface_hub==0.36.2" safetensors
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
       - name: Execute degraded-autonomy FAST DELIVERY
-        run: python scripts/run_fast_delivery.py
+        run: PYTHONPATH=. python scripts/run_fast_delivery.py
       - name: Callback delivered evidence to AGRI
-        run: python scripts/post_fast_delivery_callback.py
+        run: PYTHONPATH=. python scripts/post_fast_delivery_callback.py
       - name: Upload FAST DELIVERY evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -41,4 +42,5 @@ jobs:
             fast-delivery-evidence.json
             fast-delivery-korean-embedding.json
             fast-delivery-callback.json
+            fast-delivery-ledger.sqlite3
           if-no-files-found: warn
