@@ -132,6 +132,8 @@ def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
     intent = profile.get("semantic_intent")
     if not str(intent or "").startswith("3d_"):
         return True
+    if candidate.get("pipeline_tag") in {"text-to-image", "image-to-3d"}:
+        return False
     values: Iterable[object] = (
         candidate.get("model_id"),
         candidate.get("pipeline_tag"),
