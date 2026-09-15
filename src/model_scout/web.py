@@ -94,7 +94,6 @@ def ui_index_html() -> str:
     <form id=\"search-form\">
       <div class=\"row\">
         <label>query<input id=\"query\" type=\"text\" placeholder=\"e.g. commercial tts\" required /></label>
-        <label>api key<input id=\"api-key\" type=\"password\" placeholder=\"if required\" autocomplete=\"off\" /></label>
         <label>resource
           <select id=\"resource\">
             <option value=\"model\" selected>model</option>
@@ -106,6 +105,7 @@ def ui_index_html() -> str:
         <label>limit<input id=\"limit\" type=\"number\" min=\"1\" max=\"100\" value=\"10\" /></label>
         <button id=\"run-btn\" type=\"submit\">Search</button>
       </div>
+      <p id=\"auth-help\">Search runs through the server-managed MODEL SCOUT connection. Leave credentials out of this page; never enter a Hugging Face password here.</p>
     </form>
     <div id=\"error\" class=\"error hidden\"></div>
     <div id=\"status\"></div>
@@ -119,7 +119,7 @@ def ui_index_html() -> str:
       <h2>Comparison</h2>
       <table id=\"comparison\">
         <thead>
-          <tr><th>candidate</th><th>type</th><th>license</th><th>score</th><th>status</th><th>downloads</th><th>source</th></tr>
+          <tr><th>candidate</th><th>type</th><th>license</th><th>score</th><th>status</th><th>downloads</th><th>download</th><th>source</th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -136,7 +136,6 @@ def ui_index_html() -> str:
     const form = document.getElementById("search-form");
     const queryInput = document.getElementById("query");
     const resourceInput = document.getElementById("resource");
-    const apiKeyInput = document.getElementById("api-key");
     const limitInput = document.getElementById("limit");
     const runButton = document.getElementById("run-btn");
     const errorEl = document.getElementById("error");
@@ -195,8 +194,8 @@ def ui_index_html() -> str:
       comparisonEmpty.classList.toggle("hidden", rows.length > 0);
       for (const row of rows) {
         const tr = document.createElement("tr");
-        const href = row.model_id ? `https://huggingface.co/${row.resource_type === "dataset" ? "datasets/" : row.resource_type === "space" ? "spaces/" : ""}${row.model_id}` : "";
-        tr.innerHTML = `<td>${escapeHtml(row.model_id || "")}</td><td>${escapeHtml(row.resource_type || "")}</td><td>${escapeHtml(row.license || "UNKNOWN")}</td><td>${row.score || 0}</td><td>${escapeHtml(row.status || "")}</td><td>${row.downloads || 0}</td><td>${href ? `<a href=\"${href}\" target=\"_blank\">open</a>` : "-"}</td>`;
+        const href = row.source_url || (row.model_id ? `https://huggingface.co/${row.resource_type === "dataset" ? "datasets/" : row.resource_type === "space" ? "spaces/" : ""}${row.model_id}` : "");
+        tr.innerHTML = `<td>${escapeHtml(row.model_id || "")}</td><td>${escapeHtml(row.resource_type || "")}</td><td>${escapeHtml(row.license || "UNKNOWN")}</td><td>${row.score || 0}</td><td>${escapeHtml(row.status || "")}</td><td>${row.downloads || 0}</td><td>${escapeHtml(row.download_status || "SOURCE_ONLY")}</td><td>${href ? `<a href=\"${escapeHtml(href)}\" target=\"_blank\">open</a>` : "-"}</td>`;
         tbody.appendChild(tr);
       }
     }
@@ -214,10 +213,6 @@ def ui_index_html() -> str:
         resource: resourceInput.value,
         limit: limitInput.value || "10",
       });
-      if (apiKeyInput.value) {
-        params.set("api_key", apiKeyInput.value.trim());
-      }
-
       try {
         const response = await fetch(`/api/search?${params.toString()}`);
         const bodyText = await response.text();
@@ -228,7 +223,7 @@ def ui_index_html() -> str:
           throw new Error("Response was not valid JSON");
         }
         if (!response.ok) {
-          throw new Error((data && data.error) || `Request failed with status ${response.status}`);
+          throw new Error((data && (data.detail || data.error)) || `Request failed with status ${response.status}`);
         }
         renderRecommendation(data);
         renderComparison(data);
