@@ -9,6 +9,10 @@ def test_ui_index_has_required_inputs():
     assert 'id="query"' in page
     assert 'id="resource"' in page
     assert 'id="limit"' in page
+    assert 'id="api-key"' not in page
+    assert "params.set(\"api_key\"" not in page
+    assert "server-managed MODEL SCOUT connection" in page
+    assert "never enter a Hugging Face password here" in page
     assert "Top recommendation" in page
     assert "Comparison" in page
     assert "License / status" in page

@@ -80,3 +80,15 @@ def test_scout_get_and_post_require_api_key_when_enabled(monkeypatch):
     assert payload["response"]["candidate_count"] == 2
     assert payload["response"]["top_n"] == 5
     assert payload["response"]["shortlist"][0]["model_id"] == "test/model-a"
+
+
+def test_web_search_uses_server_managed_connection_when_service_api_is_protected(monkeypatch):
+    monkeypatch.setenv("MODEL_SCOUT_API_KEY", "secret")
+    with patch("src.model_scout_api.main.run_scout_core", return_value=_mock_scout_result()):
+        with TestClient(app) as client:
+            response = client.get("/api/search?query=bert&limit=3")
+
+    assert response.status_code == 200
+    assert response.json()["candidate_count"] == 2
+    assert response.json()["comparison"][0]["source_url"] == "https://huggingface.co/test/model-a"
+    assert response.json()["comparison"][0]["download_status"] == "SOURCE_ONLY"

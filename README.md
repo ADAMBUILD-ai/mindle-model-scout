@@ -108,8 +108,9 @@ python -m uvicorn src.model_scout_api.main:app --host 0.0.0.0 --port 8080
 
 ### 인증
 
-- `MODEL_SCOUT_API_KEY`를 설정하면 `X-API-KEY` 헤더가 필수입니다.
-- 미설정 시 `/health`는 공개, API 라우트는 보호되지 않습니다.
+- `MODEL_SCOUT_API_KEY`를 설정하면 프로그램용 `/v1/*` API에 `X-API-KEY` 헤더가 필수입니다.
+- 배포 웹 UI의 `/api/search`는 서버가 관리하는 검색 경로입니다. 브라우저에서 API key 또는 Hugging Face 비밀번호를 입력하거나 URL에 넣지 않습니다.
+- 미설정 시 `/health`와 `/v1/*` API는 보호되지 않습니다.
 
 자세한 통합 가이드는 [`docs/API.md`](docs/API.md)를 참조하세요.
 ## Local Web UI

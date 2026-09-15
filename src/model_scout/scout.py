@@ -43,6 +43,7 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
         tags = []
     return {
         "model_id": raw.get("modelId") or raw.get("id") or "",
+        "source_url": f"https://huggingface.co/{raw.get('modelId') or raw.get('id')}" if raw.get("modelId") or raw.get("id") else None,
         "pipeline_tag": raw.get("pipeline_tag"),
         "downloads": int(raw.get("downloads") or 0),
         "likes": int(raw.get("likes") or 0),
