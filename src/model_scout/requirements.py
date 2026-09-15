@@ -53,7 +53,7 @@ def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | 
         return (
             "3d rendering gltf",
             "3d_rendering",
-            ["glb gltf 3d scene", "3d render provider blender"],
+            ["glb gltf 3d scene", "3d"],
         )
     return normalized, None, []
 

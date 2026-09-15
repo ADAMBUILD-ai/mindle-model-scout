@@ -73,7 +73,7 @@ def test_3d_requests_retry_with_three_structured_queries_and_reject_irrelevant_r
 
     def fake_resource_search(resource, query, limit):
         calls.append((resource, query))
-        if resource == "space" and query == "3d render provider blender":
+        if resource == "space" and query == "3d":
             return [{
                 **_model("acme/blender-3d-render", None, "mit", 20, 2),
                 "resource_type": "space",
