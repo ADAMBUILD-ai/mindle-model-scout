@@ -1,12 +1,11 @@
-"""Emit evidence for the required live Hugging Face model-search sequence."""
+"""Record live Hugging Face search evidence without downloading weights."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from src.model_scout.report import build_report
-from src.model_scout.scout import scout
+from src.model_scout.scout import search_huggingface
 
 
 SEARCH_STAGES = (
@@ -20,12 +19,19 @@ SEARCH_STAGES = (
 def main() -> None:
     stages = []
     for stage, query in SEARCH_STAGES:
-        result = scout(query, limit=10)
-        report = build_report(result, top_n=3)
-        comparison = report["comparison"]
-        if not comparison:
+        models = search_huggingface(query, limit=10, timeout=30)
+        candidates = [
+            {
+                "model_id": model["model_id"],
+                "license": model["license"],
+                "source_url": model["source_url"],
+                "download_status": "SOURCE_ONLY",
+            }
+            for model in models[:3]
+        ]
+        if not candidates:
             raise RuntimeError(f"{stage} returned no candidates")
-        stages.append({"stage": stage, "query": query, "candidate_count": result["candidate_count"], "candidates": comparison})
+        stages.append({"stage": stage, "query": query, "candidate_count": len(models), "candidates": candidates})
 
     Path("model-scout-search-evidence.json").write_text(
         json.dumps({"stages": stages}, ensure_ascii=False, indent=2) + "\n",
