@@ -1,1 +1,35 @@
-"""Post a verified FAST DELIVERY callback using the already-approved cross-repo token."""  from __future__ import annotations  import json import os import urllib.request from pathlib import Path   def main() -> int:     evidence = json.loads(Path("fast-delivery-evidence.json").read_text(encoding="utf-8"))     if evidence.get("status") != "TESTED_PASS":         raise SystemExit("FAST DELIVERY evidence is not TESTED_PASS")     token = os.environ.get("GITHUB_TOKEN")     if not token:         raise SystemExit("GITHUB_TOKEN is required for callback delivery")     body = "## MODEL SCOUT FAST DELIVERY — DELIVERED\n\n"     body += "`REQUESTED -> FOUND -> DOWNLOADED -> TESTED_PASS -> DELIVERED`\n\n"     body += "```json\n" + json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n```\n"     request = urllib.request.Request(         "https://api.github.com/repos/ADAMBUILD-ai/agri-ai-business-platform/issues/23/comments",         data=json.dumps({"body": body}).encode("utf-8"),         headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "mindle-model-scout"},         method="POST",     )     with urllib.request.urlopen(request, timeout=30) as response:         callback = json.load(response)     Path("fast-delivery-callback.json").write_text(json.dumps({"issue_comment_url": callback["html_url"], "comment_id": callback["id"]}, indent=2) + "\n", encoding="utf-8")     print(json.dumps({"delivered": True, "issue_comment_url": callback["html_url"]}))     return 0   if __name__ == "__main__":     raise SystemExit(main())
+"""Post a verified FAST DELIVERY callback using the already-approved cross-repo token."""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.request
+from pathlib import Path
+
+
+def main() -> int:
+    evidence = json.loads(Path("fast-delivery-evidence.json").read_text(encoding="utf-8"))
+    if evidence.get("status") != "TESTED_PASS":
+        raise SystemExit("FAST DELIVERY evidence is not TESTED_PASS")
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise SystemExit("GITHUB_TOKEN is required for callback delivery")
+    body = "## MODEL SCOUT FAST DELIVERY — DELIVERED\n\n"
+    body += "`REQUESTED -> FOUND -> DOWNLOADED -> TESTED_PASS -> DELIVERED`\n\n"
+    body += "```json\n" + json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n```\n"
+    request = urllib.request.Request(
+        "https://api.github.com/repos/ADAMBUILD-ai/agri-ai-business-platform/issues/23/comments",
+        data=json.dumps({"body": body}).encode("utf-8"),
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "mindle-model-scout"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        callback = json.load(response)
+    Path("fast-delivery-callback.json").write_text(json.dumps({"issue_comment_url": callback["html_url"], "comment_id": callback["id"]}, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"delivered": True, "issue_comment_url": callback["html_url"]}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
