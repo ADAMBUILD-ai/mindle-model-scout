@@ -23,7 +23,9 @@ jobs:
       - name: Record required MODEL SCOUT search sequence
         run: python scripts/run_live_model_scout_sequence.py
       - name: Upload MODEL SCOUT search evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: model-scout-search-evidence
           path: model-scout-search-evidence.json
+          if-no-files-found: error
