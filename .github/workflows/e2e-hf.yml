@@ -24,7 +24,7 @@ jobs:
       - name: Download and validate SAM 2.1 safe weight
         run: python scripts/run_sam21_mission.py
       - name: Run SAM 2.1 image segmentation smoke
-        run: python scripts/run_sam21_inference.py
+        run: python scripts/run_sam21_cpu_inference.py
       - name: Upload MODEL SCOUT evidence
         if: always()
         uses: actions/upload-artifact@v4
