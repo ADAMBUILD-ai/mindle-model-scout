@@ -123,7 +123,7 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
 
 def _search_types(profile: dict[str, Any], resource_type: str) -> tuple[str, ...]:
     if profile.get("semantic_intent") == "3d_rendering":
-        # A render provider is commonly a Space or dataset rather than a pipeline-tagged model.
+        # A render provider is commonly a Space or model rather than a pipeline-tagged model.
         return SUPPORTED_RESOURCE_TYPES
     return SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
 
@@ -131,6 +131,15 @@ def _search_types(profile: dict[str, Any], resource_type: str) -> tuple[str, ...
 def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
     if profile.get("semantic_intent") != "3d_rendering":
         return True
+
+    # The ADAM Stage 4 request is specifically for a renderer/provider that can consume
+    # an existing scene/GLB/GLTF. Generic "3D" datasets, image-to-3D generators, and
+    # text-to-image LoRAs must not satisfy this gate merely because their metadata says 3D.
+    if str(candidate.get("resource_type") or "model").casefold() == "dataset":
+        return False
+    if str(candidate.get("pipeline_tag") or "").casefold() in {"image-to-3d", "text-to-image"}:
+        return False
+
     values: Iterable[object] = (
         candidate.get("model_id"),
         candidate.get("pipeline_tag"),
@@ -142,8 +151,8 @@ def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
         for value in values
     ).casefold()
     return any(term in haystack for term in (
-        "3d", "glb", "gltf", "mesh", "render", "scene", "blender", "nerf",
-        "point", "tripo", "shape", "instantmesh", "hunyuan",
+        "render", "renderer", "blender", "gltf", "glb", "pbr", "raytrace", "ray-trace",
+        "ray tracing", "rasterizer", "rasterization", "scene-render", "scene render",
     ))
 
 
