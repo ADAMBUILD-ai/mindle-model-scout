@@ -23,8 +23,7 @@ jobs:
       MODEL_SCOUT_STATE_DIR: .model-scout-state
       MODEL_SCOUT_LIMIT: '10'
       MODEL_SCOUT_E2E_CASE: 20260915-agri23-adam38
-      PYTHONPATH: .
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      MODEL_SCOUT_CROSS_REPO_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,12 +31,13 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt
       - name: Run live cross-repo MODEL SCOUT lifecycle
-        shell: bash
         run: |
-          set -o pipefail
-          python scripts/run_live_cross_repo_cycle.py | tee live-cross-repo-evidence.json
+          if [ -z "$MODEL_SCOUT_CROSS_REPO_TOKEN" ]; then
+            echo "::error title=Cross-repository token required::Set MODEL_SCOUT_CROSS_REPO_TOKEN to a token with Issues read/write access to the configured private source repositories."
+            exit 1
+          fi
+          GITHUB_TOKEN="$MODEL_SCOUT_CROSS_REPO_TOKEN" python scripts/run_live_cross_repo_cycle.py | tee live-cross-repo-evidence.json
       - name: Upload lifecycle evidence
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: model-scout-live-cross-repo-evidence
