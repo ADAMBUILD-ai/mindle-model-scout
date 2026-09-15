@@ -1,20 +1,67 @@
-import hashlib,json,sys,urllib.parse,urllib.request
+import hashlib
+import json
+import sys
+import urllib.parse
+import urllib.request
 from pathlib import Path
-OUT=Path("sam21-mission-evidence.json"); OK={"apache-2.0","mit","bsd-3-clause","bsd-2-clause"}
-def get(url):
-    with urllib.request.urlopen(url,timeout=60) as r:return json.load(r)
+
+import onnx
+
+OUT = Path("sam21-mission-evidence.json")
+COMMERCIAL_LICENSES = {"apache-2.0", "mit", "bsd-3-clause", "bsd-2-clause"}
+
+
+def get_json(url):
+    with urllib.request.urlopen(url, timeout=60) as response:
+        return json.load(response)
+
+
 def main():
-    e={"status":"BLOCKED"}
+    evidence = {"status": "BLOCKED"}
     try:
-        for m in get("https://huggingface.co/api/models?search=sam2%20onnx&limit=20&full=true"):
-            repo=m.get("modelId") or m.get("id"); lic=next((x[8:] for x in m.get("tags",[]) if x.startswith("license:")),None)
-            if lic not in OK: continue
-            meta=get("https://huggingface.co/api/models/"+urllib.parse.quote(repo,safe="/")); sha=meta.get("sha"); files=[x for x in meta.get("siblings",[]) if x.get("rfilename","").endswith((".onnx",".safetensors"))]
-            if not files: continue
-            f=min(files,key=lambda x:x.get("size",10**18)); name=f["rfilename"]; dest=Path("weight"+Path(name).suffix); h=hashlib.sha256(); size=0
-            with urllib.request.urlopen(f"https://huggingface.co/{repo}/resolve/{sha}/{urllib.parse.quote(name)}",timeout=120) as r, dest.open("wb") as w:
-                while chunk:=r.read(1048576):h.update(chunk);w.write(chunk);size+=len(chunk)
-            e={"status":"DOWNLOADED","repo_id":repo,"revision":sha,"license":lic,"source_url":f"https://huggingface.co/{repo}","weight_filename":name,"file_format":dest.suffix,"file_size":size,"sha256":h.hexdigest(),"safe_loader":"ONNX_OR_SAFETENSORS_NO_REMOTE_CODE_EXECUTED"};break
-    except Exception as x:e["error_type"]=type(x).__name__
-    OUT.write_text(json.dumps(e,indent=2)+"\n");print(json.dumps(e));sys.exit(e["status"]!="DOWNLOADED")
-if __name__=="__main__":main()
+        models = get_json("https://huggingface.co/api/models?search=sam2%20onnx&limit=20&full=true")
+        for model in models:
+            repository = model.get("modelId") or model.get("id")
+            license_name = next((tag[8:] for tag in model.get("tags", []) if tag.startswith("license:")), None)
+            if license_name not in COMMERCIAL_LICENSES:
+                continue
+            metadata = get_json("https://huggingface.co/api/models/" + urllib.parse.quote(repository, safe="/"))
+            revision = metadata.get("sha")
+            files = [file for file in metadata.get("siblings", []) if file.get("rfilename", "").endswith((".onnx", ".safetensors"))]
+            if not files:
+                continue
+            selected = min(files, key=lambda file: file.get("size", 10**18))
+            filename = selected["rfilename"]
+            destination = Path("weight" + Path(filename).suffix)
+            digest = hashlib.sha256()
+            size = 0
+            url = f"https://huggingface.co/{repository}/resolve/{revision}/{urllib.parse.quote(filename)}"
+            with urllib.request.urlopen(url, timeout=120) as response, destination.open("wb") as output:
+                while chunk := response.read(1024 * 1024):
+                    digest.update(chunk)
+                    output.write(chunk)
+                    size += len(chunk)
+            loaded = onnx.load_model(str(destination), load_external_data=False)
+            onnx.checker.check_model(loaded)
+            evidence = {
+                "status": "DOWNLOADED_AND_ONNX_VALIDATED",
+                "repo_id": repository,
+                "revision": revision,
+                "license": license_name,
+                "source_url": f"https://huggingface.co/{repository}",
+                "weight_filename": filename,
+                "file_format": destination.suffix,
+                "file_size": size,
+                "sha256": digest.hexdigest(),
+                "safe_loader": "ONNX_GRAPH_VALIDATED_NO_REMOTE_CODE_EXECUTED",
+            }
+            break
+    except Exception as error:
+        evidence["error_type"] = type(error).__name__
+    OUT.write_text(json.dumps(evidence, indent=2) + "\n")
+    print(json.dumps(evidence))
+    sys.exit(evidence["status"] != "DOWNLOADED_AND_ONNX_VALIDATED")
+
+
+if __name__ == "__main__":
+    main()
