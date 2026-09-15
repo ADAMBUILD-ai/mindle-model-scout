@@ -1,0 +1,40 @@
+name: live-cross-repo-e2e
+
+on:
+  push:
+    branches:
+      - recovery/request-ingestion-gate-20260913
+    paths:
+      - 'scripts/run_live_cross_repo_cycle.py'
+      - 'src/model_scout/**'
+      - '.github/workflows/live-cross-repo-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live-cross-repo-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODEL_SCOUT_CONFIGURED_REPOS: ADAMBUILD-ai/agri-ai-business-platform,ADAMBUILD-ai/adam-build
+      MODEL_SCOUT_STATE_DIR: .model-scout-state
+      MODEL_SCOUT_LIMIT: '10'
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Run live cross-repo MODEL SCOUT lifecycle
+        run: python scripts/run_live_cross_repo_cycle.py | tee live-cross-repo-evidence.json
+      - name: Upload lifecycle evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-live-cross-repo-evidence
+          path: |
+            live-cross-repo-evidence.json
+            .model-scout-state/
