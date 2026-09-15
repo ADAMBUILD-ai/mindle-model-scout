@@ -16,7 +16,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt pytest onnx "transformers==4.57.3" pillow
-          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Run live Hugging Face E2E smoke tests
         run: python -m pytest -q tests/test_hf_e2e.py tests/test_api_hf_e2e.py
       - name: Record required MODEL SCOUT search sequence
