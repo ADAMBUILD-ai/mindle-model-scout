@@ -118,8 +118,12 @@ def ui_search(
     query: str = Query(..., min_length=1),
     limit: int = Query(10, ge=1, le=100),
     resource: ResourceType = Query("model"),
-    _: None = Depends(require_api_key),
 ):
+    """Serve searches initiated by the same-origin web interface.
+
+    The browser UI never receives or transmits the service API key. Programmatic
+    clients continue to use the protected ``/v1/scout`` endpoints.
+    """
     request = ScoutRequest(query=query, limit=limit, top_n=min(limit, 20), resource=resource)
     return _build_scout_payload(request)
 

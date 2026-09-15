@@ -20,7 +20,10 @@ def build_report(result: dict[str, Any], top_n: int = 5) -> dict[str, Any]:
             if c.get("status") in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED"}
         ],
         "comparison": [
-            {key: candidate.get(key) for key in ("model_id", "resource_type", "pipeline_tag", "license", "downloads", "likes", "library_name", "score", "status", "reason")}
+            {
+                **{key: candidate.get(key) for key in ("model_id", "resource_type", "pipeline_tag", "license", "downloads", "likes", "library_name", "score", "status", "reason", "source_url")},
+                "download_status": "SOURCE_ONLY",
+            }
             for candidate in candidates
         ],
     }
