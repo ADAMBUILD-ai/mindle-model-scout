@@ -28,28 +28,28 @@ def _contains_keyword(lowered: str, keyword: str) -> bool:
 
 
 def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | None, list[str]]:
-    """Collapse long 3D work orders into stable, intent-specific search terms."""
-    placement_terms = (
-        "placement drawing",
-        "building footprint",
-        "footprint",
-        "transform assist",
-        "scene placement",
-        "placement",
-        "배치도",
-        "배치",
-    )
+    """Classify 3D work orders while preserving the stable primary 3D search query."""
     context_terms = (
         "context modeling",
         "surrounding buildings",
         "surrounding context",
         "terrain context",
+        "terrain/context",
         "terrain",
         "surrounding",
         "context model",
         "주변 건물",
         "지형",
         "컨텍스트",
+    )
+    placement_terms = (
+        "placement drawing",
+        "building footprint",
+        "footprint",
+        "transform assist",
+        "scene placement",
+        "배치도",
+        "배치",
     )
     rendering_terms = (
         "glb",
@@ -67,17 +67,19 @@ def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | 
         "렌더링",
     )
 
-    if any(_contains_keyword(lowered, term) for term in placement_terms):
-        return (
-            "3d scene placement transform",
-            "3d_placement",
-            ["building footprint placement", "blender three.js scene placement"],
-        )
+    # Strong context markers take precedence over incidental mentions such as
+    # "Stage 3 placement" in a context-modeling work order.
     if any(_contains_keyword(lowered, term) for term in context_terms):
         return (
-            "3d terrain context scene",
+            "3d rendering gltf",
             "3d_context",
-            ["surrounding buildings terrain", "blender three.js terrain scene"],
+            ["3d terrain context scene", "surrounding buildings terrain"],
+        )
+    if any(_contains_keyword(lowered, term) for term in placement_terms):
+        return (
+            "3d rendering gltf",
+            "3d_placement",
+            ["3d scene placement transform", "building footprint placement"],
         )
     if any(_contains_keyword(lowered, term) for term in rendering_terms):
         return (
