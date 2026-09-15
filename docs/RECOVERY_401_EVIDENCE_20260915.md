@@ -22,4 +22,4 @@
 
 ## Deployment boundary
 
-This branch has not been pushed, merged, or deployed. Production deployment remains an explicit approval gate.
+This branch is not merged or deployed. Production deployment remains an explicit approval gate.
