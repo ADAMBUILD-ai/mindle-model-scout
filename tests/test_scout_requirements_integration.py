@@ -92,3 +92,21 @@ def test_3d_requests_retry_with_three_structured_queries_and_reject_irrelevant_r
     assert result["searched_resource_types"] == ["model", "dataset", "space"]
     assert [attempt["semantic_match"] for attempt in result["attempts"]] == ["REJECT", "REJECT", "PASS"]
     assert result["candidates"][0]["model_id"] == "acme/blender-3d-render"
+
+
+def test_3d_render_gate_rejects_generic_3d_and_wrong_direction_candidates(monkeypatch):
+    generic_models = [
+        _model("keras-io/3D_CNN_Pneumonia", None, "mit", 0, 5),
+        _model("YipengGao/3DCode", None, "mit", 90000, 25),
+        _model("stabilityai/stable-fast-3d", "image-to-3d", "mit", 10000, 100),
+        _model("wkplhc/3dRender", "text-to-image", "mit", 54, 2),
+    ]
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda query, limit: generic_models)
+    monkeypatch.setattr(scout_module, "search_resource", lambda resource, query, limit: [])
+
+    result = scout_module.scout("Find a GLB/GLTF render provider for an existing 3D scene", resource_type="model")
+
+    assert result["candidate_count"] == 0
+    assert result["semantic_match"] == "REJECT"
+    assert result["success_gate"] is False
+    assert [attempt["semantic_match"] for attempt in result["attempts"]] == ["REJECT", "REJECT", "REJECT"]
