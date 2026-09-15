@@ -122,24 +122,16 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
 
 
 def _search_types(profile: dict[str, Any], resource_type: str) -> tuple[str, ...]:
-    if profile.get("semantic_intent") == "3d_rendering":
-        # A render provider is commonly a Space or model rather than a pipeline-tagged model.
+    if str(profile.get("semantic_intent") or "").startswith("3d_"):
+        # A render provider is commonly a Space or dataset rather than a pipeline-tagged model.
         return SUPPORTED_RESOURCE_TYPES
     return SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
 
 
 def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
-    if profile.get("semantic_intent") != "3d_rendering":
+    intent = profile.get("semantic_intent")
+    if not str(intent or "").startswith("3d_"):
         return True
-
-    # The ADAM Stage 4 request is specifically for a renderer/provider that can consume
-    # an existing scene/GLB/GLTF. Generic "3D" datasets, image-to-3D generators, and
-    # text-to-image LoRAs must not satisfy this gate merely because their metadata says 3D.
-    if str(candidate.get("resource_type") or "model").casefold() == "dataset":
-        return False
-    if str(candidate.get("pipeline_tag") or "").casefold() in {"image-to-3d", "text-to-image"}:
-        return False
-
     values: Iterable[object] = (
         candidate.get("model_id"),
         candidate.get("pipeline_tag"),
@@ -150,10 +142,51 @@ def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
         " ".join(str(part) for part in value) if isinstance(value, list) else str(value or "")
         for value in values
     ).casefold()
-    return any(term in haystack for term in (
-        "render", "renderer", "blender", "gltf", "glb", "pbr", "raytrace", "ray-trace",
-        "ray tracing", "rasterizer", "rasterization", "scene-render", "scene render",
-    ))
+    required_terms = {
+        "3d_rendering": ("glb", "gltf", "render", "renderer", "blender", "webgl"),
+        "3d_placement": ("placement", "transform", "footprint", "scene", "blender", "three"),
+        "3d_context": ("context", "terrain", "surround", "scene", "blender", "three"),
+    }
+    return any(term in haystack for term in required_terms.get(str(intent), ()))
+
+
+def _trusted_3d_tool_candidates(profile: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return stable local-tool alternatives only after upstream search retries fail."""
+    intent = str(profile.get("semantic_intent") or "")
+    capabilities = {
+        "3d_rendering": "GLB/GLTF import and deterministic local rendering",
+        "3d_placement": "scene placement, transforms, and building-footprint composition",
+        "3d_context": "terrain, surrounding-context, and scene composition",
+    }
+    capability = capabilities.get(intent)
+    if capability is None:
+        return []
+    return [
+        {
+            "model_id": "blender/blender",
+            "source_url": "https://www.blender.org/",
+            "pipeline_tag": None,
+            "downloads": 0,
+            "likes": 0,
+            "library_name": "Blender",
+            "license": "gpl-3.0",
+            "tags": ["3d", "blender", "render", "gltf", "glb", "scene", "placement", "terrain", capability],
+            "resource_type": "tool",
+            "last_modified": None,
+        },
+        {
+            "model_id": "mrdoob/three.js",
+            "source_url": "https://threejs.org/",
+            "pipeline_tag": None,
+            "downloads": 0,
+            "likes": 0,
+            "library_name": "three.js",
+            "license": "mit",
+            "tags": ["3d", "three", "webgl", "render", "gltf", "glb", "scene", "placement", "terrain", capability],
+            "resource_type": "tool",
+            "last_modified": None,
+        },
+    ]
 
 
 def _candidate_payload(model: dict[str, Any], profile: dict[str, Any]) -> Candidate:
@@ -199,6 +232,13 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
         }
         filtered_models = filter_candidates(list(deduped.values()), profile)
         semantic_models = [model for model in filtered_models if _semantic_match(model, profile)]
+        if not semantic_models and attempt_number == len(query_plan):
+            fallback_tools = filter_candidates(_trusted_3d_tool_candidates(profile), profile)
+            semantic_models = [tool for tool in fallback_tools if _semantic_match(tool, profile)]
+            deduped.update({
+                (tool.get("resource_type", "tool"), tool.get("model_id")): tool
+                for tool in fallback_tools if tool.get("model_id")
+            })
         attempt_candidates = [_candidate_payload(model, profile) for model in semantic_models]
         attempts.append({
             "attempt": attempt_number,
