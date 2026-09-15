@@ -22,6 +22,7 @@ jobs:
       MODEL_SCOUT_CONFIGURED_REPOS: ADAMBUILD-ai/agri-ai-business-platform,ADAMBUILD-ai/adam-build
       MODEL_SCOUT_STATE_DIR: .model-scout-state
       MODEL_SCOUT_LIMIT: '10'
+      MODEL_SCOUT_E2E_CASE: 20260915-agri23-adam38
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
