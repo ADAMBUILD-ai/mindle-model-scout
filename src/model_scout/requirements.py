@@ -28,8 +28,30 @@ def _contains_keyword(lowered: str, keyword: str) -> bool:
 
 
 def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | None, list[str]]:
-    """Collapse long 3D work orders into a stable Hugging Face search term."""
-    three_d_terms = (
+    """Collapse long 3D work orders into stable, intent-specific search terms."""
+    placement_terms = (
+        "placement drawing",
+        "building footprint",
+        "footprint",
+        "transform assist",
+        "scene placement",
+        "placement",
+        "배치도",
+        "배치",
+    )
+    context_terms = (
+        "context modeling",
+        "surrounding buildings",
+        "surrounding context",
+        "terrain context",
+        "terrain",
+        "surrounding",
+        "context model",
+        "주변 건물",
+        "지형",
+        "컨텍스트",
+    )
+    rendering_terms = (
         "glb",
         "gltf",
         "3d",
@@ -37,19 +59,27 @@ def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | 
         "scene composition",
         "render provider",
         "rendering assist",
-        "context modeling",
         "3d model",
         "3d asset",
-        "placement drawing",
-        "footprint",
-        "transform assist",
         "building artifact",
         "site artifact",
         "렌더",
         "렌더링",
-        "배치도",
     )
-    if any(_contains_keyword(lowered, term) for term in three_d_terms):
+
+    if any(_contains_keyword(lowered, term) for term in placement_terms):
+        return (
+            "3d scene placement transform",
+            "3d_placement",
+            ["building footprint placement", "blender three.js scene placement"],
+        )
+    if any(_contains_keyword(lowered, term) for term in context_terms):
+        return (
+            "3d terrain context scene",
+            "3d_context",
+            ["surrounding buildings terrain", "blender three.js terrain scene"],
+        )
+    if any(_contains_keyword(lowered, term) for term in rendering_terms):
         return (
             "3d rendering gltf",
             "3d_rendering",
