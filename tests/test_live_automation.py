@@ -99,14 +99,15 @@ def test_live_cycle_duplicate_source_request_executes_once(tmp_path, monkeypatch
         }
 
     monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", fake_scout)
-    run_live_cycle(
+    result = run_live_cycle(
         configured_repos=("ADAMBUILD-ai/adam-build",),
         state_dir=tmp_path,
         issue_source=source,
         callback_writer=writer,
     )
     assert len(calls) == 1
-    assert len(writer.calls) == 1
+    assert len(writer.calls) == 0
+    assert any(item.get("state") == "FAILED_RETRYABLE" for item in result)
 
 
 def test_live_cycle_callback_failure_is_retry_safe(tmp_path, monkeypatch):

@@ -50,6 +50,10 @@ def dispatch_one(
         result = scout_runner(running.request_text, limit, resource)
         if not isinstance(result, Mapping):
             raise TypeError("scout runner must return a mapping")
+        candidate_count = int(result.get("candidate_count") or 0)
+        semantic_match = str(result.get("semantic_match") or "PASS").upper()
+        if candidate_count <= 0 or semantic_match != "PASS":
+            raise ValueError("candidate_set_rejected: non-empty semantic_match PASS candidates are required")
     except Exception as exc:
         failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
         return {
@@ -75,5 +79,6 @@ def dispatch_one(
             "repo": ready.callback_repo,
             "issue": ready.callback_issue,
         },
+        "evidence_class": "LIVE_SOURCE_REQUEST",
         "result": dict(result),
     }

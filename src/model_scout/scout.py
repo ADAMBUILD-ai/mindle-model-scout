@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, Iterable
 
 from .filters import filter_candidates
 from .requirements import parse_requirement
@@ -117,8 +117,52 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
 
 
 def _query_plan(profile: dict[str, Any]) -> list[str]:
-    values = [profile.get("query"), profile.get("task_hint")]
+    values = [profile.get("query"), *(profile.get("fallback_queries") or []), profile.get("task_hint")]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
+
+
+def _search_types(profile: dict[str, Any], resource_type: str) -> tuple[str, ...]:
+    if profile.get("semantic_intent") == "3d_rendering":
+        # A render provider is commonly a Space or dataset rather than a pipeline-tagged model.
+        return SUPPORTED_RESOURCE_TYPES
+    return SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
+
+
+def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
+    if profile.get("semantic_intent") != "3d_rendering":
+        return True
+    values: Iterable[object] = (
+        candidate.get("model_id"),
+        candidate.get("pipeline_tag"),
+        candidate.get("tags"),
+        candidate.get("source_url"),
+    )
+    haystack = " ".join(
+        " ".join(str(part) for part in value) if isinstance(value, list) else str(value or "")
+        for value in values
+    ).casefold()
+    return any(term in haystack for term in (
+        "3d", "glb", "gltf", "mesh", "render", "scene", "blender", "nerf",
+        "point", "tripo", "shape", "instantmesh", "hunyuan",
+    ))
+
+
+def _candidate_payload(model: dict[str, Any], profile: dict[str, Any]) -> Candidate:
+    score, status, reason = score_model(model, profile)
+    return Candidate(
+        model["model_id"],
+        model["pipeline_tag"],
+        model["downloads"],
+        model["likes"],
+        model["library_name"],
+        model["license"],
+        score,
+        status,
+        reason,
+        model.get("resource_type", "model"),
+        model.get("source_url"),
+        model.get("last_modified"),
+    )
 
 
 def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str, Any]:
@@ -127,49 +171,54 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     profile = parse_requirement(query)
     query_plan = _query_plan(profile)
     search_query = _upstream_search_query(profile)
-    types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
+    types = _search_types(profile, resource_type)
+    attempts: list[dict[str, Any]] = []
+    candidates: list[Candidate] = []
     models: list[dict[str, Any]] = []
 
-    for kind in types:
-        for planned_query in query_plan:
+    for attempt_number, planned_query in enumerate(query_plan, start=1):
+        attempt_models: list[dict[str, Any]] = []
+        for kind in types:
             if kind == "model":
-                models.extend(search_huggingface(planned_query, limit))
+                attempt_models.extend(search_huggingface(planned_query, limit))
             else:
-                models.extend(search_resource(kind, planned_query, limit))
+                attempt_models.extend(search_resource(kind, planned_query, limit))
 
-    deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
-    models = list(deduped.values())
-    filtered_models = filter_candidates(models, profile)
+        deduped = {
+            (item.get("resource_type", "model"), item.get("model_id")): item
+            for item in attempt_models if item.get("model_id")
+        }
+        filtered_models = filter_candidates(list(deduped.values()), profile)
+        semantic_models = [model for model in filtered_models if _semantic_match(model, profile)]
+        attempt_candidates = [_candidate_payload(model, profile) for model in semantic_models]
+        attempts.append({
+            "attempt": attempt_number,
+            "query": planned_query,
+            "resource_types": list(types),
+            "searched_candidate_count": len(deduped),
+            "candidate_count": len(attempt_candidates),
+            "semantic_match": "PASS" if attempt_candidates else "REJECT",
+            "rejection_reason": None if attempt_candidates else "empty_or_semantically_irrelevant_candidate_set",
+        })
+        models.extend(deduped.values())
+        if attempt_candidates:
+            candidates = attempt_candidates
+            break
 
-    candidates = []
-    for model in filtered_models:
-        score, status, reason = score_model(model, profile)
-        candidates.append(
-            Candidate(
-                model["model_id"],
-                model["pipeline_tag"],
-                model["downloads"],
-                model["likes"],
-                model["library_name"],
-                model["license"],
-                score,
-                status,
-                reason,
-                model.get("resource_type", "model"),
-                model.get("source_url"),
-                model.get("last_modified"),
-            )
-        )
     candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))
     return {
         "query": query,
         "search_query": search_query,
         "query_plan": query_plan,
         "resource_type": resource_type,
+        "searched_resource_types": list(types),
         "requirement_profile": profile,
         "searched_candidate_count": len(models),
         "candidate_count": len(candidates),
         "candidates": [asdict(c) for c in candidates],
+        "semantic_match": "PASS" if candidates else "REJECT",
+        "success_gate": bool(candidates),
+        "attempts": attempts,
     }
 
 

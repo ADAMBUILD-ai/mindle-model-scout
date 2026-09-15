@@ -36,6 +36,19 @@ def test_dispatch_one_moves_queued_request_to_evidence_ready():
     assert queue.get(queued.fingerprint).state == QueueState.EVIDENCE_READY
 
 
+def test_dispatch_one_rejects_semantically_invalid_candidate_set():
+    queue, queued = _queued_request()
+
+    evidence = dispatch_one(
+        queue,
+        queued.fingerprint,
+        scout_runner=lambda *_args: {"candidate_count": 2, "semantic_match": "REJECT", "candidates": [{}, {}]},
+    )
+
+    assert evidence["state"] == QueueState.FAILED_RETRYABLE.value
+    assert "candidate_set_rejected" in evidence["error"]
+
+
 def test_dispatch_one_marks_runner_failure_retryable():
     queue, queued = _queued_request()
 
@@ -75,4 +88,5 @@ def test_dispatch_one_widens_tool_request_to_current_core_all_resource():
     assert calls[0][2] == "all"
     assert evidence["requested_resource"] == "tool"
     assert evidence["dispatched_resource"] == "all"
-    assert evidence["state"] == QueueState.EVIDENCE_READY.value
+    assert evidence["state"] == QueueState.FAILED_RETRYABLE.value
+    assert "candidate_set_rejected" in evidence["error"]

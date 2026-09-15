@@ -25,7 +25,7 @@ def test_cross_repo_cycle_delivers_once_and_dedupes(tmp_path: Path) -> None:
 
     def scout_runner(query: str, limit: int, resource: str):
         scout_calls.append((query, limit, resource))
-        return {"query": query, "resource_type": resource, "candidates": []}
+        return {"query": query, "resource_type": resource, "candidate_count": 1, "semantic_match": "PASS", "candidates": [{"model_id": "example/model"}]}
 
     def callback_writer(repo: str, issue: int, body: str):
         callbacks.append((repo, issue, body))
@@ -73,7 +73,7 @@ def test_callback_retry_uses_persisted_evidence_without_rerunning_scout(tmp_path
     def scout_runner(query: str, limit: int, resource: str):
         nonlocal scout_calls
         scout_calls += 1
-        return {"query": query, "resource_type": resource, "candidates": []}
+        return {"query": query, "resource_type": resource, "candidate_count": 1, "semantic_match": "PASS", "candidates": [{"model_id": "example/model"}]}
 
     def failing_writer(repo: str, issue: int, body: str):
         nonlocal callback_attempts

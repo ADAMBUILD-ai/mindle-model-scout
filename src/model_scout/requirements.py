@@ -15,6 +15,8 @@ class RequirementProfile:
     min_likes: int = 0
     languages: list[str] | None = None
     library_hint: str | None = None
+    semantic_intent: str | None = None
+    fallback_queries: list[str] | None = None
 
 
 def _contains_keyword(lowered: str, keyword: str) -> bool:
@@ -25,7 +27,7 @@ def _contains_keyword(lowered: str, keyword: str) -> bool:
     return value in lowered
 
 
-def _structured_search_query(normalized: str, lowered: str) -> str:
+def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | None, list[str]]:
     """Collapse long 3D work orders into a stable Hugging Face search term."""
     three_d_terms = (
         "glb",
@@ -48,8 +50,12 @@ def _structured_search_query(normalized: str, lowered: str) -> str:
         "배치도",
     )
     if any(_contains_keyword(lowered, term) for term in three_d_terms):
-        return "3d"
-    return normalized
+        return (
+            "3d rendering gltf",
+            "3d_rendering",
+            ["glb gltf 3d scene", "3d render provider blender"],
+        )
+    return normalized, None, []
 
 
 def parse_requirement(text: str) -> dict:
@@ -87,7 +93,7 @@ def parse_requirement(text: str) -> dict:
     if match:
         min_likes = int(match.group(1).replace(",", ""))
 
-    query = _structured_search_query(normalized, lowered)
+    query, semantic_intent, fallback_queries = _structured_search_query(normalized, lowered)
     languages = [lang for lang in ("korean", "한국어", "english", "영어", "multilingual", "다국어") if lang in lowered]
     library_hint = next((name for name in ("transformers", "diffusers", "sentence-transformers", "pytorch", "onnx") if name in lowered), None)
     return asdict(
@@ -101,5 +107,7 @@ def parse_requirement(text: str) -> dict:
             min_likes=min_likes,
             languages=languages,
             library_hint=library_hint,
+            semantic_intent=semantic_intent,
+            fallback_queries=fallback_queries,
         )
     )

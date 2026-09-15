@@ -89,6 +89,7 @@ def run_scout_cycle(
     scout_runner: ScoutRunner,
     callback_writer: CallbackWriter,
     limit: int = 10,
+    stale_after_seconds: float = 1800,
 ) -> list[dict[str, Any]]:
     """Run one deterministic cross-repo discovery -> scout -> callback cycle.
 
@@ -98,13 +99,18 @@ def run_scout_cycle(
     rerunning the scout core.
     """
 
+    requeue_stale = getattr(queue, "requeue_stale", None)
+    watchdog_requeued = requeue_stale(stale_after_seconds=stale_after_seconds) if callable(requeue_stale) else []
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
     fingerprints: list[str] = []
     for envelope in discovered:
         queued, _created = queue.enqueue(envelope)
         fingerprints.append(queued.fingerprint)
 
-    results: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = [
+        {"event": "watchdog_requeue", "fingerprint": fingerprint, "stale_after_seconds": stale_after_seconds}
+        for fingerprint in watchdog_requeued
+    ]
     for fingerprint in fingerprints:
         envelope = queue.get(fingerprint)
         if envelope is None:

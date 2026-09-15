@@ -45,6 +45,7 @@ def test_deliver_evidence_writes_source_callback_and_marks_delivered():
 
     def writer(repo, issue, body):
         calls.append((repo, issue, body))
+        return {"id": 72, "html_url": "https://github.test/issues/33#issuecomment-72"}
 
     result = deliver_evidence(queue, ready.fingerprint, evidence, writer=writer)
 
@@ -54,6 +55,7 @@ def test_deliver_evidence_writes_source_callback_and_marks_delivered():
     assert calls[0][0] == "ADAMBUILD-ai/agri-ai-business-platform"
     assert calls[0][1] == 33
     assert "MODEL SCOUT Evidence Callback" in calls[0][2]
+    assert result["callback"]["url"].endswith("issuecomment-72")
 
 
 def test_callback_transport_failure_keeps_evidence_ready_for_retry():
