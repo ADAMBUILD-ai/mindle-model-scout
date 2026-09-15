@@ -17,6 +17,41 @@ class RequirementProfile:
     library_hint: str | None = None
 
 
+def _contains_keyword(lowered: str, keyword: str) -> bool:
+    """Match ASCII task keywords on token/phrase boundaries, not substrings."""
+    value = keyword.lower()
+    if value.isascii():
+        return re.search(rf"(?<![a-z0-9]){re.escape(value)}(?![a-z0-9])", lowered) is not None
+    return value in lowered
+
+
+def _structured_search_query(normalized: str, lowered: str) -> str:
+    """Collapse long 3D work orders into a stable Hugging Face search term."""
+    three_d_terms = (
+        "glb",
+        "gltf",
+        "3d",
+        "3d scene",
+        "scene composition",
+        "render provider",
+        "rendering assist",
+        "context modeling",
+        "3d model",
+        "3d asset",
+        "placement drawing",
+        "footprint",
+        "transform assist",
+        "building artifact",
+        "site artifact",
+        "렌더",
+        "렌더링",
+        "배치도",
+    )
+    if any(_contains_keyword(lowered, term) for term in three_d_terms):
+        return "3d"
+    return normalized
+
+
 def parse_requirement(text: str) -> dict:
     normalized = " ".join(text.strip().split())
     lowered = normalized.lower()
@@ -36,7 +71,7 @@ def parse_requirement(text: str) -> dict:
         "image-to-text": ["image to text", "이미지 설명"],
     }
     for task, keywords in task_keywords.items():
-        if any(keyword in lowered for keyword in keywords):
+        if any(_contains_keyword(lowered, keyword) for keyword in keywords):
             task_hint = task
             break
 
@@ -52,7 +87,7 @@ def parse_requirement(text: str) -> dict:
     if match:
         min_likes = int(match.group(1).replace(",", ""))
 
-    query = normalized
+    query = _structured_search_query(normalized, lowered)
     languages = [lang for lang in ("korean", "한국어", "english", "영어", "multilingual", "다국어") if lang in lowered]
     library_hint = next((name for name in ("transformers", "diffusers", "sentence-transformers", "pytorch", "onnx") if name in lowered), None)
     return asdict(
