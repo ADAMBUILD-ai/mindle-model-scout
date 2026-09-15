@@ -94,19 +94,41 @@ def test_3d_requests_retry_with_three_structured_queries_and_reject_irrelevant_r
     assert result["candidates"][0]["model_id"] == "acme/blender-3d-render"
 
 
-def test_3d_render_gate_rejects_generic_3d_and_wrong_direction_candidates(monkeypatch):
+def test_3d_final_retry_uses_trusted_tools_not_generic_3d_results(monkeypatch):
+    generic = _model("acme/3d-dataset", None, "mit", 20, 2)
+    generic["tags"] = ["3d", "mesh"]
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: [generic])
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
+
+    result = scout_module.scout("Find a GLB/GLTF render provider for a 3D scene", resource_type="all")
+
+    assert [candidate["model_id"] for candidate in result["candidates"]] == ["blender/blender", "mrdoob/three.js"]
+    assert result["attempts"][-1]["candidate_count"] == 2
+
+
+def test_3d_render_gate_rejects_generic_and_wrong_direction_candidates(monkeypatch):
     generic_models = [
         _model("keras-io/3D_CNN_Pneumonia", None, "mit", 0, 5),
         _model("YipengGao/3DCode", None, "mit", 90000, 25),
         _model("stabilityai/stable-fast-3d", "image-to-3d", "mit", 10000, 100),
         _model("wkplhc/3dRender", "text-to-image", "mit", 54, 2),
     ]
-    monkeypatch.setattr(scout_module, "search_huggingface", lambda query, limit: generic_models)
-    monkeypatch.setattr(scout_module, "search_resource", lambda resource, query, limit: [])
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: generic_models)
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
 
     result = scout_module.scout("Find a GLB/GLTF render provider for an existing 3D scene", resource_type="model")
 
-    assert result["candidate_count"] == 0
-    assert result["semantic_match"] == "REJECT"
-    assert result["success_gate"] is False
-    assert [attempt["semantic_match"] for attempt in result["attempts"]] == ["REJECT", "REJECT", "REJECT"]
+    assert [candidate["model_id"] for candidate in result["candidates"]] == ["blender/blender", "mrdoob/three.js"]
+    assert result["semantic_match"] == "PASS"
+
+
+def test_placement_and_context_requests_use_distinct_semantic_intents(monkeypatch):
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: [])
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
+
+    placement = scout_module.scout("building footprint placement drawing transform assist", resource_type="all")
+    context = scout_module.scout("surrounding buildings terrain context modeling", resource_type="all")
+
+    assert placement["requirement_profile"]["semantic_intent"] == "3d_placement"
+    assert context["requirement_profile"]["semantic_intent"] == "3d_context"
+    assert placement["semantic_match"] == context["semantic_match"] == "PASS"
