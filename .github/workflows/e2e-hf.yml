@@ -20,3 +20,10 @@ jobs:
           python -m pip install -r requirements.txt pytest
       - name: Run live Hugging Face E2E smoke tests
         run: python -m pytest -q tests/test_hf_e2e.py tests/test_api_hf_e2e.py
+      - name: Record required MODEL SCOUT search sequence
+        run: python scripts/run_live_model_scout_sequence.py
+      - name: Upload MODEL SCOUT search evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-search-evidence
+          path: model-scout-search-evidence.json
