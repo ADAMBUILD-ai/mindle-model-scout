@@ -31,6 +31,10 @@ def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
     result = evidence.get("result")
     if not isinstance(result, Mapping):
         raise ValueError("dispatcher result mapping is required")
+    if int(result.get("candidate_count") or 0) <= 0:
+        raise ValueError("callback requires at least one candidate")
+    if str(result.get("semantic_match") or "PASS").upper() != "PASS":
+        raise ValueError("callback requires semantic_match PASS")
 
     requested_resource = str(evidence.get("requested_resource") or "all")
     dispatched_resource = str(evidence.get("dispatched_resource") or "all")
@@ -42,6 +46,7 @@ def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
         f"- queue_state: `{state}`\n"
         f"- requested_resource: `{requested_resource}`\n"
         f"- dispatched_resource: `{dispatched_resource}`\n"
+        "- success_gate: `candidate_count > 0 + semantic_match PASS + Evidence + source callback`\n"
         "- evidence_class: `SCOUT_RESULT` (not TESTED_PASS unless separate runtime evidence exists)\n\n"
         "```json\n"
         f"{result_json}\n"
@@ -74,7 +79,7 @@ def deliver_evidence(
 
     body = render_callback_markdown(evidence)
     try:
-        writer(envelope.callback_repo, envelope.callback_issue, body)
+        callback_result = writer(envelope.callback_repo, envelope.callback_issue, body)
     except Exception as exc:
         return {
             "fingerprint": fingerprint,
@@ -89,12 +94,18 @@ def deliver_evidence(
         }
 
     delivered = queue.set_state(fingerprint, QueueState.DELIVERED)
+    callback = {
+        "repo": delivered.callback_repo,
+        "issue": delivered.callback_issue,
+    }
+    if isinstance(callback_result, Mapping):
+        if callback_result.get("id") is not None:
+            callback["comment_id"] = callback_result["id"]
+        if callback_result.get("html_url"):
+            callback["url"] = callback_result["html_url"]
     return {
         "fingerprint": delivered.fingerprint,
         "state": delivered.state.value,
         "delivered": True,
-        "callback": {
-            "repo": delivered.callback_repo,
-            "issue": delivered.callback_issue,
-        },
+        "callback": callback,
     }

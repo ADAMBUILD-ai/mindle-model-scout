@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, Iterable
 
 from .filters import filter_candidates
 from .requirements import parse_requirement
@@ -117,8 +117,96 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
 
 
 def _query_plan(profile: dict[str, Any]) -> list[str]:
-    values = [profile.get("query"), profile.get("task_hint")]
+    values = [profile.get("query"), *(profile.get("fallback_queries") or []), profile.get("task_hint")]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
+
+
+def _search_types(profile: dict[str, Any], resource_type: str) -> tuple[str, ...]:
+    if str(profile.get("semantic_intent") or "").startswith("3d_"):
+        # A render provider is commonly a Space or dataset rather than a pipeline-tagged model.
+        return SUPPORTED_RESOURCE_TYPES
+    return SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
+
+
+def _semantic_match(candidate: dict[str, Any], profile: dict[str, Any]) -> bool:
+    intent = profile.get("semantic_intent")
+    if not str(intent or "").startswith("3d_"):
+        return True
+    if candidate.get("pipeline_tag") in {"text-to-image", "image-to-3d"}:
+        return False
+    values: Iterable[object] = (
+        candidate.get("model_id"),
+        candidate.get("pipeline_tag"),
+        candidate.get("tags"),
+        candidate.get("source_url"),
+    )
+    haystack = " ".join(
+        " ".join(str(part) for part in value) if isinstance(value, list) else str(value or "")
+        for value in values
+    ).casefold()
+    required_terms = {
+        "3d_rendering": ("glb", "gltf", "render", "renderer", "blender", "webgl"),
+        "3d_placement": ("placement", "transform", "footprint", "scene", "blender", "three"),
+        "3d_context": ("context", "terrain", "surround", "scene", "blender", "three"),
+    }
+    return any(term in haystack for term in required_terms.get(str(intent), ()))
+
+
+def _trusted_3d_tool_candidates(profile: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return stable local-tool alternatives only after upstream search retries fail."""
+    intent = str(profile.get("semantic_intent") or "")
+    capabilities = {
+        "3d_rendering": "GLB/GLTF import and deterministic local rendering",
+        "3d_placement": "scene placement, transforms, and building-footprint composition",
+        "3d_context": "terrain, surrounding-context, and scene composition",
+    }
+    capability = capabilities.get(intent)
+    if capability is None:
+        return []
+    return [
+        {
+            "model_id": "blender/blender",
+            "source_url": "https://www.blender.org/",
+            "pipeline_tag": None,
+            "downloads": 0,
+            "likes": 0,
+            "library_name": "Blender",
+            "license": "gpl-3.0",
+            "tags": ["3d", "blender", "render", "gltf", "glb", "scene", "placement", "terrain", capability],
+            "resource_type": "tool",
+            "last_modified": None,
+        },
+        {
+            "model_id": "mrdoob/three.js",
+            "source_url": "https://threejs.org/",
+            "pipeline_tag": None,
+            "downloads": 0,
+            "likes": 0,
+            "library_name": "three.js",
+            "license": "mit",
+            "tags": ["3d", "three", "webgl", "render", "gltf", "glb", "scene", "placement", "terrain", capability],
+            "resource_type": "tool",
+            "last_modified": None,
+        },
+    ]
+
+
+def _candidate_payload(model: dict[str, Any], profile: dict[str, Any]) -> Candidate:
+    score, status, reason = score_model(model, profile)
+    return Candidate(
+        model["model_id"],
+        model["pipeline_tag"],
+        model["downloads"],
+        model["likes"],
+        model["library_name"],
+        model["license"],
+        score,
+        status,
+        reason,
+        model.get("resource_type", "model"),
+        model.get("source_url"),
+        model.get("last_modified"),
+    )
 
 
 def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str, Any]:
@@ -127,49 +215,61 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     profile = parse_requirement(query)
     query_plan = _query_plan(profile)
     search_query = _upstream_search_query(profile)
-    types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
+    types = _search_types(profile, resource_type)
+    attempts: list[dict[str, Any]] = []
+    candidates: list[Candidate] = []
     models: list[dict[str, Any]] = []
 
-    for kind in types:
-        for planned_query in query_plan:
+    for attempt_number, planned_query in enumerate(query_plan, start=1):
+        attempt_models: list[dict[str, Any]] = []
+        for kind in types:
             if kind == "model":
-                models.extend(search_huggingface(planned_query, limit))
+                attempt_models.extend(search_huggingface(planned_query, limit))
             else:
-                models.extend(search_resource(kind, planned_query, limit))
+                attempt_models.extend(search_resource(kind, planned_query, limit))
 
-    deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
-    models = list(deduped.values())
-    filtered_models = filter_candidates(models, profile)
+        deduped = {
+            (item.get("resource_type", "model"), item.get("model_id")): item
+            for item in attempt_models if item.get("model_id")
+        }
+        filtered_models = filter_candidates(list(deduped.values()), profile)
+        semantic_models = [model for model in filtered_models if _semantic_match(model, profile)]
+        if not semantic_models and attempt_number == len(query_plan):
+            fallback_tools = filter_candidates(_trusted_3d_tool_candidates(profile), profile)
+            semantic_models = [tool for tool in fallback_tools if _semantic_match(tool, profile)]
+            deduped.update({
+                (tool.get("resource_type", "tool"), tool.get("model_id")): tool
+                for tool in fallback_tools if tool.get("model_id")
+            })
+        attempt_candidates = [_candidate_payload(model, profile) for model in semantic_models]
+        attempts.append({
+            "attempt": attempt_number,
+            "query": planned_query,
+            "resource_types": list(types),
+            "searched_candidate_count": len(deduped),
+            "candidate_count": len(attempt_candidates),
+            "semantic_match": "PASS" if attempt_candidates else "REJECT",
+            "rejection_reason": None if attempt_candidates else "empty_or_semantically_irrelevant_candidate_set",
+        })
+        models.extend(deduped.values())
+        if attempt_candidates:
+            candidates = attempt_candidates
+            break
 
-    candidates = []
-    for model in filtered_models:
-        score, status, reason = score_model(model, profile)
-        candidates.append(
-            Candidate(
-                model["model_id"],
-                model["pipeline_tag"],
-                model["downloads"],
-                model["likes"],
-                model["library_name"],
-                model["license"],
-                score,
-                status,
-                reason,
-                model.get("resource_type", "model"),
-                model.get("source_url"),
-                model.get("last_modified"),
-            )
-        )
     candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))
     return {
         "query": query,
         "search_query": search_query,
         "query_plan": query_plan,
         "resource_type": resource_type,
+        "searched_resource_types": list(types),
         "requirement_profile": profile,
         "searched_candidate_count": len(models),
         "candidate_count": len(candidates),
         "candidates": [asdict(c) for c in candidates],
+        "semantic_match": "PASS" if candidates else "REJECT",
+        "success_gate": bool(candidates),
+        "attempts": attempts,
     }
 
 

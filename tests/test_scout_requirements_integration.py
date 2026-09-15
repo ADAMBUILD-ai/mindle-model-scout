@@ -43,7 +43,7 @@ def test_scout_zero_match_is_valid_result(monkeypatch):
 
     result = scout_module.scout("tts license downloads 99999 likes 99999")
 
-    assert result["searched_candidate_count"] == 1
+    assert result["searched_candidate_count"] == 2
     assert result["candidate_count"] == 0
     assert result["candidates"] == []
 
@@ -62,3 +62,73 @@ def test_plain_query_remains_unfiltered(monkeypatch):
     assert result["requirement_profile"]["license_required"] is False
     assert result["candidate_count"] == 2
     assert {candidate["model_id"] for candidate in result["candidates"]} == {"a", "b"}
+
+
+def test_3d_requests_retry_with_three_structured_queries_and_reject_irrelevant_results(monkeypatch):
+    calls = []
+
+    def fake_model_search(query, limit):
+        calls.append(("model", query))
+        return [_model("acme/token-classifier", "token-classification", "mit", 20, 2)]
+
+    def fake_resource_search(resource, query, limit):
+        calls.append((resource, query))
+        if resource == "space" and query == "3d":
+            return [{
+                **_model("acme/blender-3d-render", None, "mit", 20, 2),
+                "resource_type": "space",
+                "source_url": "https://huggingface.co/spaces/acme/blender-3d-render",
+                "last_modified": None,
+            }]
+        return []
+
+    monkeypatch.setattr(scout_module, "search_huggingface", fake_model_search)
+    monkeypatch.setattr(scout_module, "search_resource", fake_resource_search)
+
+    result = scout_module.scout("Find a GLB/GLTF render provider for a 3D scene", resource_type="model")
+
+    assert result["candidate_count"] == 1
+    assert result["semantic_match"] == "PASS"
+    assert result["searched_resource_types"] == ["model", "dataset", "space"]
+    assert [attempt["semantic_match"] for attempt in result["attempts"]] == ["REJECT", "REJECT", "PASS"]
+    assert result["candidates"][0]["model_id"] == "acme/blender-3d-render"
+
+
+def test_3d_final_retry_uses_trusted_tools_not_generic_3d_results(monkeypatch):
+    generic = _model("acme/3d-dataset", None, "mit", 20, 2)
+    generic["tags"] = ["3d", "mesh"]
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: [generic])
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
+
+    result = scout_module.scout("Find a GLB/GLTF render provider for a 3D scene", resource_type="all")
+
+    assert [candidate["model_id"] for candidate in result["candidates"]] == ["blender/blender", "mrdoob/three.js"]
+    assert result["attempts"][-1]["candidate_count"] == 2
+
+
+def test_3d_render_gate_rejects_generic_and_wrong_direction_candidates(monkeypatch):
+    generic_models = [
+        _model("keras-io/3D_CNN_Pneumonia", None, "mit", 0, 5),
+        _model("YipengGao/3DCode", None, "mit", 90000, 25),
+        _model("stabilityai/stable-fast-3d", "image-to-3d", "mit", 10000, 100),
+        _model("wkplhc/3dRender", "text-to-image", "mit", 54, 2),
+    ]
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: generic_models)
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
+
+    result = scout_module.scout("Find a GLB/GLTF render provider for an existing 3D scene", resource_type="model")
+
+    assert [candidate["model_id"] for candidate in result["candidates"]] == ["blender/blender", "mrdoob/three.js"]
+    assert result["semantic_match"] == "PASS"
+
+
+def test_placement_and_context_requests_use_distinct_semantic_intents(monkeypatch):
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_args: [])
+    monkeypatch.setattr(scout_module, "search_resource", lambda *_args: [])
+
+    placement = scout_module.scout("building footprint placement drawing transform assist", resource_type="all")
+    context = scout_module.scout("surrounding buildings terrain context modeling", resource_type="all")
+
+    assert placement["requirement_profile"]["semantic_intent"] == "3d_placement"
+    assert context["requirement_profile"]["semantic_intent"] == "3d_context"
+    assert placement["semantic_match"] == context["semantic_match"] == "PASS"

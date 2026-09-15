@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - recovery/request-ingestion-gate-20260913
+      - fix/live-request-query-normalization
     paths:
       - 'scripts/run_live_cross_repo_cycle.py'
       - 'src/model_scout/**'
