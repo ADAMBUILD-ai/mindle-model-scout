@@ -28,32 +28,26 @@ def _contains_keyword(lowered: str, keyword: str) -> bool:
 
 
 def _structured_search_query(normalized: str, lowered: str) -> tuple[str, str | None, list[str]]:
-    """Collapse long 3D work orders into stable Hugging Face search terms."""
-    if any(_contains_keyword(lowered, term) for term in ("placement drawing", "footprint", "transform assist", "배치도")):
-        return (
-            "3d scene placement transform",
-            "3d_placement",
-            ["building footprint site layout 3d", "3d"],
-        )
-    if any(_contains_keyword(lowered, term) for term in ("context modeling", "surrounding buildings", "terrain", "scene composition")):
-        return (
-            "3d scene context terrain",
-            "3d_context",
-            ["surrounding buildings terrain 3d", "3d"],
-        )
+    """Collapse long 3D work orders into a stable Hugging Face search term."""
     three_d_terms = (
         "glb",
         "gltf",
         "3d",
         "3d scene",
+        "scene composition",
         "render provider",
         "rendering assist",
+        "context modeling",
         "3d model",
         "3d asset",
+        "placement drawing",
+        "footprint",
+        "transform assist",
         "building artifact",
         "site artifact",
         "렌더",
         "렌더링",
+        "배치도",
     )
     if any(_contains_keyword(lowered, term) for term in three_d_terms):
         return (
