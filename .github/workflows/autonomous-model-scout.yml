@@ -83,26 +83,12 @@ jobs:
 
           if (-not $python) {
             New-Item -ItemType Directory -Path $runtimeRoot -Force | Out-Null
-            $installer = Join-Path $env:RUNNER_TEMP 'python-3.11.9-amd64.exe'
-            Write-Host 'No service-account Python found; installing Python 3.11.9 into runner-owned tool directory.'
-            Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe' -OutFile $installer
-            $args = @(
-              '/quiet',
-              'InstallAllUsers=0',
-              "TargetDir=$runtimeRoot",
-              'Include_launcher=0',
-              'InstallLauncherAllUsers=0',
-              'PrependPath=0',
-              'Include_pip=1',
-              'Include_test=0',
-              'SimpleInstall=1'
-            )
-            $proc = Start-Process -FilePath $installer -ArgumentList $args -Wait -PassThru
-            if ($proc.ExitCode -notin @(0, 3010)) {
-              throw "Runner-local Python installer failed with exit code $($proc.ExitCode)."
-            }
+            $archive = Join-Path $env:RUNNER_TEMP 'python-3.11.9-embed-amd64.zip'
+            Write-Host 'No service-account Python found; installing runner-local embedded Python 3.11.9.'
+            Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip' -OutFile $archive
+            Expand-Archive -LiteralPath $archive -DestinationPath $runtimeRoot -Force
             if (-not (Test-Python3 $preferredPython)) {
-              throw 'Runner-local Python installation completed but python.exe is not executable by the service account.'
+              throw 'Runner-local embedded Python extraction completed but python.exe is not executable by the service account.'
             }
             $python = $preferredPython
           }
