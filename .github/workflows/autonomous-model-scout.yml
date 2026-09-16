@@ -2,7 +2,6 @@ name: autonomous-model-scout
 
 on:
   schedule:
-    # Stagger away from quarter-hour boundaries and refresh the scheduler registration.
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
   push:
@@ -20,13 +19,11 @@ concurrency:
 
 jobs:
   recovery-cycle:
-    # Scheduled recovery requires a runner-mounted durable state directory. GitHub-hosted
-    # workspaces are intentionally not used as a queue SSOT because they are ephemeral.
     runs-on: [self-hosted, model-scout]
     timeout-minutes: 30
     env:
       MODEL_SCOUT_CONFIGURED_REPOS: ${{ vars.MODEL_SCOUT_CONFIGURED_REPOS }}
-      MODEL_SCOUT_STATE_DIR: ${{ vars.MODEL_SCOUT_STATE_DIR }}
+      MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
       MODEL_SCOUT_STALE_AFTER_SECONDS: '1800'
       MODEL_SCOUT_LIMIT: '10'
       GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
@@ -41,7 +38,6 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $runtimeRoot = 'C:\actions-runner\_work\_tool\python311-service'
           $preferredPython = Join-Path $runtimeRoot 'python.exe'
-
           function Test-Python3([string]$candidate) {
             if (-not $candidate -or -not (Test-Path -LiteralPath $candidate)) { return $false }
             try {
@@ -50,52 +46,30 @@ jobs:
                 Write-Host "Using Python runtime: $candidate ($version)"
                 return $true
               }
-            } catch {
-              Write-Host "Rejected Python candidate: $candidate :: $($_.Exception.Message)"
-            }
+            } catch { Write-Host "Rejected Python candidate: $candidate :: $($_.Exception.Message)" }
             return $false
           }
-
           $python = $null
-          if (Test-Python3 $preferredPython) {
-            $python = $preferredPython
-          }
-
+          if (Test-Python3 $preferredPython) { $python = $preferredPython }
           if (-not $python) {
             $candidates = @()
             foreach ($name in @('python.exe', 'python')) {
               $cmd = Get-Command $name -ErrorAction SilentlyContinue
               if ($cmd -and $cmd.Source) { $candidates += $cmd.Source }
             }
-            foreach ($pattern in @(
-              'C:\Python3*\python.exe',
-              'C:\Program Files\Python3*\python.exe',
-              'C:\Program Files (x86)\Python3*\python.exe',
-              'C:\Users\*\AppData\Local\Programs\Python\Python3*\python.exe',
-              'C:\actions-runner\_work\_tool\Python\3.*\x64\python.exe'
-            )) {
+            foreach ($pattern in @('C:\Python3*\python.exe','C:\Program Files\Python3*\python.exe','C:\Program Files (x86)\Python3*\python.exe','C:\Users\*\AppData\Local\Programs\Python\Python3*\python.exe','C:\actions-runner\_work\_tool\Python\3.*\x64\python.exe')) {
               $candidates += Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
             }
-            foreach ($candidate in ($candidates | Select-Object -Unique)) {
-              if (Test-Python3 $candidate) {
-                $python = $candidate
-                break
-              }
-            }
+            foreach ($candidate in ($candidates | Select-Object -Unique)) { if (Test-Python3 $candidate) { $python = $candidate; break } }
           }
-
           if (-not $python) {
             New-Item -ItemType Directory -Path $runtimeRoot -Force | Out-Null
             $archive = Join-Path $env:RUNNER_TEMP 'python-3.11.9-embed-amd64.zip'
-            Write-Host 'No service-account Python found; installing runner-local embedded Python 3.11.9.'
             Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip' -OutFile $archive
             Expand-Archive -LiteralPath $archive -DestinationPath $runtimeRoot -Force
-            if (-not (Test-Python3 $preferredPython)) {
-              throw 'Runner-local embedded Python extraction completed but python.exe is not executable by the service account.'
-            }
+            if (-not (Test-Python3 $preferredPython)) { throw 'Runner-local embedded Python extraction completed but python.exe is not executable by the service account.' }
             $python = $preferredPython
           }
-
           "PYTHON_EXE=$python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Verify Python runtime and pip
@@ -104,20 +78,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           & $env:PYTHON_EXE --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
           $pythonRoot = Split-Path -Parent $env:PYTHON_EXE
           $pth = Join-Path $pythonRoot 'python311._pth'
           if (Test-Path -LiteralPath $pth) {
             $lines = @(Get-Content -LiteralPath $pth)
-            $lines = @($lines | ForEach-Object {
-              if ($_ -eq '#import site') { 'import site' } else { $_ }
-            })
-            if ($lines -notcontains 'Lib\site-packages') {
-              $lines += 'Lib\site-packages'
-            }
+            $lines = @($lines | ForEach-Object { if ($_ -eq '#import site') { 'import site' } else { $_ } })
+            if ($lines -notcontains 'Lib\site-packages') { $lines += 'Lib\site-packages' }
             Set-Content -LiteralPath $pth -Value $lines -Encoding ascii
           }
-
           & $env:PYTHON_EXE -m pip --version
           if ($LASTEXITCODE -ne 0) {
             $getPip = Join-Path $env:RUNNER_TEMP 'get-pip.py'
@@ -138,36 +106,19 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if (-not $env:MODEL_SCOUT_CONFIGURED_REPOS) { throw 'MODEL_SCOUT_CONFIGURED_REPOS is empty' }
           if (-not $env:GITHUB_TOKEN) { throw 'MODEL_SCOUT_CROSS_REPO_TOKEN is empty' }
-
-          $configuredStateDir = $env:MODEL_SCOUT_STATE_DIR
-          $stateDir = $configuredStateDir
-          $fallbackStateDir = 'C:\actions-runner\_work\_state\mindle-model-scout'
-          $configuredUsable = $false
-
-          if ($stateDir) {
-            try {
-              if (-not (Test-Path -LiteralPath $stateDir -ErrorAction Stop)) {
-                New-Item -ItemType Directory -Path $stateDir -Force -ErrorAction Stop | Out-Null
-              }
-              $probe = Join-Path $stateDir '.runner-write-probe'
-              'ok' | Set-Content -LiteralPath $probe -Encoding ascii -ErrorAction Stop
-              Remove-Item -LiteralPath $probe -Force -ErrorAction Stop
-              $configuredUsable = $true
-            } catch {
-              Write-Warning "Configured MODEL_SCOUT_STATE_DIR is not accessible to the runner service: $stateDir"
-            }
-          }
-
-          if (-not $configuredUsable) {
-            $stateDir = $fallbackStateDir
-            New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
-            $probe = Join-Path $stateDir '.runner-write-probe'
-            'ok' | Set-Content -LiteralPath $probe -Encoding ascii
-            Remove-Item -LiteralPath $probe -Force
-            Write-Host "Using runner-owned durable state directory: $stateDir"
-          }
-
+          $stateDir = 'C:\actions-runner\_work\_state\mindle-model-scout'
+          New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+          $probe = Join-Path $stateDir '.runner-write-probe'
+          'ok' | Set-Content -LiteralPath $probe -Encoding ascii
+          Remove-Item -LiteralPath $probe -Force
+          $markerPath = Join-Path $stateDir '.model-scout-persistence-marker'
+          if (-not (Test-Path -LiteralPath $markerPath)) { [guid]::NewGuid().Guid | Set-Content -LiteralPath $markerPath -Encoding ascii }
+          $marker = (Get-Content -LiteralPath $markerPath -Raw).Trim()
           "MODEL_SCOUT_STATE_DIR=$stateDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "MODEL_SCOUT_STATE_DIR_MODE=canonical_runner_owned" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "MODEL_SCOUT_STATE_MARKER=$marker" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Canonical durable state: $stateDir"
+          Write-Host "Persistence marker: $marker"
 
       - name: Recover stale work and execute queued requests
         shell: powershell
@@ -176,6 +127,22 @@ jobs:
           $runnerCode = "import sys,runpy; sys.path.insert(0, r'$repoRoot'); runpy.run_path(r'scripts/run_autonomous_cycle.py', run_name='__main__')"
           & $env:PYTHON_EXE -c $runnerCode | Tee-Object -FilePath autonomous-cycle-evidence.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Add canonical execution metadata
+        shell: powershell
+        run: |
+          $cycle = Get-Content -LiteralPath autonomous-cycle-evidence.json -Raw | ConvertFrom-Json
+          [ordered]@{
+            state_dir = $env:MODEL_SCOUT_STATE_DIR
+            state_dir_mode = $env:MODEL_SCOUT_STATE_DIR_MODE
+            persistence_marker = $env:MODEL_SCOUT_STATE_MARKER
+            runner_name = $env:RUNNER_NAME
+            run_id = $env:GITHUB_RUN_ID
+            event_name = $env:GITHUB_EVENT_NAME
+            queue = $cycle.queue
+            results = $cycle.results
+            watchdog_requeued = $cycle.watchdog_requeued
+          } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath autonomous-cycle-evidence.json -Encoding utf8
 
       - name: Upload execution evidence
         if: always()
