@@ -2,7 +2,8 @@ name: autonomous-model-scout
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    # Stagger away from quarter-hour boundaries and refresh the scheduler registration.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
