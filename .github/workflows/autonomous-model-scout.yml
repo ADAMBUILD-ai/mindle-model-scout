@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/autonomous-model-scout.yml'
 
 permissions:
   contents: read
@@ -27,24 +31,73 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Verify Python runtime
-        shell: bash
-        run: python --version
-      - run: python -m pip install -r requirements.txt
-      - name: Verify autonomous-runner prerequisites
-        shell: bash
+
+      - name: Discover existing Python runtime
+        shell: powershell
         run: |
-          set -euo pipefail
-          test -n "$MODEL_SCOUT_CONFIGURED_REPOS"
-          test -n "$MODEL_SCOUT_STATE_DIR"
-          test -n "$GITHUB_TOKEN"
-          test -d "$MODEL_SCOUT_STATE_DIR" || mkdir -p "$MODEL_SCOUT_STATE_DIR"
+          $ErrorActionPreference = 'Stop'
+          $candidates = @()
+          foreach ($name in @('python.exe', 'python')) {
+            $cmd = Get-Command $name -ErrorAction SilentlyContinue
+            if ($cmd -and $cmd.Source) { $candidates += $cmd.Source }
+          }
+          foreach ($pattern in @(
+            'C:\Python3*\python.exe',
+            'C:\Program Files\Python3*\python.exe',
+            'C:\Program Files (x86)\Python3*\python.exe',
+            'C:\Users\*\AppData\Local\Programs\Python\Python3*\python.exe',
+            'C:\actions-runner\_work\_tool\Python\3.*\x64\python.exe'
+          )) {
+            $candidates += Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          }
+          $python = $null
+          foreach ($candidate in ($candidates | Select-Object -Unique)) {
+            if (-not (Test-Path -LiteralPath $candidate)) { continue }
+            try {
+              $version = & $candidate --version 2>&1
+              if ($LASTEXITCODE -eq 0 -and "$version" -match '^Python 3\.') {
+                $python = $candidate
+                Write-Host "Using Python runtime: $python ($version)"
+                break
+              }
+            } catch {
+              Write-Host "Rejected Python candidate: $candidate :: $($_.Exception.Message)"
+            }
+          }
+          if (-not $python) {
+            throw 'No executable Python 3 runtime is reachable by the GitHub Actions service account.'
+          }
+          "PYTHON_EXE=$python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Verify Python runtime
+        shell: powershell
+        run: '& $env:PYTHON_EXE --version'
+
+      - name: Install Python dependencies
+        shell: powershell
+        run: '& $env:PYTHON_EXE -m pip install -r requirements.txt'
+
+      - name: Verify autonomous-runner prerequisites
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:MODEL_SCOUT_CONFIGURED_REPOS) { throw 'MODEL_SCOUT_CONFIGURED_REPOS is empty' }
+          if (-not $env:MODEL_SCOUT_STATE_DIR) { throw 'MODEL_SCOUT_STATE_DIR is empty' }
+          if (-not $env:GITHUB_TOKEN) { throw 'MODEL_SCOUT_CROSS_REPO_TOKEN is empty' }
+          if (-not (Test-Path -LiteralPath $env:MODEL_SCOUT_STATE_DIR)) {
+            New-Item -ItemType Directory -Path $env:MODEL_SCOUT_STATE_DIR -Force | Out-Null
+          }
+          $probe = Join-Path $env:MODEL_SCOUT_STATE_DIR '.runner-write-probe'
+          'ok' | Set-Content -LiteralPath $probe -Encoding ascii
+          Remove-Item -LiteralPath $probe -Force
+
       - name: Recover stale work and execute queued requests
-        shell: bash
-        run: PYTHONPATH=. python scripts/run_autonomous_cycle.py | tee autonomous-cycle-evidence.json
+        shell: powershell
+        run: |
+          $env:PYTHONPATH='.'
+          & $env:PYTHON_EXE scripts/run_autonomous_cycle.py | Tee-Object -FilePath autonomous-cycle-evidence.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload execution evidence
         if: always()
         uses: actions/upload-artifact@v4
