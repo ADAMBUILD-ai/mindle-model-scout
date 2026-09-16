@@ -10,13 +10,21 @@ from .runtime_validation import validate_runtime_evidence
 
 
 CallbackWriter = Callable[[str, int, str], Any]
+MAX_PUBLIC_SEQUENCE_ITEMS = 20
 
 
 def _public_evidence(value: Any, *, key: str = "") -> Any:
     if isinstance(value, Mapping):
         return {str(item_key): _public_evidence(item, key=str(item_key)) for item_key, item in value.items()}
     if isinstance(value, (list, tuple)):
-        return [_public_evidence(item, key=key) for item in value]
+        public_items = [_public_evidence(item, key=key) for item in value[:MAX_PUBLIC_SEQUENCE_ITEMS]]
+        if len(value) > MAX_PUBLIC_SEQUENCE_ITEMS:
+            return {
+                "item_count": len(value),
+                "sample": public_items,
+                "truncated": True,
+            }
+        return public_items
     if isinstance(value, str):
         path = Path(value)
         windows_path = PureWindowsPath(value)
@@ -136,3 +144,4 @@ def deliver_evidence(
         "delivered": True,
         "callback": callback,
     }
+
