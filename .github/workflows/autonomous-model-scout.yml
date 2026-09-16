@@ -98,10 +98,54 @@ jobs:
       - name: Verify Python runtime and pip
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           & $env:PYTHON_EXE --version
-          & $env:PYTHON_EXE -m pip --version
+          $pythonRoot = Split-Path -Parent $env:PYTHON_EXE
+          $pth = Join-Path $pythonRoot 'python311._pth'
+          if (Test-Path -LiteralPath $pth) {
+            $pthContent = Get-Content -LiteralPath $pth -Raw
+            if ($pthContent -notmatch '(?m)^import site\s*
+      - name: Install Python dependencies
+        shell: powershell
+        run: '& $env:PYTHON_EXE -m pip install -r requirements.txt'
+
+      - name: Verify autonomous-runner prerequisites
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:MODEL_SCOUT_CONFIGURED_REPOS) { throw 'MODEL_SCOUT_CONFIGURED_REPOS is empty' }
+          if (-not $env:MODEL_SCOUT_STATE_DIR) { throw 'MODEL_SCOUT_STATE_DIR is empty' }
+          if (-not $env:GITHUB_TOKEN) { throw 'MODEL_SCOUT_CROSS_REPO_TOKEN is empty' }
+          if (-not (Test-Path -LiteralPath $env:MODEL_SCOUT_STATE_DIR)) {
+            New-Item -ItemType Directory -Path $env:MODEL_SCOUT_STATE_DIR -Force | Out-Null
+          }
+          $probe = Join-Path $env:MODEL_SCOUT_STATE_DIR '.runner-write-probe'
+          'ok' | Set-Content -LiteralPath $probe -Encoding ascii
+          Remove-Item -LiteralPath $probe -Force
+
+      - name: Recover stale work and execute queued requests
+        shell: powershell
+        run: |
+          $env:PYTHONPATH='.'
+          & $env:PYTHON_EXE scripts/run_autonomous_cycle.py | Tee-Object -FilePath autonomous-cycle-evidence.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload execution evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-autonomous-evidence
+          path: autonomous-cycle-evidence.json
+) {
+              Add-Content -LiteralPath $pth -Value 'import site'
+            }
+          }
+          $pipCheck = & $env:PYTHON_EXE -m pip --version 2>&1
           if ($LASTEXITCODE -ne 0) {
-            & $env:PYTHON_EXE -m ensurepip --upgrade
+            $getPip = Join-Path $env:RUNNER_TEMP 'get-pip.py'
+            Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile $getPip
+            & $env:PYTHON_EXE $getPip --disable-pip-version-check --no-warn-script-location
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           & $env:PYTHON_EXE -m pip --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
