@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Iterable
 
 from .live_automation import run_live_cycle
 from .persistent_queue import PersistentRequestQueue
+from .runtime_executors import load_runtime_executor_registry
 
 
 def run_autonomous_cycle(*, configured_repos: Iterable[str], state_dir: str | Path, stale_after_seconds: float = 1800, limit: int = 10) -> dict[str, Any]:
@@ -15,5 +17,16 @@ def run_autonomous_cycle(*, configured_repos: Iterable[str], state_dir: str | Pa
     root.mkdir(parents=True, exist_ok=True)
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
     requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds)
-    results = run_live_cycle(configured_repos=configured_repos, state_dir=root, limit=limit)
+    requeued.extend(queue.requeue_retryable())
+    executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
+    runtime_runner = load_runtime_executor_registry(
+        executor_config,
+        work_root=root / "runtime-work",
+    )
+    results = run_live_cycle(
+        configured_repos=configured_repos,
+        state_dir=root,
+        limit=limit,
+        runtime_runner=runtime_runner,
+    )
     return {"watchdog_requeued": requeued, "results": results, "queue": queue.snapshot()}

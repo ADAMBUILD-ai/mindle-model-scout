@@ -230,3 +230,27 @@ class PersistentRequestQueue:
                 requeued.append(queued.fingerprint)
 
         return requeued
+
+    def requeue_retryable(self) -> list[str]:
+        """Move retryable failures back to QUEUED for the next unattended cycle."""
+
+        requeued: list[str] = []
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM request_queue WHERE state = ? ORDER BY fingerprint",
+                (QueueState.FAILED_RETRYABLE.value,),
+            ).fetchall()
+            now = float(self._clock())
+            for row in rows:
+                current = self._row_to_envelope(row)
+                queued = transition(current, QueueState.QUEUED)
+                connection.execute(
+                    """
+                    UPDATE request_queue
+                    SET state = ?, retry_count = retry_count + 1, updated_at = ?
+                    WHERE fingerprint = ?
+                    """,
+                    (queued.state.value, now, queued.fingerprint),
+                )
+                requeued.append(queued.fingerprint)
+        return requeued

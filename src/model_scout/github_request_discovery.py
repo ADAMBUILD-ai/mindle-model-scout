@@ -27,6 +27,15 @@ _REQUEST_INTENTS = (
     "모델 요청",
 )
 _RESOURCE_WORDS = ("model", "dataset", "space", "tool")
+CENTRAL_REQUEST_REPOSITORY = "ADAMBUILD-ai/mindle-model-scout"
+
+
+def request_discovery_repositories(configured_repos: Iterable[str]) -> tuple[str, ...]:
+    """Return configured project repositories plus the central request repository."""
+
+    repos = [str(repo or "").strip() for repo in configured_repos]
+    repos.append(CENTRAL_REQUEST_REPOSITORY)
+    return tuple(dict.fromkeys(repo for repo in repos if repo))
 
 
 def _text(value: object) -> str:
@@ -62,9 +71,9 @@ def infer_resource(title: str, body: str) -> str:
 
 def infer_project(repo: str, title: str, body: str) -> str:
     for source in (title, body):
-        match = re.search(r"\[(?:P[0-3])?\]\s*\[([A-Za-z0-9_-]{2,32})\]", source)
+        match = re.search(r"\[(?:P[0-3])?\]\s*\[([^\]\r\n]{2,64})\]", source)
         if match:
-            return match.group(1).upper()
+            return re.sub(r"[^A-Z0-9_-]+", "_", match.group(1).upper()).strip("_")
     repo_name = repo.split("/", 1)[-1]
     return repo_name.replace("-", "_").upper()
 

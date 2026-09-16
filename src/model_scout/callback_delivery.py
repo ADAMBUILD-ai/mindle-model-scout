@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -8,6 +9,19 @@ from .request_queue import QueueState, RequestQueue
 
 
 CallbackWriter = Callable[[str, int, str], Any]
+
+
+def _public_evidence(value: Any, *, key: str = "") -> Any:
+    if isinstance(value, Mapping):
+        return {str(item_key): _public_evidence(item, key=str(item_key)) for item_key, item in value.items()}
+    if isinstance(value, list):
+        return [_public_evidence(item, key=key) for item in value]
+    if isinstance(value, str) and key in {"path", "input", "output_path"}:
+        path = Path(value)
+        return path.name if path.is_absolute() else value
+    if isinstance(value, str) and key == "command" and ("\\" in value or "/" in value):
+        return Path(value).name
+    return value
 
 
 def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
@@ -34,15 +48,17 @@ def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
 
     requested_resource = str(evidence.get("requested_resource") or "all")
     dispatched_resource = str(evidence.get("dispatched_resource") or "all")
-    result_json = json.dumps(dict(result), ensure_ascii=False, sort_keys=True, default=str)
+    result_json = json.dumps(_public_evidence(dict(result)), ensure_ascii=False, sort_keys=True, default=str)
 
+    evidence_class = "TESTED_PASS" if evidence.get("status") == "TESTED_PASS" else "SCOUT_RESULT"
+    evidence_note = "verified runtime output" if evidence_class == "TESTED_PASS" else "not TESTED_PASS unless separate runtime evidence exists"
     return (
         "## MODEL SCOUT Evidence Callback\n\n"
         f"- fingerprint: `{fingerprint}`\n"
         f"- queue_state: `{state}`\n"
         f"- requested_resource: `{requested_resource}`\n"
         f"- dispatched_resource: `{dispatched_resource}`\n"
-        "- evidence_class: `SCOUT_RESULT` (not TESTED_PASS unless separate runtime evidence exists)\n\n"
+        f"- evidence_class: `{evidence_class}` ({evidence_note})\n\n"
         "```json\n"
         f"{result_json}\n"
         "```"

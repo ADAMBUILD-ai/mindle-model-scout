@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
 
 from src.model_scout.automation_cycle import DurableEvidenceStore, run_scout_cycle
+from src.model_scout.automation_cycle import run_runtime_cycle
+from src.model_scout.delivery_ledger import DeliveryLedger, DeliveryState
 from src.model_scout.persistent_queue import PersistentRequestQueue
 from src.model_scout.request_queue import QueueState
 
@@ -115,3 +118,81 @@ def test_callback_retry_uses_persisted_evidence_without_rerunning_scout(tmp_path
     assert len(delivered) == 1
     assert queue.snapshot()[0]["state"] == QueueState.DELIVERED.value
     assert any(item.get("delivered") is True for item in second)
+
+
+def test_runtime_cycle_requires_tested_output_before_delivery(tmp_path: Path) -> None:
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    store = DurableEvidenceStore(tmp_path / "evidence.sqlite3")
+    ledger = DeliveryLedger(tmp_path / "ledger.sqlite3")
+    output = tmp_path / "runtime-output.json"
+    download = tmp_path / "model.bin"
+    download.write_bytes(b"downloaded-model-weights")
+    callbacks = []
+
+    def scout_runner(query: str, limit: int, resource: str):
+        return {"query": query, "candidates": [{"model_id": "example/model"}]}
+
+    def runtime_runner(envelope, scout_result):
+        output.write_text('{"prediction":"verified"}', encoding="utf-8")
+        output_bytes = output.read_bytes()
+        download_bytes = download.read_bytes()
+        return {
+            "model_id": scout_result["candidates"][0]["model_id"],
+            "model_revision": "deadbeef",
+            "source": "huggingface:example/model",
+            "license": "apache-2.0",
+            "input": envelope.request_text,
+            "output_path": str(output),
+            "output_size": len(output_bytes),
+            "sha256": hashlib.sha256(output_bytes).hexdigest(),
+            "downloaded_files": [{
+                "path": str(download),
+                "size": len(download_bytes),
+                "sha256": hashlib.sha256(download_bytes).hexdigest(),
+            }],
+            "settings": {"seed": 7},
+            "runtime": {"python": "3.11", "backend": "test"},
+            "hardware": {"device": "cpu"},
+            "log": "real output written",
+            "validation_scope": "request",
+            "acceptance_checks": {"prediction_verified": True},
+        }
+
+    results = run_runtime_cycle(
+        issues=[_issue()],
+        configured_repos=["ADAMBUILD-ai/example-project"],
+        queue=queue,
+        evidence_store=store,
+        delivery_ledger=ledger,
+        scout_runner=scout_runner,
+        runtime_runner=runtime_runner,
+        callback_writer=lambda repo, issue, body: callbacks.append((repo, issue, body)),
+    )
+
+    assert queue.snapshot()[0]["state"] == QueueState.DELIVERED.value
+    record = ledger.get(queue.snapshot()[0]["fingerprint"])
+    assert record is not None and record.state == DeliveryState.DELIVERED
+    assert callbacks and "TESTED_PASS" in callbacks[0][2]
+    assert any(item.get("status") == "TESTED_PASS" for item in results)
+
+
+def test_runtime_cycle_does_not_promote_empty_search_results(tmp_path: Path) -> None:
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    store = DurableEvidenceStore(tmp_path / "evidence.sqlite3")
+    ledger = DeliveryLedger(tmp_path / "ledger.sqlite3")
+    runtime_calls = []
+
+    results = run_runtime_cycle(
+        issues=[_issue()],
+        configured_repos=["ADAMBUILD-ai/example-project"],
+        queue=queue,
+        evidence_store=store,
+        delivery_ledger=ledger,
+        scout_runner=lambda query, limit, resource: {"candidates": []},
+        runtime_runner=lambda envelope, scout_result: runtime_calls.append(True),
+        callback_writer=lambda repo, issue, body: None,
+    )
+
+    assert runtime_calls == []
+    assert queue.snapshot()[0]["state"] == QueueState.FAILED_RETRYABLE.value
+    assert results[0]["stage"] == "search"
