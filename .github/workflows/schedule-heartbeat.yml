@@ -1,0 +1,24 @@
+name: schedule-heartbeat
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scheduler-heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record scheduler evidence
+        shell: bash
+        run: |
+          printf '{"event_name":"%s","run_id":"%s","workflow":"schedule-heartbeat"}
+' "$GITHUB_EVENT_NAME" "$GITHUB_RUN_ID" | tee schedule-heartbeat-evidence.json
+      - name: Upload scheduler evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: schedule-heartbeat-evidence
+          path: schedule-heartbeat-evidence.json
