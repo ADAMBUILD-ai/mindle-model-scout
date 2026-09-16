@@ -20,7 +20,6 @@ class RequirementProfile:
 def parse_requirement(text: str) -> dict:
     normalized = " ".join(text.strip().split())
     lowered = normalized.lower()
-
     task_hint = None
     task_keywords = {
         "text-generation": ["llm", "chat", "text generation", "대화", "텍스트 생성"],
@@ -39,10 +38,8 @@ def parse_requirement(text: str) -> dict:
         if any(keyword in lowered for keyword in keywords):
             task_hint = task
             break
-
     commercial_use = any(token in lowered for token in ["commercial", "상업", "상업용", "commercial use"])
     license_required = commercial_use or any(token in lowered for token in ["license", "라이선스", "licensed"])
-
     min_downloads = 0
     min_likes = 0
     m = re.search(r"(?:downloads?|다운로드)\s*(?:>=|at least|이상)?\s*([0-9][0-9,]*)", lowered)
@@ -51,20 +48,6 @@ def parse_requirement(text: str) -> dict:
     m = re.search(r"(?:likes?|좋아요)\s*(?:>=|at least|이상)?\s*([0-9][0-9,]*)", lowered)
     if m:
         min_likes = int(m.group(1).replace(",", ""))
-
-    query = normalized
     languages = [lang for lang in ("korean", "한국어", "english", "영어", "multilingual", "다국어") if lang in lowered]
     library_hint = next((name for name in ("transformers", "diffusers", "sentence-transformers", "pytorch", "onnx") if name in lowered), None)
-    return asdict(
-        RequirementProfile(
-            raw=normalized,
-            query=query,
-            task_hint=task_hint,
-            license_required=license_required,
-            commercial_use=commercial_use,
-            min_downloads=min_downloads,
-            min_likes=min_likes,
-            languages=languages,
-            library_hint=library_hint,
-        )
-    )
+    return asdict(RequirementProfile(raw=normalized, query=normalized, task_hint=task_hint, license_required=license_required, commercial_use=commercial_use, min_downloads=min_downloads, min_likes=min_likes, languages=languages, library_hint=library_hint))

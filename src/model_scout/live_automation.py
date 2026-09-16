@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .automation_cycle import DurableEvidenceStore, run_scout_cycle
+from .delivery_ledger import DeliveryLedger, DeliveryState
 from .github_callback_transport import GitHubIssueCommentWriter
 from .github_issue_source import GitHubIssueSource
 from .persistent_queue import PersistentRequestQueue
@@ -37,8 +38,8 @@ def run_live_cycle(
 
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
-
-    return run_scout_cycle(
+    ledger = DeliveryLedger(root / "model_delivery.sqlite3")
+    results = run_scout_cycle(
         issues=issues,
         configured_repos=repos,
         queue=queue,
@@ -47,3 +48,17 @@ def run_live_cycle(
         callback_writer=writer,
         limit=limit,
     )
+    for item in queue.snapshot():
+        fingerprint = str(item["fingerprint"])
+        owner = str(item.get("callback_repo") or item.get("source_repo") or "MODEL_SCOUT_AUTOMATION")
+        record = ledger.request(fingerprint, owner=owner, next_action="discover license-compatible candidate")
+        if item["state"] in {"EVIDENCE_READY", "DELIVERED"} and record.state == DeliveryState.REQUESTED:
+            evidence = evidence_store.get(fingerprint) or {}
+            ledger.advance(
+                fingerprint,
+                DeliveryState.FOUND,
+                owner=owner,
+                next_action="download selected candidate and run minimum runtime validation",
+                evidence=evidence,
+            )
+    return results
