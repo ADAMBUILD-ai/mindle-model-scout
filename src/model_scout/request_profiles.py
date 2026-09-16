@@ -203,6 +203,8 @@ def _profile_52(workspace: Path) -> dict[str, Any]:
     }
     return {
         "task": "issue-52-nas-request-validation",
+        "sample_provenance": "deterministic_generated_korean_corpus_and_scanned_pdf",
+        "limitations": ["project NAS corpus was not available to this runner"],
         "model_id": f"{TEXT_MODEL_ID} + {OCR_MODEL_ID}",
         "revision": json.dumps({"embedding": getattr(model.config, "_commit_hash", None), "ocr": OCR_REVISION}, sort_keys=True),
         "source": f"huggingface:{TEXT_MODEL_ID}; huggingface:{OCR_MODEL_ID}",
@@ -246,6 +248,8 @@ def _profile_54(workspace: Path) -> dict[str, Any]:
     }
     return {
         "task": "issue-54-axiom-request-validation",
+        "sample_provenance": "deterministic_generated_drawing_specification_and_estimate_documents",
+        "limitations": ["project AXIOM documents were not available to this runner"],
         "model_id": f"{TEXT_MODEL_ID} + {OCR_MODEL_ID}",
         "revision": json.dumps({"embedding": getattr(model.config, "_commit_hash", None), "ocr": OCR_REVISION}, sort_keys=True),
         "source": f"huggingface:{TEXT_MODEL_ID}; huggingface:{OCR_MODEL_ID}",
@@ -317,6 +321,8 @@ def _profile_56(workspace: Path) -> dict[str, Any]:
     }
     return {
         "task": "issue-56-gdog-request-validation",
+        "sample_provenance": "deterministic_generated_50_item_product_catalog",
+        "limitations": ["production G-DOG catalog images were not available to this runner"],
         "model_id": f"{SIGLIP_MODEL_ID} + {TEXT_MODEL_ID}",
         "revision": json.dumps({"vision": getattr(vision_model.config, "_commit_hash", None), "text": getattr(text_model.config, "_commit_hash", None)}, sort_keys=True),
         "source": f"huggingface:{SIGLIP_MODEL_ID}; huggingface:{TEXT_MODEL_ID}",
