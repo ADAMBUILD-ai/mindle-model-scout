@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 from .request_queue import QueueState, RequestQueue
+from .runtime_validation import validate_runtime_evidence
 
 
 CallbackWriter = Callable[[str, int, str], Any]
@@ -87,6 +88,19 @@ def deliver_evidence(
         raise ValueError("evidence fingerprint does not match queue item")
     if not envelope.callback_repo or not envelope.callback_issue:
         raise ValueError("callback repository and issue are required")
+
+    if evidence.get("status") == "TESTED_PASS":
+        result = evidence.get("result")
+        runtime = result.get("runtime") if isinstance(result, Mapping) else None
+        errors = validate_runtime_evidence(runtime) if isinstance(runtime, Mapping) else ["missing_runtime_evidence"]
+        if errors:
+            return {
+                "fingerprint": fingerprint,
+                "state": QueueState.EVIDENCE_READY.value,
+                "delivered": False,
+                "error": "runtime_evidence_invalid",
+                "validation_errors": errors,
+            }
 
     body = render_callback_markdown(evidence)
     try:

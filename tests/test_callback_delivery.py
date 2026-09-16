@@ -81,3 +81,27 @@ def test_deliver_rejects_mismatched_fingerprint():
         assert "does not match" in str(exc)
     else:
         raise AssertionError("mismatched fingerprint must fail")
+
+
+def test_stale_component_evidence_cannot_be_delivered(tmp_path):
+    queue, ready, evidence = _ready_queue()
+    output = tmp_path / "output.json"
+    output.write_text("{}", encoding="utf-8")
+    evidence = {
+        **evidence,
+        "status": "TESTED_PASS",
+        "result": {"runtime": {"output_path": str(output)}},
+    }
+    calls = []
+
+    result = deliver_evidence(
+        queue,
+        ready.fingerprint,
+        evidence,
+        writer=lambda *args: calls.append(args),
+    )
+
+    assert result["delivered"] is False
+    assert result["error"] == "runtime_evidence_invalid"
+    assert calls == []
+    assert queue.get(ready.fingerprint).state == QueueState.EVIDENCE_READY
