@@ -169,8 +169,9 @@ jobs:
       - name: Recover stale work and execute queued requests
         shell: powershell
         run: |
-          $env:PYTHONPATH='.'
-          & $env:PYTHON_EXE scripts/run_autonomous_cycle.py | Tee-Object -FilePath autonomous-cycle-evidence.json
+          $repoRoot = (Get-Location).Path
+          $runnerCode = "import sys,runpy; sys.path.insert(0, r'$repoRoot'); runpy.run_path(r'scripts/run_autonomous_cycle.py', run_name='__main__')"
+          & $env:PYTHON_EXE -c $runnerCode | Tee-Object -FilePath autonomous-cycle-evidence.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload execution evidence
