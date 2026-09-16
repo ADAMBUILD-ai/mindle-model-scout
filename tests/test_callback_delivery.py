@@ -85,6 +85,19 @@ def test_callback_redacts_nested_windows_absolute_paths():
     assert "output.json" in body
 
 
+def test_callback_compacts_large_runtime_sequences():
+    _queue, _ready, evidence = _ready_queue()
+    evidence["result"]["runtime"] = {
+        "wall_lines": [[index, index + 1, index + 2, index + 3] for index in range(500)]
+    }
+
+    body = render_callback_markdown(evidence)
+
+    assert '"item_count": 500' in body
+    assert '"truncated": true' in body
+    assert len(body) < 10_000
+
+
 def test_callback_transport_failure_keeps_evidence_ready_for_retry():
     queue, ready, evidence = _ready_queue()
 
@@ -134,3 +147,4 @@ def test_stale_component_evidence_cannot_be_delivered(tmp_path):
     assert result["error"] == "runtime_evidence_invalid"
     assert calls == []
     assert queue.get(ready.fingerprint).state == QueueState.EVIDENCE_READY
+
