@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -15,13 +15,15 @@ CallbackWriter = Callable[[str, int, str], Any]
 def _public_evidence(value: Any, *, key: str = "") -> Any:
     if isinstance(value, Mapping):
         return {str(item_key): _public_evidence(item, key=str(item_key)) for item_key, item in value.items()}
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [_public_evidence(item, key=key) for item in value]
-    if isinstance(value, str) and key in {"path", "input", "output_path"}:
+    if isinstance(value, str):
         path = Path(value)
-        return path.name if path.is_absolute() else value
-    if isinstance(value, str) and key == "command" and ("\\" in value or "/" in value):
-        return Path(value).name
+        windows_path = PureWindowsPath(value)
+        if path.is_absolute() or windows_path.is_absolute():
+            return windows_path.name or path.name
+        if key == "command" and ("\\" in value or "/" in value):
+            return windows_path.name or path.name
     return value
 
 
@@ -104,7 +106,7 @@ def deliver_evidence(
 
     body = render_callback_markdown(evidence)
     try:
-        writer(envelope.callback_repo, envelope.callback_issue, body)
+        callback_result = writer(envelope.callback_repo, envelope.callback_issue, body)
     except Exception as exc:
         return {
             "fingerprint": fingerprint,
@@ -119,12 +121,18 @@ def deliver_evidence(
         }
 
     delivered = queue.set_state(fingerprint, QueueState.DELIVERED)
+    callback = {
+        "repo": delivered.callback_repo,
+        "issue": delivered.callback_issue,
+    }
+    if isinstance(callback_result, Mapping):
+        if callback_result.get("html_url"):
+            callback["url"] = callback_result["html_url"]
+        if callback_result.get("id") is not None:
+            callback["comment_id"] = callback_result["id"]
     return {
         "fingerprint": delivered.fingerprint,
         "state": delivered.state.value,
         "delivered": True,
-        "callback": {
-            "repo": delivered.callback_repo,
-            "issue": delivered.callback_issue,
-        },
+        "callback": callback,
     }

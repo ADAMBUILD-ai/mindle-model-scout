@@ -56,6 +56,35 @@ def test_deliver_evidence_writes_source_callback_and_marks_delivered():
     assert "MODEL SCOUT Evidence Callback" in calls[0][2]
 
 
+def test_delivery_returns_callback_url_from_transport():
+    queue, ready, evidence = _ready_queue()
+
+    result = deliver_evidence(
+        queue,
+        ready.fingerprint,
+        evidence,
+        writer=lambda *_: {"id": 123, "html_url": "https://github.com/example/repo/issues/7#issuecomment-123"},
+    )
+
+    assert result["callback"]["comment_id"] == 123
+    assert result["callback"]["url"].endswith("#issuecomment-123")
+
+
+def test_callback_redacts_nested_windows_absolute_paths():
+    _queue, _ready, evidence = _ready_queue()
+    evidence["result"]["nested"] = {
+        "input_image": r"C:\\Users\\PC\\private\\sample.png",
+        "files": [r"C:\\runner\\state\\output.json"],
+    }
+
+    body = render_callback_markdown(evidence)
+
+    assert r"C:\\Users" not in body
+    assert r"C:\\runner" not in body
+    assert "sample.png" in body
+    assert "output.json" in body
+
+
 def test_callback_transport_failure_keeps_evidence_ready_for_retry():
     queue, ready, evidence = _ready_queue()
 

@@ -4,9 +4,14 @@ import argparse
 import json
 import math
 import struct
+import sys
 import time
 import wave
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.model_scout.request_profiles import run_request_profile
 
 
 def _model_files(model) -> list[str]:
@@ -155,7 +160,11 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     workspace = Path(args.output).resolve().parent
-    if args.kind == "huggingface-model":
+    input_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    result = run_request_profile(input_payload, workspace)
+    if result is not None:
+        pass
+    elif args.kind == "huggingface-model":
         result = _huggingface_model(args.model_id or "distilbert/distilbert-base-uncased-finetuned-sst-2-english")
     elif args.kind == "embedding-reranker":
         result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
@@ -168,8 +177,8 @@ def main() -> int:
     else:
         raise SystemExit(f"unsupported runtime worker kind: {args.kind}")
     result["request_input"] = str(Path(args.input).resolve())
-    result["validation_scope"] = "component"
-    result["acceptance_checks"] = {"runtime_component_executed": True}
+    result.setdefault("validation_scope", "component")
+    result.setdefault("acceptance_checks", {"runtime_component_executed": True})
     Path(args.output).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"{args.kind} completed")
     return 0

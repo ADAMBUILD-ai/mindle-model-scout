@@ -133,12 +133,12 @@ class LocalCommandAdapter:
             })
 
         return {
-            "model_id": self.model_id,
+            "model_id": str(output_payload.get("model_id") or self.model_id),
             "model_revision": str(output_payload.get("revision") or self.model_revision),
-            "source": self.source,
+            "source": str(output_payload.get("source") or self.source),
             "validation_scope": str(output_payload.get("validation_scope") or "component"),
             "acceptance_checks": dict(output_payload.get("acceptance_checks") or {}),
-            "license": self.license,
+            "license": str(output_payload.get("license") or self.license),
             "input": str(input_path),
             "output_path": str(output_path),
             "output_size": output_path.stat().st_size,
@@ -159,6 +159,11 @@ class LocalCommandAdapter:
                 "processor": platform.processor() or "unknown",
             },
             "log": (completed.stdout.strip() or "executor completed successfully")[-4000:],
+            "result": {
+                key: value
+                for key, value in output_payload.items()
+                if key != "_downloaded_files"
+            },
         }
 
 

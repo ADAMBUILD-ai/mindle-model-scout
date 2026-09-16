@@ -3,6 +3,7 @@ httpx==0.28.1
 uvicorn[standard]==0.34.0
 huggingface-hub==0.34.4
 numpy==2.4.6
+onnxruntime==1.29.0
 pillow==12.3.0
 sentencepiece==0.2.1
 tiktoken==0.12.0

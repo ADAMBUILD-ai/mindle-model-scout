@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json, urllib.error, urllib.parse, urllib.request
+import re
 from dataclasses import dataclass, asdict
 from typing import Any
 
@@ -116,8 +117,22 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
     return str(profile.get("task_hint") or profile.get("query") or profile.get("raw") or "").strip()
 
 
+def _explicit_model_ids(raw: str) -> list[str]:
+    matches = re.findall(
+        r"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?![A-Za-z0-9_.-])",
+        raw,
+    )
+    return [
+        value
+        for value in matches
+        if any(character.isupper() or character.isdigit() or character in ".-" for character in value)
+    ]
+
+
 def _query_plan(profile: dict[str, Any]) -> list[str]:
-    values = [profile.get("query"), profile.get("task_hint")]
+    raw = str(profile.get("raw") or "")
+    explicit_model_ids = _explicit_model_ids(raw)
+    values = [*explicit_model_ids, profile.get("query"), profile.get("task_hint")]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
 
 
@@ -125,6 +140,7 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "all"):
         raise ValueError("resource_type must be model, dataset, space, or all")
     profile = parse_requirement(query)
+    profile["explicit_model_ids"] = _explicit_model_ids(str(profile.get("raw") or ""))
     query_plan = _query_plan(profile)
     search_query = _upstream_search_query(profile)
     types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)

@@ -64,6 +64,7 @@ def test_local_command_executor_captures_real_artifact_and_output(tmp_path):
     assert json.loads(open(evidence["output_path"], encoding="utf-8").read())["ok"] is True
     assert evidence["sha256"]
     assert evidence["validation_scope"] == "component"
+    assert evidence["result"]["ok"] is True
 
 
 def test_missing_executor_fails_without_false_tested_pass(tmp_path):
