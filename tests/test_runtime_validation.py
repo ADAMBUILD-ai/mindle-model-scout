@@ -38,6 +38,15 @@ def _evidence_for(path):
         "runtime": {"python": "3.11", "backend": "cpu-test"},
         "hardware": {"device": "cpu", "ram_mb": 1024},
         "log": "inference completed successfully",
+        "validation_scope": "request",
+        "acceptance_checks": {"requested_runtime_output_verified": True},
+        "downloaded_files": [
+            {
+                "path": str(path),
+                "size": len(payload),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        ],
     }
 
 
@@ -82,6 +91,9 @@ def test_missing_output_file_cannot_be_tested_pass(tmp_path):
             "runtime": {"python": "3.11"},
             "hardware": {"device": "cpu"},
             "log": "runner returned without a real file",
+            "validation_scope": "request",
+            "acceptance_checks": {"requested_runtime_output_verified": True},
+            "downloaded_files": [],
         }
         return evidence
 

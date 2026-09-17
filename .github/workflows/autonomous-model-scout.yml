@@ -27,6 +27,7 @@ jobs:
       MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
       MODEL_SCOUT_STALE_AFTER_SECONDS: '1800'
       MODEL_SCOUT_LIMIT: '10'
+      MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
       GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
