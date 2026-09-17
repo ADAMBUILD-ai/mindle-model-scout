@@ -56,6 +56,48 @@ def test_deliver_evidence_writes_source_callback_and_marks_delivered():
     assert "MODEL SCOUT Evidence Callback" in calls[0][2]
 
 
+def test_delivery_returns_callback_url_from_transport():
+    queue, ready, evidence = _ready_queue()
+
+    result = deliver_evidence(
+        queue,
+        ready.fingerprint,
+        evidence,
+        writer=lambda *_: {"id": 123, "html_url": "https://github.com/example/repo/issues/7#issuecomment-123"},
+    )
+
+    assert result["callback"]["comment_id"] == 123
+    assert result["callback"]["url"].endswith("#issuecomment-123")
+
+
+def test_callback_redacts_nested_windows_absolute_paths():
+    _queue, _ready, evidence = _ready_queue()
+    evidence["result"]["nested"] = {
+        "input_image": r"C:\\Users\\PC\\private\\sample.png",
+        "files": [r"C:\\runner\\state\\output.json"],
+    }
+
+    body = render_callback_markdown(evidence)
+
+    assert r"C:\\Users" not in body
+    assert r"C:\\runner" not in body
+    assert "sample.png" in body
+    assert "output.json" in body
+
+
+def test_callback_compacts_large_runtime_sequences():
+    _queue, _ready, evidence = _ready_queue()
+    evidence["result"]["runtime"] = {
+        "wall_lines": [[index, index + 1, index + 2, index + 3] for index in range(500)]
+    }
+
+    body = render_callback_markdown(evidence)
+
+    assert '"item_count": 500' in body
+    assert '"truncated": true' in body
+    assert len(body) < 10_000
+
+
 def test_callback_transport_failure_keeps_evidence_ready_for_retry():
     queue, ready, evidence = _ready_queue()
 
@@ -81,3 +123,28 @@ def test_deliver_rejects_mismatched_fingerprint():
         assert "does not match" in str(exc)
     else:
         raise AssertionError("mismatched fingerprint must fail")
+
+
+def test_stale_component_evidence_cannot_be_delivered(tmp_path):
+    queue, ready, evidence = _ready_queue()
+    output = tmp_path / "output.json"
+    output.write_text("{}", encoding="utf-8")
+    evidence = {
+        **evidence,
+        "status": "TESTED_PASS",
+        "result": {"runtime": {"output_path": str(output)}},
+    }
+    calls = []
+
+    result = deliver_evidence(
+        queue,
+        ready.fingerprint,
+        evidence,
+        writer=lambda *args: calls.append(args),
+    )
+
+    assert result["delivered"] is False
+    assert result["error"] == "runtime_evidence_invalid"
+    assert calls == []
+    assert queue.get(ready.fingerprint).state == QueueState.EVIDENCE_READY
+

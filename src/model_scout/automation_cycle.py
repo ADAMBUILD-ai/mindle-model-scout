@@ -8,11 +8,14 @@ from typing import Any, Protocol
 
 from .callback_delivery import deliver_evidence
 from .dispatcher import ScoutRunner, dispatch_one
+from .delivery_ledger import DeliveryLedger, DeliveryState
 from .github_request_discovery import discover_github_issue_requests
 from .request_queue import QueueState, RequestEnvelope
+from .runtime_validation import run_runtime_validation
 
 
 CallbackWriter = Callable[[str, int, str], Any]
+RuntimeRunner = Callable[[RequestEnvelope, Mapping[str, Any]], Mapping[str, Any]]
 
 
 class QueueLike(Protocol):
@@ -142,5 +145,120 @@ def run_scout_cycle(
                 writer=callback_writer,
             )
             results.append(dict(delivery))
+
+    return results
+
+
+def run_runtime_cycle(
+    *,
+    issues: Iterable[Mapping[str, object]],
+    configured_repos: Iterable[str],
+    queue: QueueLike,
+    evidence_store: DurableEvidenceStore,
+    delivery_ledger: DeliveryLedger,
+    scout_runner: ScoutRunner,
+    runtime_runner: RuntimeRunner,
+    callback_writer: CallbackWriter,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Run discovery, search, runtime validation, and callback as one durable cycle."""
+
+    discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
+    fingerprints: list[str] = []
+    for envelope in discovered:
+        queued, _created = queue.enqueue(envelope)
+        fingerprints.append(queued.fingerprint)
+        delivery_ledger.request(
+            queued.fingerprint,
+            owner=str(queued.callback_repo or queued.source_repo or "MODEL_SCOUT_AUTOMATION"),
+            next_action="search for a license-compatible executable candidate",
+        )
+
+    results: list[dict[str, Any]] = []
+    for fingerprint in fingerprints:
+        envelope = queue.get(fingerprint)
+        if envelope is None:
+            continue
+
+        if envelope.state == QueueState.QUEUED:
+            owner = str(envelope.callback_repo or envelope.source_repo or "MODEL_SCOUT_AUTOMATION")
+            try:
+                scout_result = scout_runner(envelope.request_text, limit, envelope.resource)
+                if not isinstance(scout_result, Mapping):
+                    raise TypeError("scout runner must return a mapping")
+                candidates = scout_result.get("candidates")
+                if not isinstance(candidates, list) or not candidates:
+                    raise ValueError("search produced no executable candidates")
+            except Exception as exc:
+                failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
+                results.append({
+                    "fingerprint": fingerprint,
+                    "state": failed.state.value,
+                    "stage": "search",
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                })
+                continue
+
+            delivery_ledger.advance(
+                fingerprint,
+                DeliveryState.FOUND,
+                owner=owner,
+                next_action="download candidate and execute runtime adapter",
+                evidence={"scout_result": dict(scout_result)},
+            )
+            runtime_result = run_runtime_validation(
+                queue,
+                fingerprint,
+                runner=lambda current: runtime_runner(current, scout_result),
+            )
+            results.append(dict(runtime_result))
+            if runtime_result.get("status") != "TESTED_PASS":
+                continue
+
+            runtime_evidence = dict(runtime_result["runtime_evidence"])
+            delivery_ledger.advance(
+                fingerprint,
+                DeliveryState.DOWNLOADED,
+                owner=owner,
+                next_action="validate runtime output and evidence hashes",
+                evidence=runtime_evidence,
+            )
+            delivery_ledger.advance(
+                fingerprint,
+                DeliveryState.TESTED_PASS,
+                owner=owner,
+                next_action="deliver validated evidence callback",
+                evidence=runtime_evidence,
+            )
+            callback_evidence = {
+                **runtime_result,
+                "result": {"scout": dict(scout_result), "runtime": runtime_evidence},
+            }
+            evidence_store.put(fingerprint, callback_evidence)
+            envelope = queue.get(fingerprint)
+
+        if envelope is not None and envelope.state == QueueState.EVIDENCE_READY:
+            evidence = evidence_store.get(fingerprint)
+            if evidence is None:
+                results.append({
+                    "fingerprint": fingerprint,
+                    "state": QueueState.EVIDENCE_READY.value,
+                    "delivered": False,
+                    "error": "durable_evidence_missing",
+                })
+                continue
+            delivery = deliver_evidence(queue, fingerprint, evidence, writer=callback_writer)
+            results.append(dict(delivery))
+            if delivery.get("delivered"):
+                current = delivery_ledger.get(fingerprint)
+                if current is not None and current.state == DeliveryState.TESTED_PASS:
+                    delivery_ledger.advance(
+                        fingerprint,
+                        DeliveryState.DELIVERED,
+                        owner=current.owner,
+                        next_action="monitor durable state on the next watchdog cycle",
+                        evidence=evidence,
+                    )
 
     return results

@@ -70,6 +70,14 @@ def validate_runtime_evidence(evidence: Mapping[str, Any]) -> list[str]:
         if not _nonempty_text(evidence.get(key)):
             errors.append(f"missing_or_empty:{key}")
 
+    if evidence.get("validation_scope") != "request":
+        errors.append("validation_scope_not_request_complete")
+    acceptance_checks = evidence.get("acceptance_checks")
+    if not isinstance(acceptance_checks, Mapping) or not acceptance_checks:
+        errors.append("missing_or_invalid:acceptance_checks")
+    elif any(value is not True for value in acceptance_checks.values()):
+        errors.append("acceptance_check_failed")
+
     settings = evidence.get("settings")
     if not isinstance(settings, Mapping):
         errors.append("missing_or_invalid:settings")
@@ -111,6 +119,29 @@ def validate_runtime_evidence(evidence: Mapping[str, Any]) -> list[str]:
             errors.append("invalid_sha256")
         elif _sha256_file(output_path) != normalized_sha:
             errors.append("sha256_mismatch")
+
+    downloads = evidence.get("downloaded_files")
+    if not isinstance(downloads, list) or not downloads:
+        errors.append("missing_or_invalid:downloaded_files")
+    else:
+        for index, item in enumerate(downloads):
+            if not isinstance(item, Mapping):
+                errors.append(f"invalid_download:{index}")
+                continue
+            path_value = item.get("path")
+            if not _nonempty_text(path_value):
+                errors.append(f"missing_download_path:{index}")
+                continue
+            path = Path(str(path_value))
+            if not path.is_file():
+                errors.append(f"download_file_missing:{index}")
+                continue
+            size = item.get("size")
+            sha = str(item.get("sha256") or "").strip().lower()
+            if size != path.stat().st_size:
+                errors.append(f"download_size_mismatch:{index}")
+            if len(sha) != 64 or _sha256_file(path) != sha:
+                errors.append(f"download_sha256_mismatch:{index}")
 
     return errors
 

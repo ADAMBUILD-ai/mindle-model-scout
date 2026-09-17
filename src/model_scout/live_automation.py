@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
+from collections.abc import Callable, Mapping
 from typing import Any, Iterable
 
-from .automation_cycle import DurableEvidenceStore, run_scout_cycle
+from .automation_cycle import DurableEvidenceStore, run_runtime_cycle, run_scout_cycle
 from .delivery_ledger import DeliveryLedger, DeliveryState
 from .github_callback_transport import GitHubIssueCommentWriter
 from .github_issue_source import GitHubIssueSource
+from .github_request_discovery import request_discovery_repositories
 from .persistent_queue import PersistentRequestQueue
 from .scout import scout as run_scout_core
+
+
+RuntimeRunner = Callable[[Any, Mapping[str, Any]], Mapping[str, Any]]
 
 
 def run_live_cycle(
@@ -17,13 +22,14 @@ def run_live_cycle(
     state_dir: str | Path,
     issue_source: GitHubIssueSource | None = None,
     callback_writer: GitHubIssueCommentWriter | None = None,
+    runtime_runner: RuntimeRunner | None = None,
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
-    This is the concrete production-adjacent orchestration entrypoint for the recovery
-    branch. It intentionally does not perform paid provider calls or runtime TESTED_PASS
-    execution. Those remain behind runtime_validation approval boundaries.
+    When a runtime runner is supplied, scout results must pass real output validation
+    before callback delivery. The legacy scout-only path remains available for callers
+    that explicitly omit a runtime runner.
     """
 
     repos = tuple(repo.strip() for repo in configured_repos if repo and repo.strip())
@@ -32,27 +38,32 @@ def run_live_cycle(
 
     root = Path(state_dir)
     root.mkdir(parents=True, exist_ok=True)
+    discovery_repos = request_discovery_repositories(repos)
     source = issue_source or GitHubIssueSource()
     writer = callback_writer or GitHubIssueCommentWriter()
-    issues = source.list_open_issues(repos)
+    issues = source.list_open_issues(discovery_repos)
 
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
     ledger = DeliveryLedger(root / "model_delivery.sqlite3")
-    results = run_scout_cycle(
-        issues=issues,
-        configured_repos=repos,
-        queue=queue,
-        evidence_store=evidence_store,
-        scout_runner=run_scout_core,
-        callback_writer=writer,
-        limit=limit,
-    )
+    cycle = run_runtime_cycle if runtime_runner is not None else run_scout_cycle
+    cycle_args: dict[str, Any] = {
+        "issues": issues,
+        "configured_repos": discovery_repos,
+        "queue": queue,
+        "evidence_store": evidence_store,
+        "scout_runner": run_scout_core,
+        "callback_writer": writer,
+        "limit": limit,
+    }
+    if runtime_runner is not None:
+        cycle_args.update(runtime_runner=runtime_runner, delivery_ledger=ledger)
+    results = cycle(**cycle_args)
     for item in queue.snapshot():
         fingerprint = str(item["fingerprint"])
         owner = str(item.get("callback_repo") or item.get("source_repo") or "MODEL_SCOUT_AUTOMATION")
         record = ledger.request(fingerprint, owner=owner, next_action="discover license-compatible candidate")
-        if item["state"] in {"EVIDENCE_READY", "DELIVERED"} and record.state == DeliveryState.REQUESTED:
+        if runtime_runner is None and item["state"] in {"EVIDENCE_READY", "DELIVERED"} and record.state == DeliveryState.REQUESTED:
             evidence = evidence_store.get(fingerprint) or {}
             ledger.advance(
                 fingerprint,

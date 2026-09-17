@@ -5,79 +5,61 @@ Status source: GitHub Evidence only. This file is the executor-facing SSOT for t
 ## Integrated baseline on `main`
 - Repository: `ADAMBUILD-ai/mindle-model-scout`
 - Default branch: `main`
-- Current main: `e04f169f4bff6a77c9f9d34cefda8ce9e52c5aea`
-- SCOUT-GATE-02A / 02B / 03 / 04: merged and previously CI-verified.
-- Common FastAPI layer: merged.
-- UI/API validation recovery: merged.
-- WARREN–BUFFETT Issue #28 / PR #30: completed and merged.
+- Current verified main: `7040dd9b7e2e8ffea8e0a6d147904f18dfb8c014`
+- No PR #59 recovery work is claimed merged to main.
 
-## Parallel active gate A — AURA TESTED_PASS delivery
+## Active recovery gate — PR #59
+Authoritative source:
+- PR #59: `Recovery: connect durable ingestion to runtime execution`
+- Branch: `recovery/runtime-execution-core-20260916`
+- Pre-refresh verified head: `6c0bcc3e18e1327f5e244c477f8c63c2309771a7`
+- State at audit: OPEN / DRAFT / mergeable / unmerged.
+
+### Verified validation on pre-refresh head
+- Local offline suite: 113 passed.
+- GitHub Actions: tests SUCCESS, cli-smoke SUCCESS, hf-e2e SUCCESS.
+- Local live-only suite: 3 blocked by sandbox outbound-network policy; this is not promoted to PASS.
+
+### Verified delivered lifecycle Evidence
+The following request lanes have durable lifecycle Evidence recorded by PR #59 and MUST NOT be listed as future work:
+- #47 DELIVERED
+- #48 AVORA: actual project test-kit PDFs supplied 8 pages; 3 real pages passed PDF rendering, mask/vector output, OCR confidence, wall/door/window relation JSON, baseline comparison, deterministic rerun; FOUND -> DOWNLOADED -> TESTED_PASS -> callback -> DELIVERED; idempotent rerun results=[]
+- #49 DELIVERED
+- #52 DELIVERED
+- #53 DELIVERED
+- #54 DELIVERED
+- #56 DELIVERED
+
+Generated/component smoke results are not request-complete TESTED_PASS.
+
+### Exact remaining blockers
+- #50: no real project video or Korean speech sample; no local audio/video files found.
+- #51: no actual Korean STT/TTS sample or avatar video.
+- #55: no three actual GeoTIFF/satellite/parcel-map samples with georeference.
+- #57: no actual filing/IR document with source/timestamp/page/table provenance available to local runtime; outbound CLI download blocked.
+- #58: no actual field image/Korean label sample and training-data provenance Evidence.
+
+### Current next-action trigger
+1. Do not repeat already-delivered #47/#48/#49/#52/#53/#54/#56 work.
+2. For #50/#51/#55/#57/#58, execute only when the required real input/provenance becomes reachable; preserve FAILED_RETRYABLE/VERIFY_REQUIRED boundaries until then.
+3. Continue safe/free/public scouting and local verification where it can produce new Evidence without inventing production samples.
+4. Keep PR #59 Draft/unmerged while exact blockers remain. Do not merge main without explicit user approval.
+5. Keep AURA Issue #32 active in parallel; no AURA TESTED_PASS claim without the real delivery package.
+
+## Parallel gate — AURA TESTED_PASS delivery
 Authoritative sources:
 - Issue #32: `AURA P0 — Approved Model Shopping / Deliver TESTED_PASS Assets`
 - PR #31: `feat: add AURA execution order for MODEL SCOUT handoff`
 - Branch: `feat/aura-execution-order-20260913`
-- Current PR #31 head: `2dfa006fedd92f21a62b7897b4c19f706daf6de6`
 
 Verified boundary:
-- No `AURA_MODEL_SCOUT_DELIVERY_20260913` package with real inference output/log/settings/runtime/hash has been verified yet.
-- Scout results, downloads, model-card checks, or CI alone are not `TESTED_PASS`.
-- `TESTED_PASS` requires real input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + file SHA-256.
-
-Execution authority:
-- Safe/free/public scouting, download, local execution testing, re-scouting, Evidence generation, branch/PR/test/document updates are authorized without another user prompt.
-- Approval is required only for login/additional permission, cost/paid GPU, external publication, destructive or hard-to-reverse change, secret rotation/access, production deployment, or another irreversible action.
-
-## Parallel active gate B — P0 complete automation recovery
-Authoritative sources:
-- Issue #36: `[P0 RECOVERY] Request ingestion + execution dispatcher + TESTED_PASS runner`
-- PR #37: `feat: complete MODEL SCOUT P0 automation recovery foundation`
-- Branch: `recovery/request-ingestion-gate-20260913`
-
-### Verified implemented Evidence
-The following recovery slices are already implemented on PR #37 and MUST NOT be listed as future work:
-1. Deterministic request normalization + fingerprint dedupe + queue state contract.
-2. Configured GitHub Issue request discovery + callback metadata normalization.
-3. Dispatcher: `QUEUED -> RUNNING -> existing scout core -> EVIDENCE_READY`, with retryable failure state.
-4. Retry-safe callback-delivery state contract: `EVIDENCE_READY -> DELIVERED`; callback failure leaves the item at `EVIDENCE_READY` and does not rerun scout core.
-5. SQLite persistent queue + restart-safe state recovery + persisted source/callback metadata/evidence pointer.
-6. Watchdog stale-request recovery for `QUEUED`/`RUNNING`, with retry counter/error/attempt metadata; `EVIDENCE_READY` is excluded from scout rerun.
-7. Concrete GitHub Issue-comment callback transport with injected token/API boundary, sanitized non-2xx/network failures, and deterministic success/failure/retry integration tests.
-8. Approval-aware runtime validation boundary: safe/free/local/non-destructive work may run automatically; login/additional permission, paid cost, secret access/rotation, production deployment, external publication, destructive or other irreversible work transitions to `BLOCKED_APPROVAL`. `TESTED_PASS` requires a real output file and deterministic metadata/size/SHA-256 verification.
-
-Latest implementation commits:
-- `0d916c92050a134e6f73aabac0afd02cdf8929bf` — approval-aware runtime TESTED_PASS validation boundary.
-- `a7099309cb18ba01c43d0470914e9167ed2d5c75` — deterministic runtime Evidence / approval-boundary tests.
-- `1ab1d1092ea371cade6d436e335f5627929a5834` — concrete GitHub Issue-comment callback transport.
-- `d77d9251db199f3a0d98e1b2fe31dee460546e01` — transport boundary + delivery retry tests.
-- `b5c69519bed7fad7f00daf6cb08d019074d1590b` — SQLite persistent queue and stale requeue implementation.
-- `ef102ea996df0c199db93e03b653aa2ec5e24a3d` — persistence/restart/watchdog deterministic tests.
-
-Verified CI on `a7099309cb18ba01c43d0470914e9167ed2d5c75`:
-- tests `34864857252` — SUCCESS; pytest `81 passed, 1 warning`
-- hf-e2e `34864857262` — SUCCESS
-- cli-smoke `34864857600` — SUCCESS
-
-### Current exact next executable work
-1. Execute a real cross-repo lifecycle proof using at least two project requests and record: source request -> discovery -> normalization/dedupe -> persistence -> queue -> dispatch/runtime validation -> evidence -> source callback -> `DELIVERED`.
-2. Exercise one duplicate request and prove it is not executed twice.
-3. Exercise one retryable failure and prove watchdog/requeue recovery without rerunning already-`EVIDENCE_READY` work.
-4. Preserve exact source issue, fingerprint, queue states, callback Evidence, commit/PR/CI identifiers for the lifecycle proof.
-5. Keep AURA Issue #32 active in parallel; do not claim AURA `TESTED_PASS` without the real delivery package.
-
-### Closeout definition
-MODEL SCOUT is NOT complete until a development team can place a valid request in its own configured repository and receive verified scout/runtime Evidence back without manual mirroring, manual assignment, manual requeue, or user intervention for safe/free work.
-
-Required closeout Evidence:
-- code commits
-- deterministic persistence/watchdog/callback/approval/E2E tests
-- `tests + hf-e2e + cli-smoke` PASS on the final PR head
-- real cross-repo lifecycle Evidence from at least two project requests
-- duplicate-request and retryable-failure recovery Evidence
-- AURA runtime output Evidence for any `TESTED_PASS` claim
+- No `AURA_MODEL_SCOUT_DELIVERY_20260913` package with real inference output/log/settings/runtime/hash has been verified.
+- Scout results, downloads, model-card checks, or CI alone are not TESTED_PASS.
+- TESTED_PASS requires real input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + file SHA-256.
 
 ## Evidence-first operating rule
 - Never report progress without a commit, PR, CI/test result, artifact, or exact verified blocker.
 - If meaningful development Evidence is unchanged for two consecutive checks, audit in this order: repository/write permission -> remote branch/PR/commit and possible local-only work -> Actions/CI -> SSOT/handoff reachability -> integration owner/next-action trigger -> remote push/integration path.
 - Classify the exact verified cause and execute the smallest safe corrective action immediately when approval is not required.
-- Local-only work is `UNVERIFIED` until pushed.
-- Do not merge `main`, deploy Production, incur cost, rotate/access secrets, publish externally, or perform destructive changes without explicit user approval.
+- Local-only work is UNVERIFIED until pushed.
+- Do not merge main, deploy Production, incur cost, rotate/access secrets, publish externally, or perform destructive changes without explicit user approval.
