@@ -5,75 +5,37 @@ Status source: GitHub Evidence only. This file is the executor-facing SSOT for t
 ## Integrated baseline on `main`
 - Repository: `ADAMBUILD-ai/mindle-model-scout`
 - Default branch: `main`
-- Current main: `e04f169f4bff6a77c9f9d34cefda8ce9e52c5aea`
-- SCOUT-GATE-02A / 02B / 03 / 04: merged and previously CI-verified.
-- Common FastAPI layer: merged.
-- UI/API validation recovery: merged.
-- WARREN–BUFFETT Issue #28 / PR #30: completed and merged.
+- Current main: `7040dd9b7e2e8ffea8e0a6d147904f18dfb8c014`
+- Do not claim PR/recovery branch work as integrated until merge Evidence exists.
 
-## Parallel active gate A — AURA TESTED_PASS delivery
-Authoritative sources:
-- Issue #32: `AURA P0 — Approved Model Shopping / Deliver TESTED_PASS Assets`
-- PR #31: `feat: add AURA execution order for MODEL SCOUT handoff`
+## Active recovery gate — Team Router / ACK watchdog
+- PR #61: `Recovery: Team Router and ACK watchdog`
+- Branch: `recovery/team-router-ack-20260917`
+- Pre-refresh head: `1ebf9c3e1eec29ccb08dd0d3851281f3cb6cfaa7`
+- Scope: static team registry for MINDLE MEDIA AI, AI 닥터 김서방, ARCOS; idempotent child-issue routing; `REQUEST_SENT`; `ACK_RECEIVED`; 15-minute `EXECUTOR_UNREACHABLE` audit; real routing command and focused E2E tests.
+- Verified code/CI boundary before this SSOT refresh: focused local suite `15 passed`; exact-head GitHub Actions `tests`, `cli-smoke`, `hf-e2e` previously verified SUCCESS.
+- Runtime completion is NOT claimed until actual `REQUEST_SENT -> ACK_RECEIVED` Evidence exists, or an actual missing-ACK case produces `EXECUTOR_UNREACHABLE` Evidence.
+
+## Runtime execution recovery gate
+- PR #59: `Recovery: connect durable ingestion to runtime execution`
+- Branch: `recovery/runtime-execution-core-20260916`
+- Current remote head: `0e680b6225f9708cf3d951802f0339ea3ea9aa67`
+- Delivered request lanes already evidenced: #47, #48, #49, #52, #53, #54, #56.
+- Exact remaining blockers: #50 real project video/Korean speech sample absent; #51 real Korean STT/TTS sample/avatar video absent; #55 three actual georeferenced GeoTIFF/satellite/parcel-map samples absent; #57 actual filing/IR document provenance unavailable to local runtime and outbound CLI download blocked; #58 actual field image/Korean label sample and training-data provenance absent.
+- Generated/component smoke results must not be promoted to request-complete `TESTED_PASS`.
+
+## AURA TESTED_PASS gate
+- Issue #32 and PR #31 remain authoritative for AURA delivery.
 - Branch: `feat/aura-execution-order-20260913`
-- Current PR #31 head: `2dfa006fedd92f21a62b7897b4c19f706daf6de6`
+- Current remote branch head: `2dfa006fedd92f21a62b7897b4c19f706daf6de6`.
+- No verified AURA delivery package with real inference input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + output SHA-256 exists yet.
+- Therefore `AURA TESTED_PASS = 0 / VERIFY_REQUIRED` until that exact Evidence exists.
 
-Verified boundary:
-- No `AURA_MODEL_SCOUT_DELIVERY_20260913` package with real inference output/log/settings/runtime/hash has been verified yet.
-- Scout results, downloads, model-card checks, or CI alone are not `TESTED_PASS`.
-- `TESTED_PASS` requires real input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + file SHA-256.
-
-Execution authority:
-- Safe/free/public scouting, download, local execution testing, re-scouting, Evidence generation, branch/PR/test/document updates are authorized without another user prompt.
-- Approval is required only for login/additional permission, cost/paid GPU, external publication, destructive or hard-to-reverse change, secret rotation/access, production deployment, or another irreversible action.
-
-## Parallel active gate B — P0 complete automation recovery
-Authoritative sources:
-- Issue #36: `[P0 RECOVERY] Request ingestion + execution dispatcher + TESTED_PASS runner`
-- PR #37: `feat: complete MODEL SCOUT P0 automation recovery foundation`
-- Branch: `recovery/request-ingestion-gate-20260913`
-
-### Verified implemented Evidence
-The following recovery slices are already implemented on PR #37 and MUST NOT be listed as future work:
-1. Deterministic request normalization + fingerprint dedupe + queue state contract.
-2. Configured GitHub Issue request discovery + callback metadata normalization.
-3. Dispatcher: `QUEUED -> RUNNING -> existing scout core -> EVIDENCE_READY`, with retryable failure state.
-4. Retry-safe callback-delivery state contract: `EVIDENCE_READY -> DELIVERED`; callback failure leaves the item at `EVIDENCE_READY` and does not rerun scout core.
-5. SQLite persistent queue + restart-safe state recovery + persisted source/callback metadata/evidence pointer.
-6. Watchdog stale-request recovery for `QUEUED`/`RUNNING`, with retry counter/error/attempt metadata; `EVIDENCE_READY` is excluded from scout rerun.
-7. Concrete GitHub Issue-comment callback transport with injected token/API boundary, sanitized non-2xx/network failures, and deterministic success/failure/retry integration tests.
-8. Approval-aware runtime validation boundary: safe/free/local/non-destructive work may run automatically; login/additional permission, paid cost, secret access/rotation, production deployment, external publication, destructive or other irreversible work transitions to `BLOCKED_APPROVAL`. `TESTED_PASS` requires a real output file and deterministic metadata/size/SHA-256 verification.
-
-Latest implementation commits:
-- `0d916c92050a134e6f73aabac0afd02cdf8929bf` — approval-aware runtime TESTED_PASS validation boundary.
-- `a7099309cb18ba01c43d0470914e9167ed2d5c75` — deterministic runtime Evidence / approval-boundary tests.
-- `1ab1d1092ea371cade6d436e335f5627929a5834` — concrete GitHub Issue-comment callback transport.
-- `d77d9251db199f3a0d98e1b2fe31dee460546e01` — transport boundary + delivery retry tests.
-- `b5c69519bed7fad7f00daf6cb08d019074d1590b` — SQLite persistent queue and stale requeue implementation.
-- `ef102ea996df0c199db93e03b653aa2ec5e24a3d` — persistence/restart/watchdog deterministic tests.
-
-Verified CI on `a7099309cb18ba01c43d0470914e9167ed2d5c75`:
-- tests `34864857252` — SUCCESS; pytest `81 passed, 1 warning`
-- hf-e2e `34864857262` — SUCCESS
-- cli-smoke `34864857600` — SUCCESS
-
-### Current exact next executable work
-1. Execute a real cross-repo lifecycle proof using at least two project requests and record: source request -> discovery -> normalization/dedupe -> persistence -> queue -> dispatch/runtime validation -> evidence -> source callback -> `DELIVERED`.
-2. Exercise one duplicate request and prove it is not executed twice.
-3. Exercise one retryable failure and prove watchdog/requeue recovery without rerunning already-`EVIDENCE_READY` work.
-4. Preserve exact source issue, fingerprint, queue states, callback Evidence, commit/PR/CI identifiers for the lifecycle proof.
-5. Keep AURA Issue #32 active in parallel; do not claim AURA `TESTED_PASS` without the real delivery package.
-
-### Closeout definition
-MODEL SCOUT is NOT complete until a development team can place a valid request in its own configured repository and receive verified scout/runtime Evidence back without manual mirroring, manual assignment, manual requeue, or user intervention for safe/free work.
-
-Required closeout Evidence:
-- code commits
-- deterministic persistence/watchdog/callback/approval/E2E tests
-- `tests + hf-e2e + cli-smoke` PASS on the final PR head
-- real cross-repo lifecycle Evidence from at least two project requests
-- duplicate-request and retryable-failure recovery Evidence
-- AURA runtime output Evidence for any `TESTED_PASS` claim
+## Current exact next executable work
+1. On PR #61, obtain actual runtime routing Evidence: `REQUEST_SENT -> ACK_RECEIVED`; if ACK is absent past the configured threshold, preserve actual `EXECUTOR_UNREACHABLE` audit Evidence.
+2. Do not re-run already delivered PR #59 lanes; execute only a remaining lane when its required real input/provenance becomes available.
+3. Keep AURA at `VERIFY_REQUIRED` until the real TESTED_PASS package is verified.
+4. For every new branch-head commit, require fresh exact-head `tests + cli-smoke + hf-e2e` Evidence before promotion.
 
 ## Evidence-first operating rule
 - Never report progress without a commit, PR, CI/test result, artifact, or exact verified blocker.
