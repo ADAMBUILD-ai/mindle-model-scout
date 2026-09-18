@@ -57,6 +57,15 @@ Verified boundary:
 - Scout results, downloads, model-card checks, or CI alone are not TESTED_PASS.
 - TESTED_PASS requires real input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + file SHA-256.
 
+## 2026-09-18 closeout integration control
+- Integration branch: `integration/model-scout-closeout-20260918`.
+- Baseline: PR #59 head `0e680b6225f9708cf3d951802f0339ea3ea9aa67`.
+- Team Router/ACK implementation imported from PR #61 head `6e20cc316b701356def39bd30276a15a262a0bb2`: `config/team-registry.json`, `scripts/route_team_requests.py`, `src/model_scout/team_router.py`, `tests/test_team_router.py`.
+- User-approved priority rule: a newly detected valid development-team MODEL SCOUT request preempts background/re-scout/history work. Execute intake -> shopping -> download/asset acquisition -> runtime verification -> Evidence -> callback/DELIVERED first. After the active incoming queue is cleared, resume re-scouting, gap-filling, historical audit, and maintenance.
+- Evidence rule: FOUND/SCOUT_RESULT/download/CI alone is not request-complete TESTED_PASS. Require the request-specific runtime Evidence gate.
+- AURA remains VERIFY_REQUIRED until real inference input/output + model ID/revision/license/source + settings + runtime/HW/VRAM + log + output SHA-256 are verified.
+- Final promotion requires fresh exact-head tests + cli-smoke + hf-e2e and real routing Evidence. No direct main merge or production deployment is authorized by this integration branch.
+
 ## Evidence-first operating rule
 - Never report progress without a commit, PR, CI/test result, artifact, or exact verified blocker.
 - If meaningful development Evidence is unchanged for two consecutive checks, audit in this order: repository/write permission -> remote branch/PR/commit and possible local-only work -> Actions/CI -> SSOT/handoff reachability -> integration owner/next-action trigger -> remote push/integration path.
