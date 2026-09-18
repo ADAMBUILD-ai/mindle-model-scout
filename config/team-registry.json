@@ -1,0 +1,37 @@
+{
+  "teams": [
+    {
+      "team_id": "mindle-media-ai",
+      "display_name": "MINDLE MEDIA AI",
+      "repository_full_name": "ADAMBUILD-ai/mindle-media-ai",
+      "issue_or_task_channel": "issues",
+      "execution_workflow": "team issue triage and artifact handoff",
+      "artifact_return_channel": "central issue callback comment",
+      "ack_timeout_minutes": 15,
+      "retry_policy": "audit once at timeout; classify a second missed ACK as EXECUTOR_UNREACHABLE",
+      "owner_or_executor": "MINDLE MEDIA AI maintainer"
+    },
+    {
+      "team_id": "kimseobang",
+      "display_name": "AI 닥터 김서방",
+      "repository_full_name": "ADAMBUILD-ai/kimserv-core",
+      "issue_or_task_channel": "issues",
+      "execution_workflow": "team issue triage and artifact handoff",
+      "artifact_return_channel": "central issue callback comment",
+      "ack_timeout_minutes": 15,
+      "retry_policy": "audit once at timeout; classify a second missed ACK as EXECUTOR_UNREACHABLE",
+      "owner_or_executor": "KIMSERV maintainer"
+    },
+    {
+      "team_id": "arcos",
+      "display_name": "ARCOS",
+      "repository_full_name": "ADAMBUILD-ai/arcos-engine",
+      "issue_or_task_channel": "issues",
+      "execution_workflow": "team issue triage and artifact handoff",
+      "artifact_return_channel": "central issue callback comment",
+      "ack_timeout_minutes": 15,
+      "retry_policy": "audit once at timeout; classify a second missed ACK as EXECUTOR_UNREACHABLE",
+      "owner_or_executor": "ARCOS maintainer"
+    }
+  ]
+}
