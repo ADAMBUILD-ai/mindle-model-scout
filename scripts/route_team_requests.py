@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.model_scout.team_router import GitHubChildIssueWriter, TeamRegistry, TeamRouter
+from src.model_scout.team_router import GitHubChildIssueWriter, RouteLedger, TeamRegistry, TeamRouter
 
 
 CENTRAL_REPOSITORY = "ADAMBUILD-ai/mindle-model-scout"
@@ -36,36 +37,37 @@ ROUTES = (
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--state-dir", required=True)
+    parser.add_argument("--audit-only", action="store_true")
+    args = parser.parse_args()
+
     root = Path(__file__).resolve().parents[1]
     registry = TeamRegistry.load(root / "config" / "team-registry.json")
-    router = TeamRouter(registry, GitHubChildIssueWriter())
-    records = []
-    for route in ROUTES:
-        issue = int(route["central_issue"])
-        records.append(
+    writer = GitHubChildIssueWriter()
+    state_dir = Path(args.state_dir).resolve()
+    router = TeamRouter(registry, writer, ledger=RouteLedger(state_dir / "team-router-routes.json"))
+    if not args.audit_only:
+        for route in ROUTES:
+            issue = int(route["central_issue"])
             router.route(
                 **route,
                 central_repository=CENTRAL_REPOSITORY,
                 callback_url=f"https://github.com/{CENTRAL_REPOSITORY}/issues/{issue}",
             )
-        )
-    print(
-        json.dumps(
-            [
-                {
-                    "central_issue": record.central_issue,
-                    "child_repository": record.child_repository,
-                    "child_issue": record.child_issue,
-                    "child_url": record.child_url,
-                    "state": record.state,
-                    "ack_deadline": record.ack_deadline.isoformat(),
-                }
-                for record in records
-            ],
-            ensure_ascii=False,
-            indent=2,
-        )
+    acknowledged = router.collect_acks(writer)
+    timed_out = router.audit_ack_timeouts()
+    evidence = {
+        "acknowledged": [record.as_dict() for record in acknowledged],
+        "timed_out": [record.as_dict() for record in timed_out],
+        "routes": [record.as_dict() for record in router.records()],
+    }
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "team-router-evidence.json").write_text(
+        json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
+    print(json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
 
