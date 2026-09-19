@@ -12,6 +12,7 @@ class FakeIssueSource(GitHubIssueSource):
         self._issues = list(issues)
 
     def list_open_issues(self, repos, *, per_page=100):
+        self.requested_repos = tuple(repos)
         return list(self._issues)
 
 
@@ -107,6 +108,25 @@ def test_live_cycle_duplicate_source_request_executes_once(tmp_path, monkeypatch
     )
     assert len(calls) == 1
     assert len(writer.calls) == 1
+
+
+def test_live_cycle_ingests_central_requests_without_configuration(tmp_path, monkeypatch):
+    source = FakeIssueSource([_issue("ADAMBUILD-ai/mindle-model-scout", 47, "ADAM")])
+    writer = RecordingWriter()
+    monkeypatch.setattr(
+        "src.model_scout.live_automation.run_scout_core",
+        lambda query, limit, resource: {"query": query, "candidates": []},
+    )
+
+    results = run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/adam-build",),
+        state_dir=tmp_path,
+        issue_source=source,
+        callback_writer=writer,
+    )
+
+    assert "ADAMBUILD-ai/mindle-model-scout" in source.requested_repos
+    assert any(item.get("state") == "DELIVERED" for item in results)
 
 
 def test_live_cycle_callback_failure_is_retry_safe(tmp_path, monkeypatch):

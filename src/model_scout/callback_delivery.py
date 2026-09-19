@@ -1,13 +1,38 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path, PureWindowsPath
 from collections.abc import Callable, Mapping
 from typing import Any
 
 from .request_queue import QueueState, RequestQueue
+from .runtime_validation import validate_runtime_evidence
 
 
 CallbackWriter = Callable[[str, int, str], Any]
+MAX_PUBLIC_SEQUENCE_ITEMS = 20
+
+
+def _public_evidence(value: Any, *, key: str = "") -> Any:
+    if isinstance(value, Mapping):
+        return {str(item_key): _public_evidence(item, key=str(item_key)) for item_key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        public_items = [_public_evidence(item, key=key) for item in value[:MAX_PUBLIC_SEQUENCE_ITEMS]]
+        if len(value) > MAX_PUBLIC_SEQUENCE_ITEMS:
+            return {
+                "item_count": len(value),
+                "sample": public_items,
+                "truncated": True,
+            }
+        return public_items
+    if isinstance(value, str):
+        path = Path(value)
+        windows_path = PureWindowsPath(value)
+        if path.is_absolute() or windows_path.is_absolute():
+            return windows_path.name or path.name
+        if key == "command" and ("\\" in value or "/" in value):
+            return windows_path.name or path.name
+    return value
 
 
 def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
@@ -34,15 +59,17 @@ def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
 
     requested_resource = str(evidence.get("requested_resource") or "all")
     dispatched_resource = str(evidence.get("dispatched_resource") or "all")
-    result_json = json.dumps(dict(result), ensure_ascii=False, sort_keys=True, default=str)
+    result_json = json.dumps(_public_evidence(dict(result)), ensure_ascii=False, sort_keys=True, default=str)
 
+    evidence_class = "TESTED_PASS" if evidence.get("status") == "TESTED_PASS" else "SCOUT_RESULT"
+    evidence_note = "verified runtime output" if evidence_class == "TESTED_PASS" else "not TESTED_PASS unless separate runtime evidence exists"
     return (
         "## MODEL SCOUT Evidence Callback\n\n"
         f"- fingerprint: `{fingerprint}`\n"
         f"- queue_state: `{state}`\n"
         f"- requested_resource: `{requested_resource}`\n"
         f"- dispatched_resource: `{dispatched_resource}`\n"
-        "- evidence_class: `SCOUT_RESULT` (not TESTED_PASS unless separate runtime evidence exists)\n\n"
+        f"- evidence_class: `{evidence_class}` ({evidence_note})\n\n"
         "```json\n"
         f"{result_json}\n"
         "```"
@@ -72,9 +99,22 @@ def deliver_evidence(
     if not envelope.callback_repo or not envelope.callback_issue:
         raise ValueError("callback repository and issue are required")
 
+    if evidence.get("status") == "TESTED_PASS":
+        result = evidence.get("result")
+        runtime = result.get("runtime") if isinstance(result, Mapping) else None
+        errors = validate_runtime_evidence(runtime) if isinstance(runtime, Mapping) else ["missing_runtime_evidence"]
+        if errors:
+            return {
+                "fingerprint": fingerprint,
+                "state": QueueState.EVIDENCE_READY.value,
+                "delivered": False,
+                "error": "runtime_evidence_invalid",
+                "validation_errors": errors,
+            }
+
     body = render_callback_markdown(evidence)
     try:
-        writer(envelope.callback_repo, envelope.callback_issue, body)
+        callback_result = writer(envelope.callback_repo, envelope.callback_issue, body)
     except Exception as exc:
         return {
             "fingerprint": fingerprint,
@@ -89,12 +129,19 @@ def deliver_evidence(
         }
 
     delivered = queue.set_state(fingerprint, QueueState.DELIVERED)
+    callback = {
+        "repo": delivered.callback_repo,
+        "issue": delivered.callback_issue,
+    }
+    if isinstance(callback_result, Mapping):
+        if callback_result.get("html_url"):
+            callback["url"] = callback_result["html_url"]
+        if callback_result.get("id") is not None:
+            callback["comment_id"] = callback_result["id"]
     return {
         "fingerprint": delivered.fingerprint,
         "state": delivered.state.value,
         "delivered": True,
-        "callback": {
-            "repo": delivered.callback_repo,
-            "issue": delivered.callback_issue,
-        },
+        "callback": callback,
     }
+

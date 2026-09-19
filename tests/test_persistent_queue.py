@@ -99,3 +99,16 @@ def test_watchdog_rejects_non_positive_timeout(tmp_path):
         assert "positive" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_failed_retryable_is_requeued_on_next_cycle(tmp_path):
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    envelope = normalize_request(project="TEST", request_text="retry me")
+    queued, _ = queue.enqueue(envelope)
+    queue.set_state(queued.fingerprint, QueueState.FAILED_RETRYABLE)
+
+    requeued = queue.requeue_retryable()
+
+    assert requeued == [queued.fingerprint]
+    assert queue.get(queued.fingerprint).state == QueueState.QUEUED
+    assert queue.snapshot()[0]["retry_count"] == 1
