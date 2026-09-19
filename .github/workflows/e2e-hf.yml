@@ -25,6 +25,16 @@ jobs:
         run: python scripts/run_sam21_mission.py
       - name: Run SAM 2.1 image segmentation smoke
         run: python scripts/run_sam21_inference.py
+      - name: Run Team Router exact head evidence
+        env:
+          GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+        run: |
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "MODEL_SCOUT_CROSS_REPO_TOKEN is unavailable; cannot verify Team Router exact-head route."
+            exit 1
+          fi
+          python scripts/route_team_requests.py --state-dir team-router-state
+
       - name: Upload MODEL SCOUT evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -36,4 +46,5 @@ jobs:
             sam21-inference-evidence.json
             sam21-input.jpg
             sam21-mask.png
+            team-router-state/team-router-evidence.json
           if-no-files-found: error
