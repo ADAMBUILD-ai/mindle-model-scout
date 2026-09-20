@@ -15,6 +15,6 @@
   "workflow_run_id": 35408727110,
   "artifact_id": 10602056587,
   "state_before": "TESTED_PASS",
-  "callback_target": "",
-  "provenance": "Existing Issue #48 MODEL SCOUT Evidence Callback; no authoritative AVORA callback target was present."
+  "callback_target": "ADAMBUILD-ai/avora-engine#7",
+  "provenance": "Existing Issue #48 MODEL SCOUT Evidence Callback; AVORA canonical callback target fixed by AVORA Main Control Issue #7."
 }
