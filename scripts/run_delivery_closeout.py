@@ -113,7 +113,9 @@ def main() -> int:
         first = deliver_once(evidence, token)
         time.sleep(1)
         rerun = deliver_once(evidence, token)
-    except (HTTPError, URLError, TimeoutError, RuntimeError) as exc:
+    except HTTPError as exc:
+        raise SystemExit(f"FAILED_RETRYABLE: callback failed: HTTP {exc.code} {exc.reason}") from exc
+    except (URLError, TimeoutError, RuntimeError) as exc:
         raise SystemExit(f"FAILED_RETRYABLE: callback failed: {type(exc).__name__}") from exc
     ledger = write_ledger(Path(args.ledger), evidence, first, rerun)
     artifact = {
