@@ -1,9 +1,11 @@
 from src.model_scout.github_request_discovery import (
     discover_github_issue_requests,
     infer_priority,
+    infer_project,
     infer_resource,
     is_model_scout_request,
     normalize_github_issue_request,
+    request_discovery_repositories,
 )
 
 
@@ -110,3 +112,13 @@ def test_priority_and_resource_inference_are_fail_safe():
     assert infer_priority("[P0] urgent", "") == "P0"
     assert infer_resource("model request", "find one model") == "model"
     assert infer_resource("mixed request", "model dataset space tool") == "all"
+    assert infer_project("owner/repo", "[P0][NAS Knowledge AI] request", "") == "NAS_KNOWLEDGE_AI"
+
+
+def test_central_request_repository_is_always_discovered():
+    repos = request_discovery_repositories(["ADAMBUILD-ai/adam-build"])
+
+    assert repos == (
+        "ADAMBUILD-ai/adam-build",
+        "ADAMBUILD-ai/mindle-model-scout",
+    )

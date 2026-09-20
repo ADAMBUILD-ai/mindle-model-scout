@@ -7,6 +7,7 @@ scout_module = importlib.import_module("src.model_scout.scout")
 HuggingFaceSearchError = scout_module.HuggingFaceSearchError
 scout = scout_module.scout
 search_huggingface = scout_module.search_huggingface
+query_plan = scout_module._query_plan
 
 
 class _DummyResponse:
@@ -31,6 +32,47 @@ def test_scout_prefers_task_hint_for_upstream_search(monkeypatch):
     assert result["search_query"] == "text-to-speech"
     assert result["requirement_profile"]["license_required"] is True
     assert result["requirement_profile"]["min_downloads"] == 1000
+
+
+def test_query_plan_prioritizes_explicit_model_ids():
+    profile = {
+        "raw": "Validate BAAI/bge-m3 and BAAI/bge-reranker-v2-m3 for Korean retrieval",
+        "query": "full issue body",
+        "task_hint": "feature-extraction",
+    }
+
+    assert query_plan(profile) == [
+        "BAAI/bge-m3",
+        "BAAI/bge-reranker-v2-m3",
+        "full issue body",
+    ]
+
+
+def test_query_plan_ignores_generic_slash_terms():
+    profile = {
+        "raw": "Validate BAAI/bge-m3 with source/license and input/output evidence",
+        "query": "full issue body",
+        "task_hint": "feature-extraction",
+    }
+
+    assert query_plan(profile) == ["BAAI/bge-m3", "full issue body", "feature-extraction"]
+
+
+def test_explicit_model_id_bypasses_inferred_pipeline_mismatch():
+    candidates = [{
+        "model_id": "BAAI/bge-m3",
+        "resource_type": "model",
+        "pipeline_tag": "sentence-similarity",
+        "license": "mit",
+        "downloads": 1,
+        "likes": 1,
+    }]
+    profile = {
+        "task_hint": "feature-extraction",
+        "explicit_model_ids": ["BAAI/bge-m3"],
+    }
+
+    assert scout_module.filter_candidates(candidates, profile) == candidates
 
 
 def test_search_rejects_unsafe_bounds():

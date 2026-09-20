@@ -34,12 +34,10 @@ class GitHubIssueSource:
         client: httpx.Client | None = None,
     ) -> None:
         resolved_token = str(token or os.getenv("GITHUB_TOKEN") or "").strip()
-        if not resolved_token:
-            raise ValueError("GitHub issue source token is required")
         resolved_base = str(api_base or os.getenv("GITHUB_API_URL") or "https://api.github.com").strip()
         if not resolved_base.startswith(("https://", "http://")):
             raise ValueError("GitHub API base must be an http(s) URL")
-        self._token = resolved_token
+        self._token = resolved_token or None
         self._api_base = resolved_base.rstrip("/")
         self._timeout = float(timeout)
         self._client = client
@@ -47,10 +45,11 @@ class GitHubIssueSource:
     def _get(self, url: str) -> httpx.Response:
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {self._token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "mindle-model-scout",
         }
+        if self._token:
+            headers["Authorization"] = f"Bearer {self._token}"
         if self._client is not None:
             return self._client.get(url, headers=headers, timeout=self._timeout)
         with httpx.Client(timeout=self._timeout) as client:
