@@ -16,5 +16,8 @@
   "artifact_id": 10602056587,
   "state_before": "TESTED_PASS",
   "callback_target": "ADAMBUILD-ai/avora-engine#7",
-  "provenance": "Existing Issue #48 MODEL SCOUT Evidence Callback; AVORA canonical callback target fixed by AVORA Main Control Issue #7."
+  "provenance": "Existing Issue #48 MODEL SCOUT Evidence Callback; AVORA canonical callback target fixed by AVORA Main Control Issue #7.",
+  "callback_url": "https://github.com/ADAMBUILD-ai/avora-engine/issues/7#issuecomment-5749074105",
+  "callback_comment_id": 5749074105,
+  "callback_recorded_via": "connected GitHub issue-comment capability"
 }
