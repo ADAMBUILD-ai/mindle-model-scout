@@ -1,0 +1,23 @@
+{
+  "central_repository": "ADAMBUILD-ai/mindle-model-scout",
+  "central_issue": 48,
+  "source_repository": "ADAMBUILD-ai/mindle-model-scout",
+  "source_issue": 48,
+  "route_fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+  "model_id": "PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx + OpenCV HoughLinesP + pypdfium2",
+  "revision": "{\"ocr\":\"5c6f574b8e2230adf4287b33e736d71b9fabd28e\",\"opencv\":\"5.0.0\",\"pypdfium2\":\"5.13.0\"}",
+  "license": "apache-2.0",
+  "input_sha256": "6d3ad8f580a93cecbbdf329eb04a4c007aebb3e558571b6b2d7b9fb03fcd592d",
+  "output_sha256": "ba19277f7d6744d01ae3867e7330a39ea46295c31490c892f95c7a1772472104",
+  "output_path": "output.json",
+  "output_size": 147836,
+  "exact_commit": "74fbcafa49ca8590f77fec48b10e9f8dc71f9d7f",
+  "workflow_run_id": 35408727110,
+  "artifact_id": 10602056587,
+  "state_before": "TESTED_PASS",
+  "callback_target": "ADAMBUILD-ai/avora-engine#7",
+  "provenance": "Existing Issue #48 MODEL SCOUT Evidence Callback; AVORA canonical callback target fixed by AVORA Main Control Issue #7.",
+  "callback_url": "https://github.com/ADAMBUILD-ai/avora-engine/issues/7#issuecomment-5749074105",
+  "callback_comment_id": 5749074105,
+  "callback_recorded_via": "connected GitHub issue-comment capability"
+}
