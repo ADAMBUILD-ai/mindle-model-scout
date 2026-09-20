@@ -37,7 +37,14 @@ jobs:
           fi
           python scripts/route_team_requests.py --state-dir team-router-state
       - name: Record delivery closeout boundary
-        run: python scripts/run_delivery_closeout.py --evidence evidence/avora-issue-48-tested-pass.json --artifact delivery-closeout-evidence.json --ledger delivery-ledger.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+        run: |
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "MODEL_SCOUT_CROSS_REPO_TOKEN is unavailable; cannot send AVORA callback."
+            exit 1
+          fi
+          python scripts/run_delivery_closeout.py --evidence evidence/avora-issue-48-tested-pass.json --artifact delivery-closeout-evidence.json --ledger delivery-ledger.json
       - name: Upload MODEL SCOUT evidence
         if: always()
         uses: actions/upload-artifact@v4
