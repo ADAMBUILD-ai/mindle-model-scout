@@ -216,3 +216,22 @@ def test_live_cycle_fetches_current_event_when_list_snapshot_omits_it(tmp_path, 
 
     expected = _issue("ADAMBUILD-ai/mindle-model-scout", 71, "CURRENT")["body"]
     assert calls[0] == " ".join(expected.split())
+
+
+def test_live_cycle_bounds_work_and_prioritizes_p0(tmp_path, monkeypatch):
+    low = _issue("ADAMBUILD-ai/mindle-model-scout", 80, "LOW")
+    low["title"] = "[P3][LOW] MODEL SCOUT request"
+    high = _issue("ADAMBUILD-ai/mindle-model-scout", 81, "HIGH")
+    calls = []
+    monkeypatch.setattr(
+        "src.model_scout.live_automation.run_scout_core",
+        lambda query, limit, resource: calls.append(query) or {"query": query, "candidates": []},
+    )
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/mindle-model-scout",),
+        state_dir=tmp_path,
+        issue_source=FakeIssueSource([low, high]),
+        callback_writer=RecordingWriter(),
+        max_requests=1,
+    )
+    assert calls == [" ".join(high["body"].split())]

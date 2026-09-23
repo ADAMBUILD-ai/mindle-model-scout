@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from .acquisition import ALLOWED_LICENSES, ModelRegistry
 from .request_queue import RequestEnvelope
 
 
@@ -24,6 +25,31 @@ EXECUTOR_KINDS = (
 
 class RuntimeExecutorUnavailable(RuntimeError):
     pass
+
+
+def select_executable_candidate(scout_result: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Select the highest-ranked safe model with an immutable Hub revision."""
+
+    candidates = scout_result.get("candidates", ())
+    if not isinstance(candidates, list):
+        return None
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            continue
+        model_id = str(candidate.get("model_id") or candidate.get("id") or "").strip()
+        revision = str(candidate.get("revision") or "").strip()
+        license_name = str(candidate.get("license") or "").strip().casefold()
+        status = str(candidate.get("status") or "").upper()
+        resource_type = str(candidate.get("resource_type") or "model").casefold()
+        if (
+            resource_type == "model"
+            and "/" in model_id
+            and len(revision) >= 7
+            and license_name in ALLOWED_LICENSES
+            and status not in {"REJECT", "LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED"}
+        ):
+            return candidate
+    return None
 
 
 def classify_executor_kind(envelope: RequestEnvelope) -> str:
@@ -86,12 +112,24 @@ class LocalCommandAdapter:
             encoding="utf-8",
         )
 
+        selected = select_executable_candidate(scout_result)
+        raw_candidates = scout_result.get("candidates")
+        if isinstance(raw_candidates, list) and raw_candidates and selected is None:
+            raise RuntimeExecutorUnavailable(
+                "scout returned candidates but none had an allowed license and immutable revision"
+            )
+        selected_model_id = str(selected.get("model_id") or selected.get("id")) if selected else self.model_id
+        selected_revision = str(selected.get("revision")) if selected else self.model_revision
+        selected_license = str(selected.get("license")) if selected else self.license
+        selected_source = str(selected.get("source_url") or f"https://huggingface.co/{selected_model_id}") if selected else self.source
         placeholders = {
             "input": str(input_path),
             "output": str(output_path),
             "workspace": str(workspace),
             "python": sys.executable,
             "package_root": str(Path(__file__).resolve().parents[2]),
+            "model_id": selected_model_id,
+            "revision": selected_revision,
         }
         command = [part.format_map(placeholders) for part in self.command]
         completed = subprocess.run(
@@ -133,12 +171,12 @@ class LocalCommandAdapter:
             })
 
         return {
-            "model_id": str(output_payload.get("model_id") or self.model_id),
-            "model_revision": str(output_payload.get("revision") or self.model_revision),
-            "source": str(output_payload.get("source") or self.source),
+            "model_id": str(output_payload.get("model_id") or selected_model_id),
+            "model_revision": str(output_payload.get("revision") or selected_revision),
+            "source": str(output_payload.get("source") or selected_source),
             "validation_scope": str(output_payload.get("validation_scope") or "component"),
             "acceptance_checks": dict(output_payload.get("acceptance_checks") or {}),
-            "license": str(output_payload.get("license") or self.license),
+            "license": str(output_payload.get("license") or selected_license),
             "input": str(input_path),
             "output_path": str(output_path),
             "output_size": output_path.stat().st_size,
@@ -168,9 +206,10 @@ class LocalCommandAdapter:
 
 
 class RuntimeExecutorRegistry:
-    def __init__(self, adapters: Mapping[str, LocalCommandAdapter], *, work_root: str | Path):
+    def __init__(self, adapters: Mapping[str, LocalCommandAdapter], *, work_root: str | Path, model_registry: ModelRegistry | None = None):
         self.adapters = dict(adapters)
         self.work_root = Path(work_root)
+        self.model_registry = model_registry
 
     def __call__(
         self,
@@ -181,16 +220,44 @@ class RuntimeExecutorRegistry:
         adapter = self.adapters.get(kind)
         if adapter is None:
             raise RuntimeExecutorUnavailable(f"no configured local executor for {kind}")
-        return adapter.run(envelope, scout_result, work_root=self.work_root)
+        evidence = adapter.run(envelope, scout_result, work_root=self.work_root)
+        if self.model_registry is not None:
+            record = {
+                "model_id": evidence["model_id"],
+                "revision": evidence["model_revision"],
+                "source_url": evidence["source"],
+                "license": evidence["license"],
+                "files": evidence["downloaded_files"],
+                "trust_remote_code_required": False,
+                "originating_requests": [f"{envelope.source_repo}#{envelope.source_issue}"],
+                "consuming_teams": [envelope.requesting_team],
+                "cache_location": str(self.work_root),
+                "acquisition_runner": "candidate-aware-runtime-v2",
+                "acquisition_status": "ACQUIRED_VERIFIED",
+                "validation_status": "PENDING",
+                "runtime_evidence": evidence["output_path"],
+            }
+            self.model_registry.upsert(record)
+        return evidence
+
+    def mark_tested_pass(self, evidence: Mapping[str, Any]) -> None:
+        if self.model_registry is not None:
+            self.model_registry.mark_validation(
+                str(evidence["model_id"]),
+                str(evidence["model_revision"]),
+                status="TESTED_PASS",
+                evidence=str(evidence["output_path"]),
+            )
 
 
 def load_runtime_executor_registry(
     config_path: str | Path | None,
     *,
     work_root: str | Path,
+    model_registry_path: str | Path | None = None,
 ) -> RuntimeExecutorRegistry:
     if config_path is None:
-        return RuntimeExecutorRegistry({}, work_root=work_root)
+        return RuntimeExecutorRegistry({}, work_root=work_root, model_registry=ModelRegistry(model_registry_path) if model_registry_path else None)
     path = Path(config_path)
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, Mapping):
@@ -213,4 +280,5 @@ def load_runtime_executor_registry(
             downloaded_files=downloads,
             timeout_seconds=float(raw.get("timeout_seconds", 900)),
         )
-    return RuntimeExecutorRegistry(adapters, work_root=work_root)
+    registry = ModelRegistry(model_registry_path) if model_registry_path else None
+    return RuntimeExecutorRegistry(adapters, work_root=work_root, model_registry=registry)

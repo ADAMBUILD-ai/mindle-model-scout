@@ -134,6 +134,20 @@ def test_valid_real_output_evidence_reaches_tested_pass(tmp_path):
     assert queue.get(queued.fingerprint).state == QueueState.EVIDENCE_READY
 
 
+def test_component_output_reaches_acquired_verified_without_false_tested_pass(tmp_path):
+    queue, queued = _queued_request()
+    output = tmp_path / "component-output.bin"
+    output.write_bytes(b"verified-component-output")
+    evidence = _evidence_for(output)
+    evidence["validation_scope"] = "component"
+
+    result = run_runtime_validation(queue, queued.fingerprint, runner=lambda _env: evidence)
+
+    assert result["status"] == "ACQUIRED_VERIFIED"
+    assert result["validation_pending"] is True
+    assert queue.get(queued.fingerprint).state == QueueState.EVIDENCE_READY
+
+
 def test_runner_exception_is_retryable():
     queue, queued = _queued_request()
 

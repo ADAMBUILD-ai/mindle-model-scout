@@ -93,6 +93,7 @@ def run_scout_cycle(
     callback_writer: CallbackWriter,
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
+    max_requests: int = 4,
 ) -> list[dict[str, Any]]:
     """Run one deterministic cross-repo discovery -> scout -> callback cycle.
 
@@ -103,16 +104,27 @@ def run_scout_cycle(
     """
 
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
-    if preferred_source:
-        repo, issue = preferred_source
-        discovered.sort(key=lambda item: 0 if (item.source_repo.casefold(), item.source_issue) == (repo.casefold(), issue) else 1)
+    if max_requests < 1:
+        raise ValueError("max_requests must be positive")
+    priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+    preferred_key = (preferred_source[0].casefold(), preferred_source[1]) if preferred_source else None
+    discovered.sort(key=lambda item: (
+        0 if preferred_key and (str(item.source_repo).casefold(), item.source_issue) == preferred_key else 1,
+        priority_rank.get(item.priority, 4),
+        str(item.source_repo),
+        item.source_issue or 0,
+    ))
     fingerprints: list[str] = []
     for envelope in discovered:
         queued, _created = queue.enqueue(envelope)
         fingerprints.append(queued.fingerprint)
 
+    eligible = [
+        fingerprint for fingerprint in fingerprints
+        if (queue.get(fingerprint) is not None and queue.get(fingerprint).state in {QueueState.QUEUED, QueueState.EVIDENCE_READY})
+    ][:max_requests]
     results: list[dict[str, Any]] = []
-    for fingerprint in fingerprints:
+    for fingerprint in eligible:
         envelope = queue.get(fingerprint)
         if envelope is None:
             continue
@@ -165,13 +177,21 @@ def run_runtime_cycle(
     callback_writer: CallbackWriter,
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
+    max_requests: int = 4,
 ) -> list[dict[str, Any]]:
     """Run discovery, search, runtime validation, and callback as one durable cycle."""
 
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
-    if preferred_source:
-        repo, issue = preferred_source
-        discovered.sort(key=lambda item: 0 if (item.source_repo.casefold(), item.source_issue) == (repo.casefold(), issue) else 1)
+    if max_requests < 1:
+        raise ValueError("max_requests must be positive")
+    priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+    preferred_key = (preferred_source[0].casefold(), preferred_source[1]) if preferred_source else None
+    discovered.sort(key=lambda item: (
+        0 if preferred_key and (str(item.source_repo).casefold(), item.source_issue) == preferred_key else 1,
+        priority_rank.get(item.priority, 4),
+        str(item.source_repo),
+        item.source_issue or 0,
+    ))
     fingerprints: list[str] = []
     for envelope in discovered:
         queued, _created = queue.enqueue(envelope)
@@ -182,8 +202,12 @@ def run_runtime_cycle(
             next_action="search for a license-compatible executable candidate",
         )
 
+    eligible = [
+        fingerprint for fingerprint in fingerprints
+        if (queue.get(fingerprint) is not None and queue.get(fingerprint).state in {QueueState.QUEUED, QueueState.EVIDENCE_READY})
+    ][:max_requests]
     results: list[dict[str, Any]] = []
-    for fingerprint in fingerprints:
+    for fingerprint in eligible:
         envelope = queue.get(fingerprint)
         if envelope is None:
             continue
@@ -221,7 +245,7 @@ def run_runtime_cycle(
                 runner=lambda current: runtime_runner(current, scout_result),
             )
             results.append(dict(runtime_result))
-            if runtime_result.get("status") != "TESTED_PASS":
+            if runtime_result.get("status") not in {"TESTED_PASS", "ACQUIRED_VERIFIED"}:
                 continue
 
             runtime_evidence = dict(runtime_result["runtime_evidence"])
@@ -232,13 +256,17 @@ def run_runtime_cycle(
                 next_action="validate runtime output and evidence hashes",
                 evidence=runtime_evidence,
             )
-            delivery_ledger.advance(
-                fingerprint,
-                DeliveryState.TESTED_PASS,
-                owner=owner,
-                next_action="deliver validated evidence callback",
-                evidence=runtime_evidence,
-            )
+            if runtime_result.get("status") == "TESTED_PASS":
+                delivery_ledger.advance(
+                    fingerprint,
+                    DeliveryState.TESTED_PASS,
+                    owner=owner,
+                    next_action="deliver validated evidence callback",
+                    evidence=runtime_evidence,
+                )
+                marker = getattr(runtime_runner, "mark_tested_pass", None)
+                if callable(marker):
+                    marker(runtime_evidence)
             callback_evidence = {
                 **runtime_result,
                 "result": {"scout": dict(scout_result), "runtime": runtime_evidence},
