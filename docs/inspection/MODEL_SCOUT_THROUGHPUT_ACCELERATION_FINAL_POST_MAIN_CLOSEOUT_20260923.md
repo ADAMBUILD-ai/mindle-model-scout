@@ -1,124 +1,65 @@
 # MODEL SCOUT Throughput Acceleration — Final Post-Main Closeout
 
-Date: 2026-09-23  
-Repository: `ADAMBUILD-ai/mindle-model-scout`  
-Post-main PR: #70  
-Directive: `MODEL_SCOUT_POST_MAIN_LIVE_PROOF_RECOVERY_AND_FINAL_CLOSEOUT_DIRECTIVE_v7.0_20260923.md`
+Date: 2026-09-23
+
+Repository: `ADAMBUILD-ai/mindle-model-scout`
+
+Directive: `MODEL_SCOUT_CALLBACK_403_EVENT_PRIORITY_RUNTIME_FINALIZATION_DIRECTIVE_v8.0_20260923.md`
+
+Merged PR: #70
+
+Main merge commit: `56a4337b510d8ad560864b2c7809f9b2be175242`
 
 ## Verdict
 
-`BLOCKED_APPROVAL: MODEL_SCOUT_CROSS_REPO_TOKEN requires least-privilege Issue comment write permission review/update for configured callback repositories.`
+`MODEL_SCOUT V8 SAFE FIXES: PASS`
 
-`MODEL_SCOUT_THROUGHPUT_ACCELERATION_FINAL_CLOSEOUT: NOT_PASS`
+`FINAL LIVE FOLLOW-UP: BLOCKED_EXTERNAL_RUNTIME — self-hosted runner mindle-model-scout is Offline; run 35836381547 remains queued.`
 
-The default-branch trigger and dependency-cache gates passed. Final PASS is prohibited because live callback writes repeatedly return HTTP 403 and the dedicated proof request was not processed within its triggered cycle.
+The prior broad token-permission blocker is resolved for same-repository callbacks. No token rotation or permission expansion was needed. Final unconditional closeout remains withheld only because the runner went offline before the unique-nonce request-complete rerun and external-callback retest.
 
-## Main activation
+## Implemented fixes
 
-- PR #69 merge commit / current verified main HEAD: `9bf3a3cde6ee1f25a462725a8b77e963346b8bbb`
-- Workflow on main contains Issue events, `repository_dispatch:model-scout-request`, the scheduled watchdog, self-hosted labels, durable state, and dependency fingerprint marker reuse.
-- Main tests: run `35826071156` — SUCCESS.
-- Scheduled watchdog: run `35827603171` — SUCCESS.
+- Same-repository callbacks use `github.token`; cross-repository discovery/callback uses `MODEL_SCOUT_CROSS_REPO_TOKEN`.
+- Credential routing fails closed and never exposes token values.
+- The exact event Issue is fetched and processed before backlog without increasing the cycle limit.
+- `scipy==1.17.1` is pinned for Windows CPython 3.11 and NumPy 2.4.6 compatibility.
+- HF 500/502/503/504 and transient network failures retry at most three times; 4xx responses fail immediately.
 
-## Real Issue-event proof
+## Verification
 
-- Proof Issue: [#71](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/71)
-- Action: `issues: opened`
-- Issue created: `2026-09-23T06:57:58Z`
-- Workflow run: [35829269974](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/35829269974)
-- Workflow created: `2026-09-23T06:58:01Z`
-- Event-to-workflow latency: **3 seconds**
-- Job: `107077876004`
-- Runner job start: `2026-09-23T07:03:20Z`
-- Event-to-job-start latency: **322 seconds**
-- Runner: `mindle-model-scout`
-- Completion: SUCCESS at `2026-09-23T07:08:16Z`
-- Artifact: `10736467457`
-- Artifact digest: `sha256:7071bbaac64858807c2e01488ae2d10bd49cf925b44da31ee6456d1c942a9a88`
+| Gate | Result | Evidence |
+|---|---|---|
+| Focused tests | PASS | 25 passed |
+| Full tests | PASS | 133 passed |
+| exact-head tests | PASS | run `35833685500` |
+| exact-head cli-smoke | PASS | run `35833685719` |
+| exact-head hf-e2e | PASS | run `35833685593` |
+| Geometry runtime | PASS | SciPy 1.17.1; section vertices 8 |
+| Event priority | PASS | Issues #72/#73 are the first result in runs `35833994943`/`35835517822` |
+| Local callback | PASS | Issue #54 comment `5791190970` |
+| Callback idempotency | PASS | no second callback for the delivered fingerprint |
+| License/runtime gate | PASS fail-closed | generic Issues #72/#73 were not falsely promoted |
 
-GitHub recognized the Issue event immediately. The additional 319 seconds was self-hosted runner queue time behind an already-running recovery cycle, not trigger latency.
+## Live proof detail
 
-No duplicate proof Issue or duplicate callback was created. However, Issue #71 did not appear in the cycle output because `MODEL_SCOUT_LIMIT=10` was consumed by older/requeued P0 work. Therefore request-processing proof is incomplete even though event activation and job execution succeeded.
+Issue #72 triggered run `35833994943`; artifact `10738876852` shows its fingerprint as the first cycle result. Its verbose search produced zero executable candidates and was correctly classified `FAILED_RETRYABLE`.
 
-## Dependency cache cold/hit proof
+Issue #73 triggered run `35835517822`; artifact `10738849626` again shows the event fingerprint first. The generic worker returned component scope, so the request-complete gate correctly rejected promotion.
 
-Requirements SHA-256:
+Main push run `35833961980` retried existing same-repository `EVIDENCE_READY` delivery and wrote Issue #54 callback comment `5791190970`. The comment contains verified `TESTED_PASS` runtime output, revisions, licenses, SHA-256 hashes, and Windows CPU evidence. This proves the HTTP 403 root cause was token-role collision and that the local-token route works.
 
-`E8C26DC508B9EBFB962597DECB3264AC3A8F366453020B7C57E5FB70B5F0BC03`
+The delivered fingerprint did not create another callback during runs `35833994943` and `35835517822`, proving idempotency.
 
-Persistent runner marker:
+## Remaining exact blocker
 
-`e9500cb9-2a91-4f8e-893b-6646609e1f87`
+Issue #54 received nonce `v8-local-callback-20260923-0818` to force a fresh request-complete fingerprint. GitHub created run `35836381547`, but repository settings report runner `mindle-model-scout` as **Offline** and the run remains queued.
 
-| Run | Event | Job | Marker | pip install | Dependency step |
-|---|---|---:|---|---|---:|
-| 35826071143 | push | 107067956610 | absent | executed | 9 s |
-| 35826198513 | issues | 107068349449 | hit | skipped | 2 s |
-| 35829269974 | issues | 107077876004 | hit | skipped | 1 s |
+Required external action: restore the existing runner service. This needs no code change, paid resource, token rotation, permission expansion, deletion, or force push. After reconnection, allow run `35836381547` to finish, then retest one already-authorized external callback repository if required.
 
-Measured Run A→Run B dependency-step delta: **7 seconds**. No percentage claim is made.
+## Safety
 
-The GitHub `actions/cache` key reported a miss, but the durable absolute runner cache contained the exact SHA-256 marker. The install script used that marker and skipped unnecessary pip installation in both later runs.
-
-## Registry summary
-
-Three unique models remain `ACQUIRED_VERIFIED`:
-
-1. `BAAI/bge-small-en-v1.5@5c38ec7c405ec4b44b94cc5a9bb96e735b38267a` — MIT
-2. `cross-encoder/ms-marco-MiniLM-L-6-v2@233902d25c440f23af6f7d6e94d2946bac0bee0a` — Apache-2.0
-3. `openai/whisper-tiny@169d4a4341b33bc18d8881c4b69c2e104e1cc0af` — Apache-2.0
-
-Each registry record contains exact revision, file SHA-256, byte size, source URL, cache location, consuming teams, and `trust_remote_code_required:false`.
-
-## Regression results
-
-Passed:
-
-- default-branch Issue trigger
-- self-hosted runner execution
-- durable state/persistence marker
-- persistent queue and retry counters
-- watchdog requeue output
-- schedule watchdog
-- registry integrity
-- no proof-Issue duplication
-- no duplicate proof callback
-- existing DELIVERED state not demoted
-- dependency reinstall suppression
-
-Failed or incomplete:
-
-1. **Callback transport — FAIL**
-   - Live cycle output repeatedly reports `GitHub callback rejected with HTTP 403`.
-   - Observed for existing callback Issues #47, #52, #53, #54, and #56.
-   - This prevents the callback/DELIVERED regression gate from passing.
-
-2. **Dedicated proof request processing — INCOMPLETE**
-   - Issue #71 triggered the workflow but was not selected inside the 10-request cycle limit.
-   - Backlog/retry ordering must be corrected or the proof request must be allowed to reach a later cycle.
-
-3. **Geometry worker — FAIL**
-   - `ModuleNotFoundError: No module named 'scipy'`.
-   - Safe code follow-up: pin a compatible scipy dependency and rerun focused geometry tests.
-
-4. **Hugging Face search — RETRYABLE**
-   - HTTP 500 occurred for several queued searches in the proof cycle.
-   - These are correctly classified `FAILED_RETRYABLE`; no false PASS was issued.
-
-## Exact approval-only blocker
-
-The workflow assigns `GITHUB_TOKEN` from the `MODEL_SCOUT_CROSS_REPO_TOKEN` secret. Discovery succeeds, but Issue callback comment writes return HTTP 403.
-
-Required approval/action:
-
-- inspect the token’s repository access without exposing it;
-- grant only the minimum Issue comment write permission required on configured callback repositories, or replace it with an equivalently least-privileged project token;
-- rerun Issue #71 processing and confirm one callback receipt plus idempotent repeat;
-- do not rotate, broaden, or disclose the secret without explicit approval.
-
-## Safety confirmation
-
-No force push, deletion, production deployment, external publication, paid compute, secret disclosure, secret rotation, or permission expansion was performed. Existing main and DELIVERED records were not overwritten.
+No force push, deletion, production deployment, paid compute, secret disclosure, secret rotation, or permission expansion was performed. Remote code execution remains disabled.
 
 ## Evidence paths
 
