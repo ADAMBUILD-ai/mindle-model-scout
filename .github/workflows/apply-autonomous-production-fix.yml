@@ -3,7 +3,7 @@ name: apply autonomous production fix
 on:
   push:
     branches: [fix/model-scout-autonomous-production-20260924]
-    paths: [autonomous-production-fix.patch]
+    paths: [autonomous-production-fix.patch.gz.b64]
 
 permissions:
   contents: write
@@ -18,9 +18,11 @@ jobs:
           ref: fix/model-scout-autonomous-production-20260924
       - name: Apply verified local commit patch
         run: |
+          base64 -d autonomous-production-fix.patch.gz.b64 | gzip -d > autonomous-production-fix.patch
           git apply --check autonomous-production-fix.patch
           git apply autonomous-production-fix.patch
-          git rm autonomous-production-fix.patch .github/workflows/apply-autonomous-production-fix.yml
+          git rm autonomous-production-fix.patch.gz.b64 .github/workflows/apply-autonomous-production-fix.yml
+          rm autonomous-production-fix.patch
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
