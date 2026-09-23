@@ -1,0 +1,13 @@
+{
+  "model_id": "Copycats/koelectra-base-v3-generalized-sentiment-analysis",
+  "revision": "370f325ce11aabd837b89bfb3ffdc26fde354689",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "classification-or-reranking",
+  "output_shape": [
+    1,
+    2
+  ],
+  "output_sha256": "7b0a3546816c736972cb343b6b2526cf18e140ece66756ff70c2f34846997be6",
+  "duration_seconds": 3.374
+}
