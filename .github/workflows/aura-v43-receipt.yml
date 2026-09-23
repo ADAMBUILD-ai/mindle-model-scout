@@ -1,0 +1,21 @@
+name: AURA v43 recovery receipt readback
+on:
+  push:
+    branches: [recovery/aura-v43-materialization-20260923]
+    paths: ['.github/workflows/aura-v43-receipt.yml']
+permissions:
+  contents: write
+jobs:
+  receipt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read retained public model summary and expose checksum receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p work/v43/receipts
+          gh release download aura-v43-exact-model-cache-35859566331 --pattern summary.json --dir work/v43/receipts
+          python -c "import hashlib,pathlib; p=pathlib.Path('work/v43/receipts/summary.json'); assert hashlib.sha256(p.read_bytes()).hexdigest()=='dfa6b295045b799f51ed1d2bbead4226b233feda1a600214ea930c24fef7db79'"
+          gh release edit aura-v43-exact-model-cache-35859566331 --notes-file work/v43/receipts/summary.json
