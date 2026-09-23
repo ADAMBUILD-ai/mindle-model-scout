@@ -2,6 +2,8 @@
 
 Date: 2026-09-23
 
+PR: `#77` (`acquisition/legacy-candidates-full-20260923`)
+
 ## Outcome
 
 The ten unacquired legacy model candidates were converted into ten permitted, immutable, locally verified model assets. Two original candidates that failed the license gate were rejected and replaced before acquisition.
