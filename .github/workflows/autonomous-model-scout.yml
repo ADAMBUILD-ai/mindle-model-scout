@@ -33,7 +33,10 @@ jobs:
       MODEL_SCOUT_LIMIT: '10'
       MODEL_SCOUT_ACQUISITION_CONCURRENCY: '3'
       MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
-      GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+      MODEL_SCOUT_LOCAL_GITHUB_TOKEN: ${{ github.token }}
+      MODEL_SCOUT_CROSS_REPO_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+      MODEL_SCOUT_EVENT_REPOSITORY: ${{ github.repository }}
+      MODEL_SCOUT_EVENT_ISSUE: ${{ github.event.issue.number }}
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
     steps:
@@ -130,7 +133,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if (-not $env:MODEL_SCOUT_CONFIGURED_REPOS) { throw 'MODEL_SCOUT_CONFIGURED_REPOS is empty' }
-          if (-not $env:GITHUB_TOKEN) { throw 'MODEL_SCOUT_CROSS_REPO_TOKEN is empty' }
+          if (-not $env:MODEL_SCOUT_LOCAL_GITHUB_TOKEN) { throw 'MODEL_SCOUT_LOCAL_GITHUB_TOKEN is empty' }
+          if (-not $env:MODEL_SCOUT_CROSS_REPO_TOKEN) { throw 'MODEL_SCOUT_CROSS_REPO_TOKEN is empty' }
           $stateDir = 'C:\actions-runner\_work\_state\mindle-model-scout'
           New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
           $probe = Join-Path $stateDir '.runner-write-probe'
