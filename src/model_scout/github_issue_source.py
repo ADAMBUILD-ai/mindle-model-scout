@@ -33,7 +33,7 @@ class GitHubIssueSource:
         timeout: float = 15.0,
         client: httpx.Client | None = None,
     ) -> None:
-        resolved_token = str(token or os.getenv("GITHUB_TOKEN") or "").strip()
+        resolved_token = str(token or os.getenv("MODEL_SCOUT_CROSS_REPO_TOKEN") or "").strip()
         resolved_base = str(api_base or os.getenv("GITHUB_API_URL") or "https://api.github.com").strip()
         if not resolved_base.startswith(("https://", "http://")):
             raise ValueError("GitHub API base must be an http(s) URL")
@@ -89,3 +89,29 @@ class GitHubIssueSource:
                     "state": state,
                 })
         return results
+
+    def get_issue(self, repo: str, issue: int) -> dict[str, Any]:
+        owner, name = _normalize_repo(repo)
+        issue_number = int(issue)
+        if issue_number <= 0:
+            raise ValueError("issue number must be positive")
+        url = f"{self._api_base}/repos/{owner}/{name}/issues/{issue_number}"
+        try:
+            response = self._get(url)
+        except httpx.HTTPError as exc:
+            raise GitHubIssueSourceError(f"GitHub issue source failed: {type(exc).__name__}") from None
+        if not 200 <= response.status_code < 300:
+            raise GitHubIssueSourceError(f"GitHub issue source rejected with HTTP {response.status_code}")
+        try:
+            item = response.json()
+        except ValueError:
+            raise GitHubIssueSourceError("GitHub issue source returned invalid JSON") from None
+        if not isinstance(item, Mapping) or item.get("pull_request"):
+            raise GitHubIssueSourceError("GitHub issue source payload must be an Issue")
+        return {
+            "repository_full_name": f"{owner}/{name}",
+            "number": item.get("number"),
+            "title": str(item.get("title") or ""),
+            "body": str(item.get("body") or ""),
+            "state": str(item.get("state") or "open"),
+        }
