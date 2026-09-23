@@ -21,11 +21,16 @@
       "openai/whisper-tiny": 4.21
     },
     "cache_hit_redownload_avoidance": 3,
-    "event_to_start_latency": "recorded by GitHub workflow timestamps",
+    "dependency_cache_benchmark": "PENDING_POST_MERGE_DEFAULT_BRANCH_PROOF",
+    "delivery_artifact_id": 10733993058,
+    "delivery_idempotency": "PASS",
+    "delivery_workflow_run_id": 35822286527,
+    "immediate_issue_event_trigger": "BLOCKED_BY_DEFAULT_BRANCH_ACTIVATION",
+    "live_acquisition_workflow_run_id": 35823260028,
     "failures_and_fallbacks": [],
     "peak_acquisition_concurrency": 3,
-    "request_delivery_elapsed_time": "PENDING_DELIVERY_LANE_PROOF",
-    "status": "LIVE_ACQUISITION_PASS_DELIVERY_PENDING",
+    "request_delivery_elapsed_seconds": 102.0,
+    "status": "PRE_MERGE_GATES_PASS_DEFAULT_BRANCH_ACTIVATION_REQUIRED",
     "total_parallel_window_seconds": 4.21
   },
   "schema_version": 1

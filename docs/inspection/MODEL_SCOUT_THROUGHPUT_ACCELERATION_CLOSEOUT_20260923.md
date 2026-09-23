@@ -2,8 +2,9 @@
 
 Date: 2026-09-23  
 Branch: `improvement/model-scout-throughput-20260923`  
-Evidence head inspected: `bc61f46060b7c09e0f460f7a8d3e65bab13eadd8`  
-Verdict: **VERIFY_REQUIRED — do not mark PR Ready**
+Synchronization source HEAD: `c1cb79b61ebab3a540d12a7caa2ce8874bc76d2e`
+Final synchronization HEAD and fresh CI: recorded on PR #69 after this report commit
+Verdict: **PRE_MERGE_GATES_PASS / DEFAULT_BRANCH_ACTIVATION_REQUIRED**
 
 ## Passed gates
 
@@ -13,7 +14,7 @@ Verdict: **VERIFY_REQUIRED — do not mark PR Ready**
 - The identical acquisition rerun suppressed all three duplicates and performed zero redownloads.
 - A blocked geospatial Lane B request (#55) did not stop unrelated Lane A acquisitions.
 - Existing valid request #48 completed the preserved `ACQUIRED_VERIFIED → TESTED_PASS → CALLBACK_SENT → DELIVERED` path again without a duplicate callback.
-- Exact implementation head `769fee3fe6e7d834bff400e23ba5bcccd42d7bc8` passed tests, cli-smoke, hf-e2e, and the live acquisition workflow.
+- Exact pre-synchronization implementation head `22451bf5f4e08738b7c339f00d4a45429b39e7e9` passed tests, cli-smoke, and hf-e2e. The final synchronization commit receives a separate fresh exact-head run recorded on PR #69.
 
 ## Acquired models
 
@@ -28,9 +29,9 @@ All three entries record source, exact revision, approved license, `trust_remote
 
 ## Parallelism, isolation, and idempotency
 
-- Live acquisition run: `35822286499` — SUCCESS.
-- Peak concurrency: 3; overlapping window: 1.687 seconds.
-- Durations: BGE 1.687 s, cross-encoder 1.403 s, Whisper 1.581 s.
+- Latest live acquisition run: `35823260028` — SUCCESS.
+- Peak concurrency: 3; overlapping window: 4.21 seconds.
+- Durations: BGE 1.151 s, cross-encoder 1.493 s, Whisper 4.21 s.
 - Rerun: 3 `DUPLICATE_SUPPRESSED`, 0 duplicate registry rows, 0 redownloads.
 - Isolation: Issue #55 remains `VERIFY_REQUIRED` for three real georeferenced fixtures while all three unrelated acquisitions completed.
 - Evidence: `evidence/parallel-acquisition-evidence-20260923.json`, `evidence/acquisition-validation-isolation-20260923.json`, and `evidence/throughput-idempotency-20260923.json`.
@@ -47,31 +48,38 @@ All three entries record source, exact revision, approved license, `trust_remote
 - Rerun found the same route fingerprint, suppressed the duplicate, and left duplicate count at zero.
 - Evidence: `evidence/delivery-lane-closeout-20260923.json`.
 
-## Exact-head CI
+## Exact-head CV
 
-For implementation head `769fee3fe6e7d834bff400e23ba5bcccd42d7bc8`:
+For pre-synchronization implementation head `22451bf5f4e08738b7c339f00d4a45429b39e7e9`:
 
 | Check | Run | Result |
 |---|---:|---|
-| tests | `35822286495` | SUCCESS |
-| cli-smoke | `35822286544` | SUCCESS |
-| hf-e2e | `35822286527` | SUCCESS |
-| live acquisition | `35822286499` | SUCCESS |
+| tests | `35823504489` | SUCCESS |
+| cli-smoke | `35823504502` | SUCCESS |
+| hf-e2e | `35823504495` | SUCCESS |
+| latest live acquisition | `35823260028` | SUCCESS |
 
-The evidence export commit `bc61f46060b7c09e0f460f7a8d3e65bab13eadd8` was authored by `github-actions[bot]`; GitHub classified its pull-request checks as `action_required`. A final human-authored evidence/report commit must receive fresh exact-head CI before closeout.
+Fresh tests, cli-smoke, and hf-e2e for the human-authored synchronization commit are mandatory before Ready-for-review transition. Their exact HEAD and run IDs are recorded in the PR body and closeout comment because a Git commit cannot embed its own content-derived SHA.
 
 ## Benchmark boundary
 
 Before: acquisition was serial, coupled to Lane B, schedule-first, and dependency installation repeated each cycle.  
-Measured now: three real acquisitions overlapped at peak 3 and completed in a 1.687-second parallel window; the cache/idempotency rerun avoided three downloads. The verified delivery workflow took approximately 102 seconds from runner start to the `DELIVERED` ledger record. No percentage improvement is claimed because an equivalent measured serial baseline is unavailable.
+Measured now: three real acquisitions overlapped at peak 3 and completed in a 4.21-second parallel window; the cache/idempotency rerun avoided three downloads. The verified delivery workflow took approximately 102 seconds from runner start to the `DELIVERED` ledger record. No percentage improvement is claimed because an equivalent measured serial baseline is unavailable.
 
-## Unresolved closeout gates
+## Pre-merge PASS
+
+- Acquisition architecture and Lane A/Lane B separation.
+- Three new `ACQUIRED_VERIFIED` models with exact revisions, licenses, sizes, and SHA-256.
+- Real peak concurrency 3 and verified redownload suppression.
+- Blocked Lane B isolation.
+- Request-specific delivery and callback idempotency.
+- Exact-head tests, cli-smoke, and hf-e2e, subject to the final synchronization run recorded on PR #69.
+
+## Post-merge required
 
 1. **Immediate Issue-event proof cannot be produced safely from this unmerged branch.** GitHub loads `issues` and `repository_dispatch` workflow triggers from the default branch. The default branch still contains only schedule/workflow-dispatch/push triggers. Proving an actual Issue event therefore requires merging or otherwise writing the workflow to `main`, which is expressly outside this directive's authorization boundary.
 2. The self-hosted dependency fingerprint cache has structural coverage but lacks a measured cold-bootstrap versus cache-hit duration from the updated workflow on the default branch.
-3. Fresh exact-head CI is required after this report/evidence commit.
-
-These are exact blockers, not PASS claims. PR #69 must remain Draft until they are resolved. No production acceptance is inferred from acquisition alone.
+These are explicit default-branch activation gates, not pre-merge defects. After fresh synchronization-head CI succeeds, PR #69 may be marked Ready for review but must not be merged without commander approval. No production acceptance is inferred from acquisition alone.
 
 ## Failed execution and correction history
 
