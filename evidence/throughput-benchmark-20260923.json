@@ -1,0 +1,22 @@
+{
+  "baseline": {
+    "acquisition_mode": "serial and coupled to product validation",
+    "primary_trigger": "15-minute scheduled watchdog",
+    "runner_bootstrap": "dependencies installed every cycle"
+  },
+  "current": {
+    "acquisition_concurrency_default": 3,
+    "acquisition_concurrency_max": 4,
+    "acquisition_mode": "bounded parallel Lane A independent from Lane B",
+    "immediate_triggers": [
+      "issues",
+      "repository_dispatch:model-scout-request"
+    ],
+    "runner_bootstrap": "requirements SHA-256 fingerprint cache"
+  },
+  "measured_results": {
+    "status": "PENDING_EXACT_HEAD_LIVE_E2E",
+    "note": "No unmeasured speed percentage is claimed."
+  },
+  "schema_version": 1
+}

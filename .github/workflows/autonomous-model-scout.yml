@@ -2,6 +2,10 @@
 name: autonomous-model-scout
 
 on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  repository_dispatch:
+    types: [model-scout-request]
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
@@ -15,7 +19,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: model-scout-autonomous-cycle
+  group: model-scout-autonomous-${{ github.event.issue.number || github.event.client_payload.request_fingerprint || 'watchdog' }}
   cancel-in-progress: false
 
 jobs:
@@ -27,6 +31,7 @@ jobs:
       MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
       MODEL_SCOUT_STALE_AFTER_SECONDS: '1800'
       MODEL_SCOUT_LIMIT: '10'
+      MODEL_SCOUT_ACQUISITION_CONCURRENCY: '3'
       MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
       GITHUB_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
       PYTHONUTF8: '1'
@@ -98,9 +103,27 @@ jobs:
           & $env:PYTHON_EXE -m pip --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Install Python dependencies
+      - name: Cache runner dependencies
+        uses: actions/cache@v4
+        with:
+          path: C:\actions-runner\_work\_tool\model-scout-pip-cache
+          key: model-scout-pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install changed Python dependencies only
         shell: powershell
-        run: '& $env:PYTHON_EXE -m pip install -r requirements.txt'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cache = 'C:\actions-runner\_work\_tool\model-scout-pip-cache'
+          New-Item -ItemType Directory -Path $cache -Force | Out-Null
+          $fingerprint = (Get-FileHash -Algorithm SHA256 requirements.txt).Hash
+          $marker = Join-Path $cache "$fingerprint.ok"
+          if (-not (Test-Path -LiteralPath $marker)) {
+            & $env:PYTHON_EXE -m pip install --cache-dir $cache -r requirements.txt
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $fingerprint | Set-Content -LiteralPath $marker -Encoding ascii
+          } else {
+            Write-Host "Dependency fingerprint cache hit: $fingerprint"
+          }
 
       - name: Verify autonomous-runner prerequisites
         shell: powershell
