@@ -1,0 +1,14 @@
+{
+  "acquired_during_execution": [
+    "BAAI/bge-small-en-v1.5",
+    "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "openai/whisper-tiny"
+  ],
+  "blocked_lane_b": {
+    "reason": "request requires three real georeferenced map or satellite fixtures",
+    "request": "ADAMBUILD-ai/mindle-model-scout#55",
+    "status": "VERIFY_REQUIRED"
+  },
+  "evidence_basis": "open Issue #55 input gate and this live acquisition run",
+  "lane_a_continued": true
+}
