@@ -23,10 +23,19 @@ def run_autonomous_cycle(*, configured_repos: Iterable[str], state_dir: str | Pa
         executor_config,
         work_root=root / "runtime-work",
     )
+    event_repo = os.environ.get("MODEL_SCOUT_EVENT_REPOSITORY", "").strip()
+    event_issue_raw = os.environ.get("MODEL_SCOUT_EVENT_ISSUE", "").strip()
+    preferred_source = None
+    if event_repo and event_issue_raw:
+        try:
+            preferred_source = (event_repo, int(event_issue_raw))
+        except ValueError as exc:
+            raise ValueError("MODEL_SCOUT_EVENT_ISSUE must be an integer") from exc
     results = run_live_cycle(
         configured_repos=configured_repos,
         state_dir=root,
         limit=limit,
         runtime_runner=runtime_runner,
+        preferred_source=preferred_source,
     )
     return {"watchdog_requeued": requeued, "results": results, "queue": queue.snapshot()}
