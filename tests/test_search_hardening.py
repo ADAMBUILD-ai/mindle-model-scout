@@ -110,3 +110,37 @@ def test_search_wraps_network_failure(monkeypatch):
 
     with pytest.raises(HuggingFaceSearchError, match="Hugging Face search failed"):
         search_huggingface("tts")
+
+
+def test_search_retries_retryable_5xx_then_succeeds(monkeypatch):
+    calls = 0
+
+    def flaky(request, timeout):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise urllib.error.HTTPError(request.full_url, 503, "temporary", {}, None)
+        return _DummyResponse()
+
+    monkeypatch.setattr(scout_module.urllib.request, "urlopen", flaky)
+    monkeypatch.setattr(scout_module.json, "load", lambda response: [])
+    monkeypatch.setattr(scout_module.time, "sleep", lambda seconds: None)
+
+    assert search_huggingface("tts") == []
+    assert calls == 3
+
+
+def test_search_does_not_retry_client_error(monkeypatch):
+    calls = 0
+
+    def rejected(request, timeout):
+        nonlocal calls
+        calls += 1
+        raise urllib.error.HTTPError(request.full_url, 401, "unauthorized", {}, None)
+
+    monkeypatch.setattr(scout_module.urllib.request, "urlopen", rejected)
+    monkeypatch.setattr(scout_module.time, "sleep", lambda seconds: None)
+
+    with pytest.raises(HuggingFaceSearchError, match="after 1 attempt"):
+        search_huggingface("tts")
+    assert calls == 1
