@@ -55,6 +55,18 @@ class PersistentRequestQueue:
                 )
                 """
             )
+            columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(request_queue)")
+            }
+            for name in (
+                "request_id", "requesting_team", "product", "request_owner",
+                "requested_capability", "requested_model_id", "requested_model_family",
+                "selection_mode", "acceptance_criteria",
+            ):
+                if name not in columns:
+                    connection.execute(
+                        f"ALTER TABLE request_queue ADD COLUMN {name} TEXT NOT NULL DEFAULT 'UNKNOWN'"
+                    )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_request_queue_state_updated "
                 "ON request_queue(state, updated_at)"
@@ -72,6 +84,15 @@ class PersistentRequestQueue:
             callback_repo=row["callback_repo"],
             callback_issue=row["callback_issue"],
             fingerprint=row["fingerprint"],
+            request_id=row["request_id"],
+            requesting_team=row["requesting_team"],
+            product=row["product"],
+            request_owner=row["request_owner"],
+            requested_capability=row["requested_capability"],
+            requested_model_id=row["requested_model_id"],
+            requested_model_family=row["requested_model_family"],
+            selection_mode=row["selection_mode"],
+            acceptance_criteria=row["acceptance_criteria"],
             state=QueueState(row["state"]),
         )
 
@@ -91,8 +112,11 @@ class PersistentRequestQueue:
                 INSERT INTO request_queue (
                     fingerprint, project, request_text, resource, priority,
                     source_repo, source_issue, callback_repo, callback_issue,
+                    request_id, requesting_team, product, request_owner,
+                    requested_capability, requested_model_id, requested_model_family,
+                    selection_mode, acceptance_criteria,
                     state, retry_count, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
                 """,
                 (
                     queued.fingerprint,
@@ -104,6 +128,15 @@ class PersistentRequestQueue:
                     queued.source_issue,
                     queued.callback_repo,
                     queued.callback_issue,
+                    queued.request_id,
+                    queued.requesting_team,
+                    queued.product,
+                    queued.request_owner,
+                    queued.requested_capability,
+                    queued.requested_model_id,
+                    queued.requested_model_family,
+                    queued.selection_mode,
+                    queued.acceptance_criteria,
                     queued.state.value,
                     now,
                     now,

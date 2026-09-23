@@ -76,6 +76,15 @@ class RequestEnvelope:
     callback_repo: str | None
     callback_issue: int | None
     fingerprint: str
+    request_id: str = "UNKNOWN"
+    requesting_team: str = "UNKNOWN"
+    product: str = "UNKNOWN"
+    request_owner: str = "UNKNOWN"
+    requested_capability: str = "UNKNOWN"
+    requested_model_id: str = "UNKNOWN"
+    requested_model_family: str = "UNKNOWN"
+    selection_mode: str = "UNKNOWN_LEGACY"
+    acceptance_criteria: str = "UNKNOWN"
     state: QueueState = QueueState.NORMALIZED
 
     def as_dict(self) -> dict[str, object]:
@@ -94,6 +103,14 @@ def normalize_request(
     source_issue: int | None = None,
     callback_repo: str | None = None,
     callback_issue: int | None = None,
+    requesting_team: str = "UNKNOWN",
+    product: str = "UNKNOWN",
+    request_owner: str = "UNKNOWN",
+    requested_capability: str = "UNKNOWN",
+    requested_model_id: str = "UNKNOWN",
+    requested_model_family: str = "UNKNOWN",
+    selection_mode: str = "UNKNOWN_LEGACY",
+    acceptance_criteria: str = "UNKNOWN",
 ) -> RequestEnvelope:
     project_n = _normalize_text(project)
     request_n = _normalize_text(request_text)
@@ -112,6 +129,10 @@ def normalize_request(
     source_repo_n = _normalize_text(source_repo) or None
     callback_repo_n = _normalize_text(callback_repo) or source_repo_n
     callback_issue_n = callback_issue if callback_issue is not None else source_issue
+    product_n = _normalize_text(product) or "UNKNOWN"
+    source_identity = source_repo_n or "UNKNOWN"
+    issue_identity = str(source_issue) if source_issue is not None else "UNKNOWN"
+    request_id = f"MSR::{source_identity}#{issue_identity}::{product_n}"
 
     return RequestEnvelope(
         project=project_n,
@@ -127,6 +148,15 @@ def normalize_request(
             request_text=request_n,
             resource=resource_n,
         ),
+        request_id=request_id,
+        requesting_team=_normalize_text(requesting_team) or "UNKNOWN",
+        product=product_n,
+        request_owner=_normalize_text(request_owner) or "UNKNOWN",
+        requested_capability=_normalize_text(requested_capability) or "UNKNOWN",
+        requested_model_id=_normalize_text(requested_model_id) or "UNKNOWN",
+        requested_model_family=_normalize_text(requested_model_family) or "UNKNOWN",
+        selection_mode=_normalize_text(selection_mode).upper() or "UNKNOWN_LEGACY",
+        acceptance_criteria=_normalize_text(acceptance_criteria) or "UNKNOWN",
     )
 
 

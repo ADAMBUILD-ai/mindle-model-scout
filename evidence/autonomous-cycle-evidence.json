@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0",
+  "captured_at": "2026-09-23T08:28:00Z",
+  "description": "Normalized durable summary of the persisted queue artifact used for legacy backfill.",
+  "source_run_id": "35835517822",
+  "requests": [
+    {
+      "source_repo": "ADAMBUILD-ai/adam-build",
+      "source_issue": 38,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/adam-build",
+      "source_issue": 39,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/adam-build",
+      "source_issue": 40,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/adam-build",
+      "source_issue": 42,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/agri-ai-business-platform",
+      "source_issue": 23,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 32,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 33,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 36,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 38,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 39,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 47,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 48,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 49,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 50,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 51,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 52,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 53,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 54,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 55,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 56,
+      "state": "DELIVERED"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 57,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 58,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 63,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 68,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 71,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 72,
+      "state": "FAILED_RETRYABLE"
+    },
+    {
+      "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+      "source_issue": 73,
+      "state": "FAILED_RETRYABLE"
+    }
+  ]
+}
+

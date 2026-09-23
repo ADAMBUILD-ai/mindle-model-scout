@@ -1,0 +1,332 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-23T00:00:00Z",
+  "unresolved_count": 27,
+  "records": [
+    {
+      "request_id": "MSR::ADAMBUILD-ai/adam-build#38::ADAM BUILD",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/adam-build/issues/38"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/adam-build#39::ADAM BUILD",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/adam-build/issues/39"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/adam-build#40::ADAM BUILD",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/adam-build/issues/40"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/adam-build#42::ADAM BUILD",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/adam-build/issues/42"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/agri-ai-business-platform#23::AGRI AI BUSINESS PLATFORM",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/agri-ai-business-platform/issues/23"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#32::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/32"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#33::AGRI",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/33"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#36::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/36"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#38::ADAM",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/38"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#39::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/39"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#47::ADAM",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/47"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#48::AVORA",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/48"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#49::ADRAW",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/49"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#50::MINDLE MEDIA AI",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/50"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#51::김서방",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/51"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#52::NAS KNOWLEDGE AI",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/52"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#53::AURA",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/53"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#54::AXIOM",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/54"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#55::ARCOS",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/55"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#56::G-DOG",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/56"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#57::WARREN BUFFETT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/57"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#58::AGRI AI",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/58"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#63::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/63"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#68::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/68"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#71::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/71"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#72::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/72"
+    },
+    {
+      "request_id": "MSR::ADAMBUILD-ai/mindle-model-scout#73::MODEL SCOUT",
+      "missing_fields": [
+        "request_owner",
+        "priority",
+        "requested_model_family",
+        "runtime_target",
+        "validation_input"
+      ],
+      "reason": "Legacy request predates the standard Issue Form; source evidence does not establish these fields.",
+      "next_evidence_needed": "Owner-confirmed standard request update on https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/73"
+    }
+  ]
+}
+

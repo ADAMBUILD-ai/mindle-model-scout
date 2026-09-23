@@ -78,6 +78,49 @@ def infer_project(repo: str, title: str, body: str) -> str:
     return repo_name.replace("-", "_").upper()
 
 
+_FORM_LABELS = {
+    "요청 개발팀": "requesting_team",
+    "제품 / 앱": "product",
+    "요청 Owner / 담당자": "request_owner",
+    "필요한 기능 / 해결할 문제": "requested_capability",
+    "요청 Model ID": "requested_model_id",
+    "Model Family / 계열": "requested_model_family",
+    "PASS 기준": "acceptance_criteria",
+    "Callback Repository": "callback_repo",
+    "Callback Issue": "callback_issue",
+    "Resource Type": "resource",
+    "우선순위": "priority",
+}
+
+
+def parse_issue_form(body: str) -> dict[str, str]:
+    """Parse GitHub's rendered Issue Form headings without inventing missing values."""
+
+    parsed: dict[str, str] = {}
+    matches = list(re.finditer(r"(?m)^###\s+(.+?)\s*$", body))
+    for index, match in enumerate(matches):
+        key = _FORM_LABELS.get(match.group(1).strip())
+        if key is None:
+            continue
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        value = body[match.end() : end].strip()
+        if value and value != "_No response_":
+            parsed[key] = value
+    return parsed
+
+
+def _selection_mode(model_id: str, family: str, capability: str) -> str:
+    if model_id == "SCOUT_SELECTION_REQUIRED":
+        return "SCOUT_SELECTION_REQUIRED"
+    if model_id not in {"", "UNKNOWN"}:
+        return "EXACT_MODEL"
+    if family not in {"", "UNKNOWN"}:
+        return "FAMILY_SELECTION_REQUIRED"
+    if capability not in {"", "UNKNOWN"}:
+        return "CAPABILITY_SELECTION_REQUIRED"
+    return "UNKNOWN_LEGACY"
+
+
 def normalize_github_issue_request(
     issue: Mapping[str, object], *, configured_repos: Iterable[str]
 ) -> RequestEnvelope | None:
@@ -103,15 +146,36 @@ def normalize_github_issue_request(
         raise ValueError("issue number must be positive")
 
     request_text = body or title
+    form = parse_issue_form(body)
+    product = form.get("product", "UNKNOWN")
+    requested_model_id = form.get("requested_model_id", "UNKNOWN")
+    requested_model_family = form.get("requested_model_family", "UNKNOWN")
+    requested_capability = form.get("requested_capability", "UNKNOWN")
+    callback_repo = form.get("callback_repo", repo)
+    callback_issue_raw = form.get("callback_issue", "SAME_AS_SOURCE")
+    callback_issue = issue_number
+    if callback_issue_raw not in {"", "SAME_AS_SOURCE"}:
+        match = re.search(r"\d+", callback_issue_raw)
+        callback_issue = int(match.group()) if match else issue_number
     return normalize_request(
-        project=infer_project(repo, title, body),
+        project=product if product != "UNKNOWN" else infer_project(repo, title, body),
         request_text=request_text,
-        resource=infer_resource(title, body),
-        priority=infer_priority(title, body),
+        resource=form.get("resource", infer_resource(title, body)),
+        priority=form.get("priority", infer_priority(title, body)),
         source_repo=repo,
         source_issue=issue_number,
-        callback_repo=repo,
-        callback_issue=issue_number,
+        callback_repo=callback_repo,
+        callback_issue=callback_issue,
+        requesting_team=form.get("requesting_team", "UNKNOWN"),
+        product=product,
+        request_owner=form.get("request_owner", "UNKNOWN"),
+        requested_capability=requested_capability,
+        requested_model_id=requested_model_id,
+        requested_model_family=requested_model_family,
+        selection_mode=_selection_mode(
+            requested_model_id, requested_model_family, requested_capability
+        ),
+        acceptance_criteria=form.get("acceptance_criteria", "UNKNOWN"),
     )
 
 

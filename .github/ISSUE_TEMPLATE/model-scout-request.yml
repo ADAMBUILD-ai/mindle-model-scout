@@ -1,0 +1,204 @@
+name: MODEL SCOUT 표준 요청
+description: MODEL SCOUT에 모델/데이터셋/도구 확보를 요청할 때 사용하는 공통 양식입니다.
+title: "[MODEL_SCOUT_REQUEST] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        모든 개발팀은 같은 양식으로 요청합니다.
+        모델명이 정해지지 않은 경우 빈칸으로 두지 말고 `SCOUT_SELECTION_REQUIRED`를 입력하세요.
+
+  - type: input
+    id: requesting_team
+    attributes:
+      label: 요청 개발팀
+      placeholder: 예) AVORA 개발팀
+    validations:
+      required: true
+
+  - type: input
+    id: product
+    attributes:
+      label: 제품 / 앱
+      placeholder: 예) AVORA
+    validations:
+      required: true
+
+  - type: input
+    id: request_owner
+    attributes:
+      label: 요청 Owner / 담당자
+      placeholder: 예) AVORA General Work
+    validations:
+      required: true
+
+  - type: input
+    id: source_repo
+    attributes:
+      label: Source Repository
+      placeholder: ADAMBUILD-ai/avora-engine
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 우선순위
+      options:
+        - P0
+        - P1
+        - P2
+        - P3
+    validations:
+      required: true
+
+  - type: input
+    id: due_date
+    attributes:
+      label: 필요 시점 / 마감일
+      placeholder: YYYY-MM-DD 또는 ASAP
+
+  - type: textarea
+    id: capability
+    attributes:
+      label: 필요한 기능 / 해결할 문제
+      description: 실제 제품에서 무엇을 해야 하는지 구체적으로 적습니다.
+      placeholder: 예) 한국어 도면 OCR 정확도 향상, 실시간 STT, 이미지 세그멘테이션 등
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: 실제 사용 시나리오
+      placeholder: 입력 → 처리 → 기대 결과 순서로 적어 주세요.
+    validations:
+      required: true
+
+  - type: input
+    id: requested_model
+    attributes:
+      label: 요청 Model ID
+      description: 정확한 모델이 정해지지 않았으면 SCOUT_SELECTION_REQUIRED 입력
+      placeholder: owner/model-name 또는 SCOUT_SELECTION_REQUIRED
+    validations:
+      required: true
+
+  - type: input
+    id: model_family
+    attributes:
+      label: Model Family / 계열
+      placeholder: 예) Whisper, SAM, OCR, reranker, multimodal VLM
+    validations:
+      required: true
+
+  - type: dropdown
+    id: resource_type
+    attributes:
+      label: Resource Type
+      options:
+        - model
+        - dataset
+        - tool
+        - space
+        - all
+    validations:
+      required: true
+
+  - type: textarea
+    id: io_contract
+    attributes:
+      label: 입력 / 출력 형식
+      placeholder: 입력 파일/데이터 형식과 기대 출력 형식을 적어 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: runtime
+    attributes:
+      label: Runtime 조건
+      description: OS, CPU/GPU, VRAM/RAM, Python, 모델 포맷, 오프라인/Windows 필요 여부
+      placeholder: |
+        OS:
+        CPU:
+        GPU:
+        VRAM:
+        RAM:
+        Python:
+        허용 포맷:
+        오프라인 필요:
+        Windows 필요:
+    validations:
+      required: true
+
+  - type: dropdown
+    id: commercial
+    attributes:
+      label: 상업 사용 필요 여부
+      options:
+        - YES
+        - NO
+        - UNKNOWN
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: 필수 정책 확인
+      options:
+        - label: exact revision pin 필수
+          required: true
+        - label: SHA-256 검증 필수
+          required: true
+        - label: 공식 배포처 확인 필수
+          required: true
+        - label: unreviewed trust_remote_code 금지
+          required: true
+        - label: 확보 버전의 사용권 지속성 근거 확인 필수
+          required: true
+
+  - type: textarea
+    id: validation_input
+    attributes:
+      label: 실제 검수 입력 / 샘플
+      description: 샘플 위치 또는 제공 여부를 적어 주세요.
+      placeholder: 실제 파일 경로/Issue 첨부/없음과 사유
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: PASS 기준
+      description: 어떤 결과가 나와야 완료인지 수치/파일/재현조건까지 명확히 적습니다.
+      placeholder: |
+        입력:
+        기대 출력:
+        최소 품질:
+        속도 기준:
+        실패 조건:
+    validations:
+      required: true
+
+  - type: input
+    id: callback_repo
+    attributes:
+      label: Callback Repository
+      placeholder: ADAMBUILD-ai/avora-engine
+    validations:
+      required: true
+
+  - type: input
+    id: callback_issue
+    attributes:
+      label: Callback Issue
+      placeholder: 생성 전이면 SAME_AS_SOURCE, 기존이면 Issue 번호
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 추가 제약 / 참고사항
+      placeholder: 비용 상한, 금지사항, 대체모델 허용범위 등
