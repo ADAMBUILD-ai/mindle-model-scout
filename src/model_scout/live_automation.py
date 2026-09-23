@@ -24,6 +24,7 @@ def run_live_cycle(
     callback_writer: GitHubIssueCommentWriter | None = None,
     runtime_runner: RuntimeRunner | None = None,
     limit: int = 10,
+    preferred_source: tuple[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
@@ -42,6 +43,14 @@ def run_live_cycle(
     source = issue_source or GitHubIssueSource()
     writer = callback_writer or GitHubIssueCommentWriter()
     issues = source.list_open_issues(discovery_repos)
+    if preferred_source:
+        preferred_repo, preferred_issue = preferred_source
+        if not any(
+            str(item.get("repository_full_name") or "").casefold() == preferred_repo.casefold()
+            and int(item.get("number") or 0) == preferred_issue
+            for item in issues
+        ):
+            issues.insert(0, source.get_issue(preferred_repo, preferred_issue))
 
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
@@ -55,6 +64,7 @@ def run_live_cycle(
         "scout_runner": run_scout_core,
         "callback_writer": writer,
         "limit": limit,
+        "preferred_source": preferred_source,
     }
     if runtime_runner is not None:
         cycle_args.update(runtime_runner=runtime_runner, delivery_ledger=ledger)
