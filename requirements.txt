@@ -4,6 +4,7 @@ httpx==0.28.1
 uvicorn[standard]==0.34.0
 huggingface-hub==0.34.4
 numpy==2.4.6
+scipy==1.17.1
 onnxruntime==1.29.0
 opencv-python==5.0.0.93
 pillow==12.3.0
