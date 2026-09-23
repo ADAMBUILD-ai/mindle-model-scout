@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import httpx
+import pytest
 
 from src.model_scout.callback_delivery import deliver_evidence
 from src.model_scout.github_callback_transport import (
@@ -155,3 +156,43 @@ def test_transport_failure_keeps_evidence_ready_and_retry_can_deliver():
     assert delivered["delivered"] is True
     assert delivered["state"] == QueueState.DELIVERED.value
     assert queue.get(ready.fingerprint).state == QueueState.DELIVERED
+
+
+def test_same_repository_selects_local_token_and_external_selects_cross_repo_token():
+    seen = []
+
+    def handler(request):
+        seen.append((request.url.path, request.headers["authorization"]))
+        return httpx.Response(201, json={"id": len(seen)}, request=request)
+
+    with _mock_client(handler) as client:
+        writer = GitHubIssueCommentWriter(
+            local_token="local-secret",
+            cross_repo_token="cross-secret",
+            local_repository="ADAMBUILD-ai/mindle-model-scout",
+            client=client,
+        )
+        writer("ADAMBUILD-ai/mindle-model-scout", 7, "local")
+        writer("ADAMBUILD-ai/external", 8, "external")
+
+    assert seen[0][1] == "Bearer local-secret"
+    assert seen[1][1] == "Bearer cross-secret"
+
+
+def test_missing_role_specific_token_fails_closed_without_fallback():
+    with _mock_client(lambda request: httpx.Response(201, json={"id": 1}, request=request)) as client:
+        local_only = GitHubIssueCommentWriter(
+            local_token="local-only",
+            local_repository="ADAMBUILD-ai/mindle-model-scout",
+            client=client,
+        )
+        with pytest.raises(ValueError, match="cross-repository"):
+            local_only("ADAMBUILD-ai/external", 1, "body")
+
+        cross_only = GitHubIssueCommentWriter(
+            cross_repo_token="cross-only",
+            local_repository="ADAMBUILD-ai/mindle-model-scout",
+            client=client,
+        )
+        with pytest.raises(ValueError, match="local GitHub callback token"):
+            cross_only("ADAMBUILD-ai/mindle-model-scout", 1, "body")
