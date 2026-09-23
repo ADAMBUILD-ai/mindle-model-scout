@@ -1,6 +1,213 @@
 {
   "models": [
     {
+      "acquired_at": 1790168259.8345215,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/amazon--chronos-t5-small/a971ba21945c4f1796b17a91fe69214b5f4ad472",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 10.704,
+      "ended_at": 1790168259.8345215,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 6149,
+          "sha256": "75d6b65b15700271750f7ed9c9d01a13e6983929c8d2cf66a1832ec33a439464"
+        },
+        {
+          "path": "config.json",
+          "size": 1113,
+          "sha256": "76b7445a93491851e434733a138b67e26eda4375f83e08f80a07383c6b3f571a"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 184632480,
+          "sha256": "9c8b6fde5300f72b01c173153bf9288fa0a200614275bf0585071ad71a6a3d43"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/amazon/chronos-t5-small/tree/a971ba21945c4f1796b17a91fe69214b5f4ad472"
+      },
+      "model_id": "amazon/chronos-t5-small",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "a971ba21945c4f1796b17a91fe69214b5f4ad472",
+      "source_url": "https://huggingface.co/amazon/chronos-t5-small/tree/a971ba21945c4f1796b17a91fe69214b5f4ad472",
+      "started_at": 1790168249.1305752,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/amazon--chronos-t5-small.json",
+      "runtime_output_sha256": "983217d46a0c5009b214d07c500fc74cf8224db76a483c0974733dd0dc111d3a",
+      "runtime_output_shape": [
+        1,
+        1,
+        4096
+      ],
+      "runtime_seconds": 3.102
+    },
+    {
+      "acquired_at": 1790168245.7644372,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/BAAI--bge-m3/5617a9f61b028005a4858fdac845db406aefb181",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 19.408,
+      "ended_at": 1790168245.7644372,
+      "files": [
+        {
+          "path": ".pytorch_model.bin.2C3wmr",
+          "size": 1734344704,
+          "sha256": "01089bfb059934b82f3a414d0d5ae8c94443d15d804f9a45093502fbc706828d"
+        },
+        {
+          "path": ".pytorch_model.bin.2C3wmr.zukNCM",
+          "size": 1701314560,
+          "sha256": "95cb3723bc811587ef0381107ffc702d1e669e15782b48b2759cca6755951355"
+        },
+        {
+          "path": "README.md",
+          "size": 15822,
+          "sha256": "0b81ccf9134e5874d620a86e6905062ea999e779c34eb1a7e65eaeb7fe00e450"
+        },
+        {
+          "path": "config.json",
+          "size": 687,
+          "sha256": "26159e7ad065073448460117eb24b7a4572f6f4e78eadff65dc0a11c052449fa"
+        },
+        {
+          "path": "pytorch_model.bin",
+          "size": 2271145830,
+          "sha256": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38"
+        },
+        {
+          "path": "sentencepiece.bpe.model",
+          "size": 5069051,
+          "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "size": 964,
+          "sha256": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 17098108,
+          "sha256": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 444,
+          "sha256": "a62b2b6784f990259fddef5f16388693a8043be4f69179e6a5257eeb3f9abac4"
+        }
+      ],
+      "license": "mit",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "MIT permission grant preserved with the acquired revision; no future-policy retroactive withdrawal term.",
+        "captured_from": "https://huggingface.co/BAAI/bge-m3/tree/5617a9f61b028005a4858fdac845db406aefb181"
+      },
+      "model_id": "BAAI/bge-m3",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "source_url": "https://huggingface.co/BAAI/bge-m3/tree/5617a9f61b028005a4858fdac845db406aefb181",
+      "started_at": 1790168226.3568225,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/BAAI--bge-m3.json",
+      "runtime_output_sha256": "0d9708faf3f796fc9210e87b15f15c9e949381abc9f8393a94f352127687a670",
+      "runtime_output_shape": [
+        1,
+        4,
+        1024
+      ],
+      "runtime_seconds": 3.873
+    },
+    {
+      "acquired_at": 1790168250.96171,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/BAAI--bge-reranker-v2-m3/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 9.024,
+      "ended_at": 1790168250.96171,
+      "files": [
+        {
+          "path": ".model.safetensors.qT0ucg",
+          "size": 201588736,
+          "sha256": "79e8059c0e08b644f10e5cf47601bee8bb2fd53d1ab6e328e0efcccc2bc2db0f"
+        },
+        {
+          "path": "README.md",
+          "size": 17229,
+          "sha256": "c887aa6dd2598f908bf0582ca7068cc816585c7a1b6a07df305b631ede0cb174"
+        },
+        {
+          "path": "config.json",
+          "size": 795,
+          "sha256": "13dcd6c31d9fec9d1d8e158702072f62d7fa7d312a64b9fe057bec9a08cfe41a"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 2271071852,
+          "sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286"
+        },
+        {
+          "path": "sentencepiece.bpe.model",
+          "size": 5069051,
+          "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "size": 964,
+          "sha256": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 17098273,
+          "sha256": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 1173,
+          "sha256": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/BAAI/bge-reranker-v2-m3/tree/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e"
+      },
+      "model_id": "BAAI/bge-reranker-v2-m3",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "source_url": "https://huggingface.co/BAAI/bge-reranker-v2-m3/tree/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "started_at": 1790168241.9376438,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/BAAI--bge-reranker-v2-m3.json",
+      "runtime_output_sha256": "16662d6d9685a3bce73b08a8d55e6471d258ae6eff85769146cd765c58b05801",
+      "runtime_output_shape": [
+        1,
+        1
+      ],
+      "runtime_seconds": 3.803
+    },
+    {
       "acquired_at": 1790141930.5353346,
       "acquisition_runner": "safe-http-v1",
       "acquisition_status": "ACQUIRED_VERIFIED",
@@ -29,6 +236,66 @@
       "started_at": 1790141929.3847816,
       "trust_remote_code_required": false,
       "validation_status": "PENDING"
+    },
+    {
+      "acquired_at": 1790168266.9631748,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/Copycats--koelectra-base-v3-generalized-sentiment-analysis/370f325ce11aabd837b89bfb3ffdc26fde354689",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 16.001,
+      "ended_at": 1790168266.9631748,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 2653,
+          "sha256": "a92d658d7d5e01dbdf35628b35ead8f68c492193a3d322d8f7610e8d36a1b8d7"
+        },
+        {
+          "path": "config.json",
+          "size": 687,
+          "sha256": "d71d31c8bb6802dc4553e7b232f846b65e93b76efa8e1ba7331664e2decde524"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 451719856,
+          "sha256": "c9e3051a178ffbe3d8347d92826322c84ca159bf0d3e1843b3c33a964efa9267"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 60,
+          "sha256": "f2488b3795b0c3390dc615f94ebf03eab30ad8da36aef746b3461663e0ce9061"
+        },
+        {
+          "path": "vocab.txt",
+          "size": 263326,
+          "sha256": "9f50b0a44b0272dcf78bfd7a52a0815588f69918bb87ec60b21ca235c5aa0eb4"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/Copycats/koelectra-base-v3-generalized-sentiment-analysis/tree/370f325ce11aabd837b89bfb3ffdc26fde354689"
+      },
+      "model_id": "Copycats/koelectra-base-v3-generalized-sentiment-analysis",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "370f325ce11aabd837b89bfb3ffdc26fde354689",
+      "source_url": "https://huggingface.co/Copycats/koelectra-base-v3-generalized-sentiment-analysis/tree/370f325ce11aabd837b89bfb3ffdc26fde354689",
+      "started_at": 1790168250.9620225,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/Copycats--koelectra-base-v3-generalized-sentiment-analysis.json",
+      "runtime_output_sha256": "7b0a3546816c736972cb343b6b2526cf18e140ece66756ff70c2f34846997be6",
+      "runtime_output_shape": [
+        1,
+        2
+      ],
+      "runtime_seconds": 3.374
     },
     {
       "acquired_at": 1790141930.8784194,
@@ -63,6 +330,289 @@
       "validation_status": "PENDING"
     },
     {
+      "acquired_at": 1790168241.9372492,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/ENTUM-AI--FinBERT-Multi/a061e93fec562163f71aa10fad8e3d1917785c67",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 15.583,
+      "ended_at": 1790168241.9372492,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 1832,
+          "sha256": "0f66ab24d76459905cd7836cd4c4c984c7ba2e9339cc55117f236e8703a88725"
+        },
+        {
+          "path": "config.json",
+          "size": 924,
+          "sha256": "94e2ef94b2461603e841dda0dcaed84d279836d814002015e3099a9f615ced95"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 437961700,
+          "sha256": "ca760fd60c4883c1a4e536abfaf88faf653e01c4d3d56ad95ee0ed31b116798b"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 711661,
+          "sha256": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 322,
+          "sha256": "797ed9ba72b500001971b827b0040b8743def8ec38f9cd4cda4c4945734d3596"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/ENTUM-AI/FinBERT-Multi/tree/a061e93fec562163f71aa10fad8e3d1917785c67"
+      },
+      "model_id": "ENTUM-AI/FinBERT-Multi",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "a061e93fec562163f71aa10fad8e3d1917785c67",
+      "source_url": "https://huggingface.co/ENTUM-AI/FinBERT-Multi/tree/a061e93fec562163f71aa10fad8e3d1917785c67",
+      "started_at": 1790168226.3544848,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/ENTUM-AI--FinBERT-Multi.json",
+      "runtime_output_sha256": "ba85b17b92fa1b5feca650b5f90fc0760078fa0a43e67dda438b09ce69816b27",
+      "runtime_output_shape": [
+        1,
+        3
+      ],
+      "runtime_seconds": 3.037
+    },
+    {
+      "acquired_at": 1790168249.1302736,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/ibm-granite--granite-timeseries-ttm-r1/f04bebdd4c13475b006ce72672e74c9dc28871dc",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 3.366,
+      "ended_at": 1790168249.1302736,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 12386,
+          "sha256": "2e6a9fc0fc1832684da0d4144e33d48d982dcc2e063e56753a11e5122f94c361"
+        },
+        {
+          "path": "config.json",
+          "size": 1187,
+          "sha256": "e599e17fdb85748c4fac0946e8aea0f16326b0d0285512f64a9259dcd124b16c"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 3240592,
+          "sha256": "30f8d9be619518e18c4c15c6ee504e491b9624b48e251661cd5f967bce097731"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/ibm-granite/granite-timeseries-ttm-r1/tree/f04bebdd4c13475b006ce72672e74c9dc28871dc"
+      },
+      "model_id": "ibm-granite/granite-timeseries-ttm-r1",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "f04bebdd4c13475b006ce72672e74c9dc28871dc",
+      "source_url": "https://huggingface.co/ibm-granite/granite-timeseries-ttm-r1/tree/f04bebdd4c13475b006ce72672e74c9dc28871dc",
+      "started_at": 1790168245.764714,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/ibm-granite--granite-timeseries-ttm-r1.json",
+      "runtime_output_sha256": "f9a8c9700b14bab9b88e2c296399ffebf0a9d640e30c6c108a8cd029da865813",
+      "runtime_output_shape": [
+        1,
+        96,
+        1
+      ],
+      "runtime_seconds": 3.598
+    },
+    {
+      "acquired_at": 1790168266.538914,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/ibm-granite--granite-timeseries-ttm-r2/d6a79570cac0f33d526601cd3a0fc7c80a8f9a2f",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 6.704,
+      "ended_at": 1790168266.538914,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 18233,
+          "sha256": "e20234ff1a9eec054fd643d5ef7a4683857c8b24c7b00b466a9f55b6e22728ff"
+        },
+        {
+          "path": "config.json",
+          "size": 1563,
+          "sha256": "5e2367547c103e92cb8ebc63cbd5ad4d7bf83facad5a2a2ec261fa770ed659d5"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 3240592,
+          "sha256": "a706726a7eb01bbcb42994b7dcb3c06ea9557898dbae8d480eb04fe8ccb89710"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/ibm-granite/granite-timeseries-ttm-r2/tree/d6a79570cac0f33d526601cd3a0fc7c80a8f9a2f"
+      },
+      "model_id": "ibm-granite/granite-timeseries-ttm-r2",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "d6a79570cac0f33d526601cd3a0fc7c80a8f9a2f",
+      "source_url": "https://huggingface.co/ibm-granite/granite-timeseries-ttm-r2/tree/d6a79570cac0f33d526601cd3a0fc7c80a8f9a2f",
+      "started_at": 1790168259.8349433,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/ibm-granite--granite-timeseries-ttm-r2.json",
+      "runtime_output_sha256": "e903da79cfcc5533b589450bb3afdf0bea547b3ebea695fb4fa08e3b7acf8961",
+      "runtime_output_shape": [
+        1,
+        96,
+        1
+      ],
+      "runtime_seconds": 3.541
+    },
+    {
+      "acquired_at": 1790168259.9065259,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/microsoft--table-transformer-detection/2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 10.472,
+      "ended_at": 1790168259.9065259,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 1174,
+          "sha256": "c91e7f8199313c4d24b09e73a2f6df3141268666969346cb7b94ccb59900f5dd"
+        },
+        {
+          "path": "config.json",
+          "size": 1228,
+          "sha256": "ed5b93df2c3a59d473ddea853553a6d545d52bd4e9f8f72bf40b8a974aba4c1d"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 115317516,
+          "sha256": "8f1aa73170102c038d40155e2734b343bf07e0fe12594228a8590943b01dccf7"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "size": 273,
+          "sha256": "86a8837ae440456b0a9aef788b064921df29c20f0b67040954ce5c2fbd352c4f"
+        }
+      ],
+      "license": "mit",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "MIT permission grant preserved with the acquired revision; no future-policy retroactive withdrawal term.",
+        "captured_from": "https://huggingface.co/microsoft/table-transformer-detection/tree/2357cbe2b5a5d1c03e54f32764f06058933b65ab"
+      },
+      "model_id": "microsoft/table-transformer-detection",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+      "source_url": "https://huggingface.co/microsoft/table-transformer-detection/tree/2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+      "started_at": 1790168249.4348004,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/microsoft--table-transformer-detection.json",
+      "runtime_output_sha256": "d45724e1f10f106fe4591518c4e837ba2e82f49c0c76d1b986315220d39185ec",
+      "runtime_output_shape": [
+        1,
+        15,
+        3
+      ],
+      "runtime_seconds": 40.784
+    },
+    {
+      "acquired_at": 1790168249.43428,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/MoritzLaurer--DeBERTa-v3-base-mnli-fever-anli/6f5cf0a2b59cabb106aca4c287eed12e357e90eb",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 5.275,
+      "ended_at": 1790168249.43428,
+      "files": [
+        {
+          "path": "README.md",
+          "size": 23571,
+          "sha256": "4ffce2b113463476777ccc8efd1f0ea0571510a96a2c84f2d2aab152951b13ca"
+        },
+        {
+          "path": "config.json",
+          "size": 1090,
+          "sha256": "a6c616d6dabeacf90fd0e776c741d3f0f30a05533ccf0bd3b5b62e94cfaa8d57"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 368877646,
+          "sha256": "06d6fd89edd4f97816831626daafbdb0b029cf63bae8edc0bccab1d64e2e7707"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "size": 286,
+          "sha256": "9463f61e1b109a8eb4688b829260d7c6b1e6dff04c98ff7269bb89e2b92369b9"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 8656646,
+          "sha256": "05402ffae6dd382a8491b1d29bfc139bec5d332662e86a026f433ce54c25c202"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 1284,
+          "sha256": "557b3d33d3f41b81ad769244e506549e98a1857d41dd58160aacd4d98d710b5a"
+        }
+      ],
+      "license": "mit",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "MIT permission grant preserved with the acquired revision; no future-policy retroactive withdrawal term.",
+        "captured_from": "https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli/tree/6f5cf0a2b59cabb106aca4c287eed12e357e90eb"
+      },
+      "model_id": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "6f5cf0a2b59cabb106aca4c287eed12e357e90eb",
+      "source_url": "https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli/tree/6f5cf0a2b59cabb106aca4c287eed12e357e90eb",
+      "started_at": 1790168244.1595757,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/MoritzLaurer--DeBERTa-v3-base-mnli-fever-anli.json",
+      "runtime_output_sha256": "ef0e5dcf7a2201b1fdb93a71d4e2961c987d4014c215bbbb0d50036209d7ebb6",
+      "runtime_output_shape": [
+        1,
+        3
+      ],
+      "runtime_seconds": 3.582
+    },
+    {
       "acquired_at": 1790141933.5940325,
       "acquisition_runner": "safe-http-v1",
       "acquisition_status": "ACQUIRED_VERIFIED",
@@ -90,7 +640,90 @@
       "started_at": 1790141929.3845227,
       "trust_remote_code_required": false,
       "validation_status": "PENDING"
+    },
+    {
+      "acquired_at": 1790168244.1592107,
+      "acquisition_runner": "legacy-candidate-bounded-parallel-v1",
+      "acquisition_status": "ACQUIRED_VERIFIED",
+      "cache_location": "live-state/legacy-acquisition-cache/peyterho--financial-roberta-large-macro-sentiment/f741f6e960f0e19d77f65da9582c4cc6cc8acf38",
+      "consuming_teams": [
+        "warren-buffett"
+      ],
+      "duration_seconds": 17.805,
+      "ended_at": 1790168244.1592107,
+      "files": [
+        {
+          "path": ".model.safetensors.w8qRrf",
+          "size": 1128005632,
+          "sha256": "ea2b0195ea384929e85c2349ab641e9a1dfc11533bb1b68083c0fad59474a53e"
+        },
+        {
+          "path": ".model.safetensors.w8qRrf.nnz98Y",
+          "size": 634912768,
+          "sha256": "f1e7625eb2d98f54e2e1e86e19399fe598a53b4470e36c51dbd3032fe54b53dd"
+        },
+        {
+          "path": ".model.safetensors.w8qRrf.nnz98Y.KDUDOd",
+          "size": 338165760,
+          "sha256": "2f5c6a169b0ae140aa727d1a95576c137453b6ac3361e93c7d024f515d38a17e"
+        },
+        {
+          "path": "README.md",
+          "size": 18393,
+          "sha256": "6af336c5aaa65ea88f86d9bfc927467003fc114b977b9767194bab82cf333eca"
+        },
+        {
+          "path": "config.json",
+          "size": 939,
+          "sha256": "9a45d887cbfc862d0dc13d78ba450ffffc1c1b3643b7e9f4d3a01d4b03dd28ca"
+        },
+        {
+          "path": "model.safetensors",
+          "size": 1421499516,
+          "sha256": "3ba36b941c97268cb9a83eb46626e41b674a3994ff08d3a28347ed017aaf6988"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 3558745,
+          "sha256": "9d5687cf691423bb98277a97272d034907e85c49500d5d45b389acdaa509d418"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "size": 607,
+          "sha256": "bda56edb595a77cd015b406eb8bbb12cfe8d939065a160c8a934361ee5957b52"
+        }
+      ],
+      "license": "apache-2.0",
+      "license_persistence_evidence": {
+        "status": "CONFIRMED_FOR_PINNED_REVISION",
+        "basis": "Apache License 2.0 perpetual grant for the acquired revision; termination is condition-based, not a future-policy retroactive withdrawal.",
+        "captured_from": "https://huggingface.co/peyterho/financial-roberta-large-macro-sentiment/tree/f741f6e960f0e19d77f65da9582c4cc6cc8acf38"
+      },
+      "model_id": "peyterho/financial-roberta-large-macro-sentiment",
+      "originating_requests": [
+        "reports/warren_buffett/issue-28-scout.json"
+      ],
+      "revision": "f741f6e960f0e19d77f65da9582c4cc6cc8acf38",
+      "source_url": "https://huggingface.co/peyterho/financial-roberta-large-macro-sentiment/tree/f741f6e960f0e19d77f65da9582c4cc6cc8acf38",
+      "started_at": 1790168226.3539202,
+      "trust_remote_code_required": false,
+      "validation_status": "TESTED_PASS",
+      "runtime_evidence": "evidence/runtime/peyterho--financial-roberta-large-macro-sentiment.json",
+      "runtime_output_sha256": "8291ffa13e08effa6c3cfda0fa74ab292b2a75dea7d592c8da26a49e322c170f",
+      "runtime_output_shape": [
+        1,
+        3
+      ],
+      "runtime_seconds": 3.083
     }
   ],
-  "schema_version": 1
+  "schema_version": 2,
+  "summary": {
+    "total_models": 13,
+    "acquired_verified": 13,
+    "tested_pass": 10,
+    "pending_product_validation": 3,
+    "last_updated": "2026-09-23"
+  }
 }
+

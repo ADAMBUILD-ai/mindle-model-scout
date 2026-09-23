@@ -1,0 +1,14 @@
+{
+  "model_id": "microsoft/table-transformer-detection",
+  "revision": "2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "table-object-detection",
+  "output_shape": [
+    1,
+    15,
+    3
+  ],
+  "output_sha256": "d45724e1f10f106fe4591518c4e837ba2e82f49c0c76d1b986315220d39185ec",
+  "duration_seconds": 40.784
+}

@@ -1,0 +1,14 @@
+{
+  "model_id": "BAAI/bge-m3",
+  "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "embedding",
+  "output_shape": [
+    1,
+    4,
+    1024
+  ],
+  "output_sha256": "0d9708faf3f796fc9210e87b15f15c9e949381abc9f8393a94f352127687a670",
+  "duration_seconds": 3.873
+}

@@ -1,0 +1,14 @@
+{
+  "model_id": "ibm-granite/granite-timeseries-ttm-r1",
+  "revision": "f04bebdd4c13475b006ce72672e74c9dc28871dc",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "time-series-forecasting",
+  "output_shape": [
+    1,
+    96,
+    1
+  ],
+  "output_sha256": "f9a8c9700b14bab9b88e2c296399ffebf0a9d640e30c6c108a8cd029da865813",
+  "duration_seconds": 3.598
+}

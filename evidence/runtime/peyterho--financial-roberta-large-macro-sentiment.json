@@ -1,0 +1,13 @@
+{
+  "model_id": "peyterho/financial-roberta-large-macro-sentiment",
+  "revision": "f741f6e960f0e19d77f65da9582c4cc6cc8acf38",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "classification-or-reranking",
+  "output_shape": [
+    1,
+    3
+  ],
+  "output_sha256": "8291ffa13e08effa6c3cfda0fa74ab292b2a75dea7d592c8da26a49e322c170f",
+  "duration_seconds": 3.083
+}

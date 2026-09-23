@@ -1,0 +1,13 @@
+{
+  "model_id": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+  "revision": "6f5cf0a2b59cabb106aca4c287eed12e357e90eb",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "classification-or-reranking",
+  "output_shape": [
+    1,
+    3
+  ],
+  "output_sha256": "ef0e5dcf7a2201b1fdb93a71d4e2961c987d4014c215bbbb0d50036209d7ebb6",
+  "duration_seconds": 3.582
+}

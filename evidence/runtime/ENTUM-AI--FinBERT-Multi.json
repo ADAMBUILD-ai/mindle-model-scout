@@ -1,0 +1,13 @@
+{
+  "model_id": "ENTUM-AI/FinBERT-Multi",
+  "revision": "a061e93fec562163f71aa10fad8e3d1917785c67",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "classification-or-reranking",
+  "output_shape": [
+    1,
+    3
+  ],
+  "output_sha256": "ba85b17b92fa1b5feca650b5f90fc0760078fa0a43e67dda438b09ce69816b27",
+  "duration_seconds": 3.037
+}

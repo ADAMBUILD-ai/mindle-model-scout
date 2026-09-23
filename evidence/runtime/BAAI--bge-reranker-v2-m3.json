@@ -1,0 +1,13 @@
+{
+  "model_id": "BAAI/bge-reranker-v2-m3",
+  "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "runtime_status": "TESTED_PASS",
+  "runtime": "CPU / torch / trust_remote_code=False",
+  "task": "classification-or-reranking",
+  "output_shape": [
+    1,
+    1
+  ],
+  "output_sha256": "16662d6d9685a3bce73b08a8d55e6471d258ae6eff85769146cd765c58b05801",
+  "duration_seconds": 3.803
+}
