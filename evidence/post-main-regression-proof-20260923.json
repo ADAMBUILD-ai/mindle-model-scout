@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "verdict": "FAIL_BLOCKED_APPROVAL",
+  "main_head": "9bf3a3cde6ee1f25a462725a8b77e963346b8bbb",
+  "checks": {
+    "main_tests": {
+      "status": "PASS",
+      "run_id": 35826071156
+    },
+    "issue_event_workflow": {
+      "status": "PASS",
+      "run_id": 35829269974
+    },
+    "durable_queue": {
+      "status": "PASS",
+      "evidence": "cycle output retained queue state and retry counters"
+    },
+    "watchdog_recovery": {
+      "status": "PASS",
+      "evidence": "watchdog_requeued list present in run 35829269974 artifact/log"
+    },
+    "scheduled_watchdog": {
+      "status": "PASS",
+      "run_id": 35827603171,
+      "conclusion": "success"
+    },
+    "dependency_marker_reuse": {
+      "status": "PASS",
+      "runs": [
+        35826071143,
+        35826198513,
+        35829269974
+      ]
+    },
+    "model_registry": {
+      "status": "PASS",
+      "acquired_verified_count": 3,
+      "models": [
+        "BAAI/bge-small-en-v1.5",
+        "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        "openai/whisper-tiny"
+      ]
+    },
+    "duplicate_issue": {
+      "status": "PASS",
+      "proof_issue_number": 71,
+      "duplicates_created": 0
+    },
+    "duplicate_callback": {
+      "status": "PASS",
+      "proof_issue_number": 71,
+      "duplicate_callbacks_created": 0
+    },
+    "callback_transport": {
+      "status": "FAIL",
+      "error": "GitHub callback rejected with HTTP 403",
+      "affected_existing_issues": [
+        47,
+        52,
+        53,
+        54,
+        56
+      ]
+    },
+    "proof_request_cycle_processing": {
+      "status": "FAIL",
+      "issue_number": 71,
+      "reason": "not selected within MODEL_SCOUT_LIMIT=10 because older/requeued work consumed the cycle"
+    },
+    "geometry_worker": {
+      "status": "FAIL",
+      "error": "ModuleNotFoundError: No module named 'scipy'"
+    },
+    "huggingface_search": {
+      "status": "RETRYABLE_FAILURE",
+      "error": "HTTP 500 observed for several queued searches"
+    },
+    "existing_delivered_stability": {
+      "status": "PASS_NO_MUTATION",
+      "evidence": "no existing DELIVERED record was demoted in captured queue output"
+    }
+  },
+  "blocker": {
+    "code": "CALLBACK_TOKEN_ISSUE_WRITE_PERMISSION_REQUIRED",
+    "description": "The token supplied as MODEL_SCOUT_CROSS_REPO_TOKEN is accepted for discovery but callback comment writes return HTTP 403. Resolving requires inspecting or changing secret/token repository Issue write scope, which is an approval-only permission/secret action.",
+    "requested_action": "Approve least-privilege Issue write permission review/update for MODEL_SCOUT_CROSS_REPO_TOKEN across configured callback repositories; do not expose or rotate the token in logs."
+  },
+  "additional_fix_required": {
+    "code": "MISSING_SCIPY_RUNTIME_DEPENDENCY",
+    "approval_required": false,
+    "recommended_change": "Add and pin scipy compatible with Python 3.11/numpy 2.4.6, then rerun geometry worker tests on a separate minimal fix commit."
+  }
+}
