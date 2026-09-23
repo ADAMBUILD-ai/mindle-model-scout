@@ -1,0 +1,90 @@
+{
+  "model": "Qwen/Qwen-Image-Edit",
+  "revision": "ac7f9318f633fc4b5778c59367c8128225f1e3de",
+  "dependency_import_success": true,
+  "versions": {
+    "torch": "2.6.0+cpu",
+    "diffusers": "0.35.1",
+    "transformers": "4.51.3",
+    "huggingface_hub": "0.34.4"
+  },
+  "actual_inference": false,
+  "config_materialized": true,
+  "weights": [
+    {
+      "name": "text_encoder/model-00001-of-00004.safetensors",
+      "bytes": 4968243304,
+      "lfs_sha256": "d725335e4ea2399be706469e4b8807716a8fa64bd03468252e9f7acf2415fee4"
+    },
+    {
+      "name": "text_encoder/model-00002-of-00004.safetensors",
+      "bytes": 4991495816,
+      "lfs_sha256": "b1830db6908dcc76df3a71492acbcf2b8cac130114cf1f3c2d9edae8de8c6de3"
+    },
+    {
+      "name": "text_encoder/model-00003-of-00004.safetensors",
+      "bytes": 4932751040,
+      "lfs_sha256": "09c1807c6d00d7cab94f7db39d4c02ebb8537225ccde383861ac48db97945aa6"
+    },
+    {
+      "name": "text_encoder/model-00004-of-00004.safetensors",
+      "bytes": 1691924384,
+      "lfs_sha256": "5dd068336d14d45ffb43cef374d286cc6ba9d8741b028f90a7d040d847961f4a"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00001-of-00009.safetensors",
+      "bytes": 4989364312,
+      "lfs_sha256": "2003cdd961d3a94897f70a49c4cda975e9f92dd938adfeeba4f335f695570310"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00002-of-00009.safetensors",
+      "bytes": 4984214160,
+      "lfs_sha256": "d20abf545941bbffe26e201276226332e6ad6a2d3d7a7a18fb45ec7006fcdc8a"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00003-of-00009.safetensors",
+      "bytes": 4946470000,
+      "lfs_sha256": "1e4d15c80d388b630a97347694914cbc58ea9dc40e472305add52981ca02e856"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00004-of-00009.safetensors",
+      "bytes": 4984213736,
+      "lfs_sha256": "e5baa4c61fbce2011ea179122a8dc4bfaefb5387feeee5eff765fb237977cbd1"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00005-of-00009.safetensors",
+      "bytes": 4946471896,
+      "lfs_sha256": "c08a2489c7e11f09c9fd4aae929085a31199699f1fa4a2dd95fc65d1ab5c223c"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00006-of-00009.safetensors",
+      "bytes": 4946451560,
+      "lfs_sha256": "901dfafc0de496f358e27b81af4155b889080aebd4417909303c70a260885fff"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00007-of-00009.safetensors",
+      "bytes": 4908690520,
+      "lfs_sha256": "e8d9a14e343d841e425bb4f68c4be44b96d94730d328a175f4549bdde9114c96"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00008-of-00009.safetensors",
+      "bytes": 4984232856,
+      "lfs_sha256": "f57b82e08f23a33af5a2a6dbf586180b4f5c9e69487d49112544ca5e8fe0d94e"
+    },
+    {
+      "name": "transformer/diffusion_pytorch_model-00009-of-00009.safetensors",
+      "bytes": 1170918840,
+      "lfs_sha256": "b068de3d8644da55bc75f156ba50cd374f397f2fc49c8e8e00c0392db7cd3a70"
+    },
+    {
+      "name": "vae/diffusion_pytorch_model.safetensors",
+      "bytes": 253806966,
+      "lfs_sha256": "0c8bc8b758c649abef9ea407b95408389a3b2f610d0d10fcb054fe171d0a8344"
+    }
+  ],
+  "total_weight_bytes": 57699249390,
+  "available_ram_bytes": 15408926720,
+  "available_disk_bytes": 90948587520,
+  "cuda_available": false,
+  "status": "DEPENDENCY_REPAIRED_WEIGHT_AND_INFERENCE_GATES_UNRESOLVED"
+}
