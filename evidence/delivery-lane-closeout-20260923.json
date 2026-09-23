@@ -1,0 +1,33 @@
+{
+  "artifact_id": 10733993058,
+  "callback_sent_at": "2026-09-23T05:26:22Z",
+  "callback_target": "ADAMBUILD-ai/avora-engine#7",
+  "callback_url": "https://github.com/ADAMBUILD-ai/avora-engine/issues/7#issuecomment-5749074105",
+  "delivered_at": "2026-09-23T05:26:22Z",
+  "delivery_workflow_run_id": 35822286527,
+  "duplicate_callback_count": 0,
+  "exact_head": "769fee3fe6e7d834bff400e23ba5bcccd42d7bc8",
+  "idempotent_rerun": {
+    "duplicate_suppressed": true,
+    "performed": true
+  },
+  "input_sha256": "6d3ad8f580a93cecbbdf329eb04a4c007aebb3e558571b6b2d7b9fb03fcd592d",
+  "license": "apache-2.0",
+  "model_id": "PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx + OpenCV HoughLinesP + pypdfium2",
+  "output_sha256": "ba19277f7d6744d01ae3867e7330a39ea46295c31490c892f95c7a1772472104",
+  "request": "ADAMBUILD-ai/mindle-model-scout#48",
+  "route_fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+  "runtime_evidence": {
+    "artifact_digest": "82283da4dcf41c81738bafb35099b9b45a76d8a17ef17ed93cdee6d587513c56",
+    "artifact_file_count": 8,
+    "runner": "GitHub-hosted Ubuntu 24.04",
+    "workflow_started_at": "2026-09-23T05:24:40.291806Z"
+  },
+  "state_path": [
+    "ACQUIRED_VERIFIED",
+    "TESTED_PASS",
+    "CALLBACK_SENT",
+    "DELIVERED"
+  ],
+  "workflow_completed_successfully": true
+}

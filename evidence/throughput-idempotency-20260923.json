@@ -1,0 +1,38 @@
+{
+  "delivery_idempotency": {
+    "artifact_id": 10733993058,
+    "callback_duplicate_suppressed": true,
+    "callback_url": "https://github.com/ADAMBUILD-ai/avora-engine/issues/7#issuecomment-5749074105",
+    "delivery_workflow_run_id": 35822286527,
+    "duplicate_callback_count": 0,
+    "route_fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+    "status": "PASS"
+  },
+  "duplicate_acquisitions_suppressed": 3,
+  "duplicate_registry_records": 0,
+  "rerun_results": [
+    {
+      "ended_at": 1790141933.6978333,
+      "model_id": "BAAI/bge-small-en-v1.5",
+      "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "started_at": 1790141933.6973562,
+      "status": "DUPLICATE_SUPPRESSED"
+    },
+    {
+      "ended_at": 1790141933.697977,
+      "model_id": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+      "started_at": 1790141933.697568,
+      "status": "DUPLICATE_SUPPRESSED"
+    },
+    {
+      "ended_at": 1790141933.6976702,
+      "model_id": "openai/whisper-tiny",
+      "revision": "169d4a4341b33bc18d8881c4b69c2e104e1cc0af",
+      "started_at": 1790141933.6970694,
+      "status": "DUPLICATE_SUPPRESSED"
+    }
+  ],
+  "unnecessary_redownloads": 0,
+  "verified_cache_reused": true
+}

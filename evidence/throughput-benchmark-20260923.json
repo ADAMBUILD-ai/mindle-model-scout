@@ -1,0 +1,37 @@
+{
+  "baseline": {
+    "acquisition_mode": "serial and coupled to product validation",
+    "primary_trigger": "15-minute scheduled watchdog",
+    "runner_bootstrap": "dependencies installed every cycle"
+  },
+  "current": {
+    "acquisition_concurrency_default": 3,
+    "acquisition_concurrency_max": 4,
+    "acquisition_mode": "bounded parallel Lane A independent from Lane B",
+    "immediate_triggers": [
+      "issues",
+      "repository_dispatch:model-scout-request"
+    ],
+    "runner_bootstrap": "requirements SHA-256 fingerprint cache"
+  },
+  "measured_results": {
+    "acquisition_duration_seconds_by_model": {
+      "BAAI/bge-small-en-v1.5": 1.151,
+      "cross-encoder/ms-marco-MiniLM-L-6-v2": 1.493,
+      "openai/whisper-tiny": 4.21
+    },
+    "cache_hit_redownload_avoidance": 3,
+    "dependency_cache_benchmark": "PENDING_POST_MERGE_DEFAULT_BRANCH_PROOF",
+    "delivery_artifact_id": 10733993058,
+    "delivery_idempotency": "PASS",
+    "delivery_workflow_run_id": 35822286527,
+    "immediate_issue_event_trigger": "BLOCKED_BY_DEFAULT_BRANCH_ACTIVATION",
+    "live_acquisition_workflow_run_id": 35823260028,
+    "failures_and_fallbacks": [],
+    "peak_acquisition_concurrency": 3,
+    "request_delivery_elapsed_seconds": 102.0,
+    "status": "PRE_MERGE_GATES_PASS_DEFAULT_BRANCH_ACTIVATION_REQUIRED",
+    "total_parallel_window_seconds": 4.21
+  },
+  "schema_version": 1
+}
