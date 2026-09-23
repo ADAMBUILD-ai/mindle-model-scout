@@ -1,0 +1,68 @@
+name: AURA v43 pinned model recovery
+on:
+  push:
+    branches: [recovery/aura-v43-materialization-20260923]
+    paths: ['.github/workflows/aura-v43-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: aura-v43-model-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout private consumer using existing authorized connection
+        uses: actions/checkout@v4
+        with:
+          repository: ADAMBUILD-ai/aura-engine
+          ref: bcbb7342d7452ceaabce040d86936b4fb46a9390
+          token: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated CPU runtime
+        run: |
+          python -m venv work/v43/runtime
+          work/v43/runtime/bin/pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
+          work/v43/runtime/bin/pip install transformers==4.57.3 huggingface_hub==0.36.2 safetensors pillow scipy soundfile sentencepiece protobuf einops timm
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak
+      - name: Recover exact official model bytes
+        continue-on-error: true
+        env:
+          HF_HUB_DISABLE_PROGRESS_BARS: '1'
+          HF_HUB_DISABLE_TELEMETRY: '1'
+        run: work/v43/runtime/bin/python tools/materialize_models_v431.py
+      - name: Run independent page-linked inference lanes
+        continue-on-error: true
+        env:
+          HF_HUB_OFFLINE: '1'
+          HF_HUB_DISABLE_PROGRESS_BARS: '1'
+        run: |
+          mkdir -p docs/evidence/astra-p03-p04-p10-v43/materialization
+          for model in M1 M5 M6 M7; do
+            work/v43/runtime/bin/python tools/run_recovered_models_v431.py "$model" > "docs/evidence/astra-p03-p04-p10-v43/materialization/${model}_runtime.log" 2>&1 || true
+          done
+      - name: Florence isolated compatible runtime and exact pinned code
+        continue-on-error: true
+        run: |
+          python -m venv --system-site-packages work/v43/florence-runtime
+          work/v43/florence-runtime/bin/pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
+          work/v43/florence-runtime/bin/pip install transformers==4.44.2 huggingface_hub==0.34.4 pillow timm einops safetensors
+          HF_HUB_OFFLINE=1 work/v43/florence-runtime/bin/python tools/run_recovered_models_v431.py M8 > docs/evidence/astra-p03-p04-p10-v43/materialization/M8_runtime.log 2>&1
+      - name: Qwen isolated dependency repair
+        continue-on-error: true
+        run: |
+          python -m venv --system-site-packages work/v43/qwen-runtime
+          work/v43/qwen-runtime/bin/pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
+          work/v43/qwen-runtime/bin/pip install diffusers==0.35.1 transformers==4.51.3 huggingface_hub==0.34.4 accelerate pillow sentencepiece protobuf
+          work/v43/qwen-runtime/bin/python -c "from diffusers import QwenImageEditPipeline; print('QwenImageEditPipeline import succeeded; inference NOT claimed')" > docs/evidence/astra-p03-p04-p10-v43/materialization/M9_dependency_probe.log 2>&1
+      - name: Persist model bytes and evidence privately
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
+        run: work/v43/runtime/bin/python tools/persist_recovery_v431.py
