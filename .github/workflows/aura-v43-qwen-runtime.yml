@@ -1,0 +1,43 @@
+name: AURA v43 Qwen isolated dependency probe
+on:
+  push:
+    branches: [recovery/aura-v43-materialization-20260923]
+    paths: ['.github/workflows/aura-v43-qwen-runtime.yml']
+permissions:
+  contents: write
+jobs:
+  qwen-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install compatible isolated CPU dependency set
+        run: |
+          python -m venv work/v43/qwen-runtime
+          work/v43/qwen-runtime/bin/pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
+          work/v43/qwen-runtime/bin/pip install diffusers==0.35.1 transformers==4.51.3 huggingface_hub==0.34.4 accelerate pillow sentencepiece protobuf psutil
+      - name: Probe actual import and pinned official weight metadata
+        run: |
+          work/v43/qwen-runtime/bin/python - <<'PY'
+          import json,importlib.metadata,shutil,psutil,torch
+          from pathlib import Path
+          from diffusers import QwenImageEditPipeline
+          from huggingface_hub import model_info,hf_hub_download
+          info=model_info('Qwen/Qwen-Image-Edit',files_metadata=True,token=False)
+          root=Path('work/v43/model-cache/Qwen--Qwen-Image-Edit')/info.sha
+          config=hf_hub_download(info.id,'model_index.json',revision=info.sha,local_dir=root,token=False)
+          weights=[{'name':f.rfilename,'bytes':f.size,'lfs_sha256':getattr(f.lfs,'sha256',None)} for f in info.siblings if f.rfilename.endswith('.safetensors')]
+          result={'model':'Qwen/Qwen-Image-Edit','revision':info.sha,'dependency_import_success':True,'versions':{p:importlib.metadata.version(p) for p in ['torch','diffusers','transformers','huggingface_hub']},'actual_inference':False,'config_materialized':True,'weights':weights,'total_weight_bytes':sum(f['bytes'] or 0 for f in weights),'available_ram_bytes':psutil.virtual_memory().available,'available_disk_bytes':shutil.disk_usage('.').free,'cuda_available':torch.cuda.is_available(),'status':'DEPENDENCY_REPAIRED_WEIGHT_AND_INFERENCE_GATES_UNRESOLVED'}
+          out=Path('evidence/aura-v43-materialization/M9_dependency_probe.json');out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2))
+          print(json.dumps({'dependency_import_success':True,'actual_inference':False,'revision':info.sha,'total_weight_bytes':result['total_weight_bytes']}))
+          PY
+      - name: Retain public-model-only probe receipt
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add evidence/aura-v43-materialization/M9_dependency_probe.json
+          git commit -m "evidence: Qwen compatible dependency probe, not inference [skip ci]"
+          git push origin HEAD:recovery/aura-v43-materialization-20260923
