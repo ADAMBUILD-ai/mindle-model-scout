@@ -1,5 +1,11 @@
 {
-  "delivery_idempotency": "PENDING_DELIVERY_LANE_PROOF",
+  "delivery_idempotency": {
+    "callback_url": "https://github.com/ADAMBUILD-ai/avora-engine/issues/7#issuecomment-5749074105",
+    "duplicate_callback_count": 0,
+    "duplicate_suppressed_on_rerun": true,
+    "route_fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+    "workflow_run_id": 35822286527
+  },
   "duplicate_acquisitions_suppressed": 3,
   "duplicate_registry_records": 0,
   "rerun_results": [
