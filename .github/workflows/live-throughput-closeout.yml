@@ -36,12 +36,10 @@ jobs:
         run: python scripts/prepare_live_acquisition_specs.py
 
       - name: Acquire three real models concurrently
-        run: |
-          python scripts/run_parallel_acquisition.py live-acquisition-specs.json +            --state-dir live-state +            --concurrency 3 +            --output live-acquisition-first.json
+        run: python scripts/run_parallel_acquisition.py live-acquisition-specs.json --state-dir live-state --concurrency 3 --output live-acquisition-first.json
 
       - name: Prove cache and registry idempotency
-        run: |
-          python scripts/run_parallel_acquisition.py live-acquisition-specs.json +            --state-dir live-state +            --concurrency 3 +            --output live-acquisition-rerun.json
+        run: python scripts/run_parallel_acquisition.py live-acquisition-specs.json --state-dir live-state --concurrency 3 --output live-acquisition-rerun.json
 
       - name: Build sanitized evidence exports
         run: python scripts/finalize_live_acquisition_evidence.py
@@ -50,7 +48,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add evidence/model-registry.json +            evidence/live-candidate-selection-20260923.json +            evidence/parallel-acquisition-evidence-20260923.json +            evidence/acquisition-validation-isolation-20260923.json +            evidence/throughput-idempotency-20260923.json +            evidence/throughput-benchmark-20260923.json
+          git add evidence/model-registry.json evidence/live-candidate-selection-20260923.json evidence/parallel-acquisition-evidence-20260923.json evidence/acquisition-validation-isolation-20260923.json evidence/throughput-idempotency-20260923.json evidence/throughput-benchmark-20260923.json
           git commit -m "evidence: record live parallel model acquisition"
           git push origin HEAD:improvement/model-scout-throughput-20260923
 
