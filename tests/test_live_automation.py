@@ -15,6 +15,9 @@ class FakeIssueSource(GitHubIssueSource):
         self.requested_repos = tuple(repos)
         return list(self._issues)
 
+    def get_issue(self, repo, issue):
+        return _issue(repo, issue, "CURRENT")
+
 
 class RecordingWriter:
     def __init__(self):
@@ -170,3 +173,46 @@ def test_live_cycle_callback_failure_is_retry_safe(tmp_path, monkeypatch):
     assert len(calls) == 1
     assert len(writer.calls) == 1
     assert any(item.get("state") == "DELIVERED" for item in second)
+
+
+def test_live_cycle_processes_current_event_before_older_requests(tmp_path, monkeypatch):
+    older = _issue("ADAMBUILD-ai/mindle-model-scout", 60, "OLDER")
+    current = _issue("ADAMBUILD-ai/mindle-model-scout", 71, "CURRENT")
+    current["body"] += "\nunique current event query"
+    source = FakeIssueSource([older, current])
+    order = []
+
+    def fake_scout(query, limit, resource):
+        order.append(query)
+        return {"query": query, "candidates": []}
+
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", fake_scout)
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/mindle-model-scout",),
+        state_dir=tmp_path,
+        issue_source=source,
+        callback_writer=RecordingWriter(),
+        preferred_source=("ADAMBUILD-ai/mindle-model-scout", 71),
+    )
+
+    assert order[0] == " ".join(current["body"].split())
+
+
+def test_live_cycle_fetches_current_event_when_list_snapshot_omits_it(tmp_path, monkeypatch):
+    source = FakeIssueSource([_issue("ADAMBUILD-ai/mindle-model-scout", 60, "OLDER")])
+    calls = []
+    monkeypatch.setattr(
+        "src.model_scout.live_automation.run_scout_core",
+        lambda query, limit, resource: calls.append(query) or {"query": query, "candidates": []},
+    )
+
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/mindle-model-scout",),
+        state_dir=tmp_path,
+        issue_source=source,
+        callback_writer=RecordingWriter(),
+        preferred_source=("ADAMBUILD-ai/mindle-model-scout", 71),
+    )
+
+    expected = _issue("ADAMBUILD-ai/mindle-model-scout", 71, "CURRENT")["body"]
+    assert calls[0] == " ".join(expected.split())
