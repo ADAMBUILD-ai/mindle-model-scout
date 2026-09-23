@@ -1,6 +1,14 @@
 name: live-throughput-closeout
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-throughput-closeout.yml'
+      - 'scripts/prepare_live_acquisition_specs.py'
+      - 'scripts/finalize_live_acquisition_evidence.py'
+      - 'scripts/run_parallel_acquisition.py'
+      - 'src/model_scout/acquisition.py'
   push:
     branches: [improvement/model-scout-throughput-20260923]
     paths:
