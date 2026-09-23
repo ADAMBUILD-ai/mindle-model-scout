@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ADAMBUILD-ai/aura-engine
-          ref: bcbb7342d7452ceaabce040d86936b4fb46a9390
+          ref: bafd17d7542b18ab72a659360ff2cfb7230e3ba2
           token: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
           persist-credentials: false
       - uses: actions/setup-python@v5
