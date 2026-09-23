@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -42,23 +43,38 @@ def normalize_resource(raw: dict[str, Any], resource_type: str) -> dict[str, Any
     }
 
 
-def search_resource(resource_type: str, query: str, limit: int = 10, timeout: int = 20, task_hint: str | None = None) -> list[dict[str, Any]]:
+def search_resource(resource_type: str, query: str, limit: int = 10, timeout: int = 20, task_hint: str | None = None, max_attempts: int = 3) -> list[dict[str, Any]]:
     if resource_type not in SUPPORTED_RESOURCE_TYPES:
         raise ValueError(f"unsupported resource_type: {resource_type}")
     if not query or not query.strip():
         raise ValueError("query must not be empty")
     if not 1 <= limit <= 100 or timeout <= 0:
         raise ValueError("limit must be 1..100 and timeout must be positive")
+    if max_attempts < 1 or max_attempts > 5:
+        raise ValueError("max_attempts must be between 1 and 5")
     endpoint = {"model": "models", "dataset": "datasets", "space": "spaces"}[resource_type]
     params: dict[str, Any] = {"search": query.strip(), "limit": limit, "full": "true", "sort": "downloads", "direction": "-1"}
     if resource_type == "model" and task_hint:
         params["pipeline_tag"] = task_hint
     req = urllib.request.Request(f"{HF_API_ROOT}/{endpoint}?{urllib.parse.urlencode(params)}", headers={"User-Agent": "mindle-model-scout/0.3"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            data = json.load(response)
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
-        raise HuggingFaceSearchError(f"Hugging Face {resource_type} search failed: {exc}") from exc
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                data = json.load(response)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code not in {500, 502, 503, 504} or attempt == max_attempts:
+                raise HuggingFaceSearchError(
+                    f"Hugging Face {resource_type} search failed after {attempt} attempt(s): HTTP {exc.code}"
+                ) from exc
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if attempt == max_attempts:
+                raise HuggingFaceSearchError(
+                    f"Hugging Face {resource_type} search failed after {attempt} attempt(s): {type(exc).__name__}"
+                ) from exc
+        except json.JSONDecodeError as exc:
+            raise HuggingFaceSearchError(f"Hugging Face {resource_type} search returned invalid JSON") from exc
+        time.sleep(0.25 * (2 ** (attempt - 1)))
     if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
         raise HuggingFaceSearchError(f"Hugging Face returned an invalid {resource_type} payload")
     return [normalize_resource(row, resource_type) for row in data]

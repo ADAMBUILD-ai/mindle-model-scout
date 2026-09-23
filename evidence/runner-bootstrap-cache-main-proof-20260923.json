@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "verdict": "PASS",
+  "requirements_sha256": "E8C26DC508B9EBFB962597DECB3264AC3A8F366453020B7C57E5FB70B5F0BC03",
+  "actions_cache_key_hash": "418ec16f9a20c410873c9fbdf1e19eba0e70671882d9e60c88ac48938fe4ee9f",
+  "runner_name": "mindle-model-scout",
+  "persistence_marker": "e9500cb9-2a91-4f8e-893b-6646609e1f87",
+  "run_a": {
+    "run_id": 35826071143,
+    "event": "push",
+    "job_id": 107067956610,
+    "job_started_at": "2026-09-23T06:17:33Z",
+    "job_completed_at": "2026-09-23T06:24:15Z",
+    "dependency_step_started_at": "2026-09-23T06:18:19Z",
+    "dependency_step_completed_at": "2026-09-23T06:18:28Z",
+    "dependency_step_seconds": 9,
+    "actions_cache": "miss",
+    "fingerprint_marker_existed": false,
+    "pip_install_executed": true,
+    "conclusion": "success"
+  },
+  "run_b": {
+    "run_id": 35826198513,
+    "event": "issues",
+    "job_id": 107068349449,
+    "job_started_at": "2026-09-23T06:24:19Z",
+    "job_completed_at": "2026-09-23T06:31:32Z",
+    "dependency_step_started_at": "2026-09-23T06:25:09Z",
+    "dependency_step_completed_at": "2026-09-23T06:25:11Z",
+    "dependency_step_seconds": 2,
+    "actions_cache": "miss",
+    "fingerprint_marker_existed": true,
+    "pip_install_executed": false,
+    "log": "Dependency fingerprint cache hit: E8C26DC508B9EBFB962597DECB3264AC3A8F366453020B7C57E5FB70B5F0BC03",
+    "conclusion": "success"
+  },
+  "confirming_run": {
+    "run_id": 35829269974,
+    "event": "issues",
+    "job_id": 107077876004,
+    "dependency_step_started_at": "2026-09-23T07:04:00Z",
+    "dependency_step_completed_at": "2026-09-23T07:04:01Z",
+    "dependency_step_seconds": 1,
+    "fingerprint_marker_existed": true,
+    "pip_install_executed": false,
+    "conclusion": "success"
+  },
+  "raw_dependency_step_delta_seconds": 7,
+  "interpretation": "Runner-local fingerprint marker prevented unnecessary reinstall. actions/cache reported a key miss because the durable absolute runner cache is outside normal workspace restore semantics; marker reuse is the authoritative install-skip proof.",
+  "percentage_improvement_claimed": false
+}

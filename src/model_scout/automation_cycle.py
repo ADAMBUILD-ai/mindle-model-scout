@@ -92,6 +92,7 @@ def run_scout_cycle(
     scout_runner: ScoutRunner,
     callback_writer: CallbackWriter,
     limit: int = 10,
+    preferred_source: tuple[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one deterministic cross-repo discovery -> scout -> callback cycle.
 
@@ -102,6 +103,9 @@ def run_scout_cycle(
     """
 
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
+    if preferred_source:
+        repo, issue = preferred_source
+        discovered.sort(key=lambda item: 0 if (item.source_repo.casefold(), item.source_issue) == (repo.casefold(), issue) else 1)
     fingerprints: list[str] = []
     for envelope in discovered:
         queued, _created = queue.enqueue(envelope)
@@ -160,10 +164,14 @@ def run_runtime_cycle(
     runtime_runner: RuntimeRunner,
     callback_writer: CallbackWriter,
     limit: int = 10,
+    preferred_source: tuple[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     """Run discovery, search, runtime validation, and callback as one durable cycle."""
 
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
+    if preferred_source:
+        repo, issue = preferred_source
+        discovered.sort(key=lambda item: 0 if (item.source_repo.casefold(), item.source_issue) == (repo.casefold(), issue) else 1)
     fingerprints: list[str] = []
     for envelope in discovered:
         queued, _created = queue.enqueue(envelope)

@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, urllib.error, urllib.parse, urllib.request
+import json, time, urllib.error, urllib.parse, urllib.request
 import re
 from dataclasses import dataclass, asdict
 from typing import Any
@@ -88,21 +88,34 @@ def score_model(model: dict[str, Any], profile: dict[str, Any] | None = None) ->
     return score, status, (status if status != "LICENSE_ALLOWED" and status.startswith("LICENSE_") else f"{components}; license:{lic or 'UNKNOWN'}")
 
 
-def search_huggingface(query: str, limit: int = 10, timeout: int = 20) -> list[dict[str, Any]]:
+def search_huggingface(query: str, limit: int = 10, timeout: int = 20, max_attempts: int = 3) -> list[dict[str, Any]]:
     if not query or not query.strip():
         raise ValueError("query must not be empty")
     if limit < 1 or limit > 100:
         raise ValueError("limit must be between 1 and 100")
     if timeout <= 0:
         raise ValueError("timeout must be positive")
+    if max_attempts < 1 or max_attempts > 5:
+        raise ValueError("max_attempts must be between 1 and 5")
 
     params = urllib.parse.urlencode({"search": query.strip(), "limit": limit, "full": "true"})
     req = urllib.request.Request(f"{HF_API}?{params}", headers={"User-Agent": "mindle-model-scout/0.2"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.load(resp)
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise HuggingFaceSearchError(f"Hugging Face search failed: {exc}") from exc
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.load(resp)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code not in {500, 502, 503, 504} or attempt == max_attempts:
+                raise HuggingFaceSearchError(
+                    f"Hugging Face search failed after {attempt} attempt(s): HTTP {exc.code}"
+                ) from exc
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if attempt == max_attempts:
+                raise HuggingFaceSearchError(
+                    f"Hugging Face search failed after {attempt} attempt(s): {type(exc).__name__}"
+                ) from exc
+        time.sleep(0.25 * (2 ** (attempt - 1)))
 
     if not isinstance(data, list):
         raise HuggingFaceSearchError("Hugging Face returned an invalid models payload")

@@ -37,27 +37,47 @@ class GitHubIssueCommentWriter:
         self,
         *,
         token: str | None = None,
+        local_token: str | None = None,
+        cross_repo_token: str | None = None,
+        local_repository: str | None = None,
         api_base: str | None = None,
         timeout: float = 15.0,
         client: httpx.Client | None = None,
     ) -> None:
-        resolved_token = str(token or os.getenv("GITHUB_TOKEN") or "").strip()
-        if not resolved_token:
-            raise ValueError("GitHub callback token is required")
+        legacy_token = str(token or "").strip()
+        self._local_token = str(
+            local_token or legacy_token or os.getenv("MODEL_SCOUT_LOCAL_GITHUB_TOKEN") or ""
+        ).strip()
+        self._cross_repo_token = str(
+            cross_repo_token or legacy_token or os.getenv("MODEL_SCOUT_CROSS_REPO_TOKEN") or ""
+        ).strip()
+        self._local_repository = str(
+            local_repository or os.getenv("GITHUB_REPOSITORY") or "ADAMBUILD-ai/mindle-model-scout"
+        ).strip().casefold()
+        if not self._local_repository:
+            raise ValueError("local GitHub repository identity is required")
 
         resolved_base = str(api_base or os.getenv("GITHUB_API_URL") or "https://api.github.com").strip()
         if not resolved_base.startswith(("https://", "http://")):
             raise ValueError("GitHub API base must be an http(s) URL")
 
-        self._token = resolved_token
         self._api_base = resolved_base.rstrip("/")
         self._timeout = float(timeout)
         self._client = client
 
-    def _post(self, url: str, *, body: str) -> httpx.Response:
+    def _token_for(self, repo: str) -> str:
+        if repo.casefold() == self._local_repository:
+            if not self._local_token:
+                raise ValueError("local GitHub callback token is required")
+            return self._local_token
+        if not self._cross_repo_token:
+            raise ValueError("cross-repository GitHub callback token is required")
+        return self._cross_repo_token
+
+    def _post(self, url: str, *, body: str, token: str) -> httpx.Response:
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {self._token}",
+            "Authorization": f"Bearer {token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "mindle-model-scout",
         }
@@ -80,7 +100,7 @@ class GitHubIssueCommentWriter:
 
         url = f"{self._api_base}/repos/{owner}/{name}/issues/{issue_number}/comments"
         try:
-            response = self._post(url, body=callback_body)
+            response = self._post(url, body=callback_body, token=self._token_for(f"{owner}/{name}"))
         except httpx.HTTPError as exc:
             raise GitHubCallbackTransportError(
                 f"GitHub callback transport failed: {type(exc).__name__}"
