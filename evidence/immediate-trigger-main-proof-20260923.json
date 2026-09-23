@@ -1,57 +1,21 @@
 {
-  "schema_version": 1,
-  "verdict": "PARTIAL_BLOCKED",
-  "main_head": "9bf3a3cde6ee1f25a462725a8b77e963346b8bbb",
-  "proof_issue": {
-    "number": 71,
-    "url": "https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/71",
-    "action": "opened",
-    "created_at": "2026-09-23T06:57:58Z",
-    "request_marker": "[MODEL_SCOUT_REQUEST]",
-    "proof_key": "model-scout-post-main-trigger-proof-20260923-v7"
-  },
-  "workflow": {
-    "run_id": 35829269974,
-    "url": "https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/35829269974",
-    "event": "issues",
-    "head_sha": "9bf3a3cde6ee1f25a462725a8b77e963346b8bbb",
-    "created_at": "2026-09-23T06:58:01Z",
-    "job_id": 107077876004,
-    "job_started_at": "2026-09-23T07:03:20Z",
-    "completed_at": "2026-09-23T07:08:16Z",
-    "conclusion": "success",
-    "runner_name": "mindle-model-scout",
-    "artifact_id": 10736467457,
-    "artifact_digest": "sha256:7071bbaac64858807c2e01488ae2d10bd49cf925b44da31ee6456d1c942a9a88"
-  },
-  "latency_seconds": {
-    "issue_to_workflow_creation": 3,
-    "issue_to_runner_job_start": 322,
-    "runner_queue_wait_after_workflow_creation": 319
-  },
-  "observations": {
-    "default_branch_event_recognized": true,
-    "schedule_or_manual_substitution": false,
-    "proof_request_seen_in_cycle_output": false,
-    "proof_issue_callback_comments": 0,
-    "reason": "durable queue processing limit 10 was consumed by older/requeued P0 requests; Issue #71 was not present in this cycle output",
-    "duplicate_issue_created": false,
-    "duplicate_callback_created": false
-  },
-  "blockers": [
-    {
-      "code": "PROOF_REQUEST_NOT_PROCESSED_WITHIN_TRIGGERED_CYCLE",
-      "requires_followup": true
-    },
-    {
-      "code": "CALLBACK_HTTP_403",
-      "requires_permission_or_secret_scope_review": true
-    }
+  "schema_version": 2,
+  "verdict": "PASS_EVENT_PRIORITY_LOCAL_CALLBACK",
+  "main_head": "56a4337b510d8ad560864b2c7809f9b2be175242",
+  "proof_issues": [
+    {"number": 72, "workflow_run_id": 35833994943, "artifact_id": 10738876852, "artifact_digest": "sha256:b46b53774ff82061f10822d1b34cb2dfeeec2700d13b11823a12e36b95ad7b58", "fingerprint": "b667b08d2cbb45a43dc518317a138d391b0b8e9fa449295d02f9feca4d826bd9", "first_result_in_cycle": true, "outcome": "FAILED_RETRYABLE_SEARCH_ZERO_CANDIDATES"},
+    {"number": 73, "workflow_run_id": 35835517822, "artifact_id": 10738849626, "artifact_digest": "sha256:eca2ab3e8df3cadad572f74f27f5591b291fab8127aa7da86501ce35bb352723", "fingerprint": "57e5012864a79589ffe252808ca730b6d65ea813c489f643b143000a3628c0b0", "first_result_in_cycle": true, "outcome": "FAILED_RETRYABLE_COMPONENT_SCOPE"}
   ],
-  "evidence_sources": [
-    "workflow run 35829269974",
-    "job 107077876004",
-    "artifact 10736467457",
-    "Issue #71 API and comments API"
-  ]
+  "local_callback_recovery": {
+    "status": "PASS",
+    "issue_number": 54,
+    "comment_id": 5791190970,
+    "comment_url": "https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/54#issuecomment-5791190970",
+    "fingerprint": "4df3de031c0318ee023b2120c894361da88cae2ba0df2649277d60462f392406",
+    "evidence_class": "TESTED_PASS",
+    "proof_run_id": 35833961980
+  },
+  "idempotency": {"status": "PASS", "duplicate_callbacks_created": 0, "checked_runs": [35833994943, 35835517822]},
+  "observations": {"default_branch_event_recognized": true, "current_event_processed_first": true, "same_repository_callback_write": true, "generic_worker_kept_request_complete_gate_closed": true},
+  "remaining_live_check": {"status": "BLOCKED_EXTERNAL_RUNTIME", "queued_run_id": 35836381547, "issue_number": 54, "reason": "self-hosted runner mindle-model-scout is Offline"}
 }
