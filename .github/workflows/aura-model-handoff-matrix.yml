@@ -1,0 +1,50 @@
+name: aura-model-handoff-matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_aura_handoff_packages.py'
+      - '.github/workflows/aura-model-handoff-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        key: [ocr, sam21, minilm, siglip]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      AURA_HANDOFF_ONLY: ${{ matrix.key }}
+      PYTHONUTF8: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install packaging dependencies
+        run: python -m pip install --disable-pip-version-check huggingface-hub==0.34.4 httpx==0.28.1
+
+      - name: Build exact model package
+        run: python scripts/build_aura_handoff_packages.py | tee aura-handoff-build-${{ matrix.key }}.log
+
+      - name: Upload model package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-model-handoff-${{ matrix.key }}
+          path: |
+            aura-handoff-output/*.zip
+            aura-handoff-output/AURA_MODEL_HANDOFF_INDEX.json
+            aura-handoff-build-${{ matrix.key }}.log
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
