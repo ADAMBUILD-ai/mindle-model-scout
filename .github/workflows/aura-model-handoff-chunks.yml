@@ -31,39 +31,7 @@ jobs:
       - name: Build exact model package
         run: python scripts/build_aura_handoff_slim.py
       - name: Split package into materializable chunks
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p aura-chunks
-          pkg=$(ls AURA_*_HANDOFF_*.zip | head -1)
-          cp AURA_MODEL_HANDOFF_INDEX.json aura-chunks/${{ matrix.key }}.index.json
-          python - "$pkg" "${{ matrix.key }}" <<'PY'
-import sys, json, hashlib
-from pathlib import Path
-pkg=Path(sys.argv[1]); key=sys.argv[2]
-chunk_size=180*1024*1024
-parts=[]
-with pkg.open("rb") as f:
-    i=0
-    while True:
-        b=f.read(chunk_size)
-        if not b: break
-        name=f"{key}.part-{i:02d}"
-        p=Path("aura-chunks")/name
-        p.write_bytes(b)
-        parts.append({"name":name,"bytes":len(b),"sha256":hashlib.sha256(b).hexdigest()})
-        i+=1
-manifest={
-    "key":key,
-    "package":pkg.name,
-    "package_bytes":pkg.stat().st_size,
-    "package_sha256":hashlib.sha256(pkg.read_bytes()).hexdigest(),
-    "chunk_size":chunk_size,
-    "parts":parts,
-}
-Path(f"aura-chunks/{key}.reassembly.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
-print(json.dumps(manifest,indent=2))
-PY
+        run: python scripts/split_aura_handoff.py ${{ matrix.key }}
       - name: Upload chunk 00
         uses: actions/upload-artifact@v4
         with:
