@@ -215,7 +215,12 @@ def main() -> int:
         "failures": [],
     }
 
-    for c in CANDIDATES:
+    only = os.environ.get("AURA_HANDOFF_ONLY", "").strip()
+    selected = [c for c in CANDIDATES if not only or c["key"] == only]
+    if only and not selected:
+        raise SystemExit(f"Unknown AURA_HANDOFF_ONLY={only!r}")
+
+    for c in selected:
         key = c["key"]
         try:
             info = api.model_info(c["model_id"], revision=c["revision"] or "main")
