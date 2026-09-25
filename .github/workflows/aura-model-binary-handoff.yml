@@ -1,0 +1,129 @@
+name: AURA model binary handoff package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/aura-model-binary-handoff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-aura-models:
+    runs-on: [self-hosted, model-scout]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Locate and package exact AURA model snapshots
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'aura-model-handoff'
+          if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+
+          function Find-Snapshot([string]$repoDir,[string]$revision) {
+            $roots = @(
+              'C:\Users\user\.cache\huggingface\hub',
+              (Join-Path $env:USERPROFILE '.cache\huggingface\hub'),
+              'C:\actions-runner\_work\_state\mindle-model-scout',
+              'C:\actions-runner\_work\_tool'
+            ) | Select-Object -Unique
+            foreach ($root in $roots) {
+              if (-not (Test-Path -LiteralPath $root)) { continue }
+              $exact = Join-Path $root (Join-Path $repoDir (Join-Path 'snapshots' $revision))
+              if (Test-Path -LiteralPath $exact) { return (Resolve-Path -LiteralPath $exact).Path }
+              $hit = Get-ChildItem -Path $root -Directory -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -like "*$repoDir*snapshots*$revision" } |
+                Select-Object -First 1
+              if ($hit) { return $hit.FullName }
+            }
+            return $null
+          }
+
+          $models = @(
+            [ordered]@{
+              slug='siglip'
+              model_id='google/siglip-base-patch16-224'
+              repo_dir='models--google--siglip-base-patch16-224'
+              revision='7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed'
+              license='Apache-2.0'
+              role='visual_reference_fidelity'
+            },
+            [ordered]@{
+              slug='korean-ppocr'
+              model_id='PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx'
+              repo_dir='models--PaddlePaddle--korean_PP-OCRv5_mobile_rec_onnx'
+              revision='5c6f574b8e2230adf4287b33e736d71b9fabd28e'
+              license='Apache-2.0'
+              role='korean_ocr'
+            }
+          )
+
+          $delivery = @()
+          foreach ($m in $models) {
+            $snapshot = Find-Snapshot $m.repo_dir $m.revision
+            if (-not $snapshot) {
+              $delivery += [ordered]@{ model_id=$m.model_id; revision=$m.revision; status='SNAPSHOT_NOT_FOUND_ON_RUNNER' }
+              continue
+            }
+            $dst = Join-Path $out $m.slug
+            New-Item -ItemType Directory -Path $dst -Force | Out-Null
+            Copy-Item -LiteralPath $snapshot -Destination (Join-Path $dst 'snapshot') -Recurse -Force
+
+            $files = Get-ChildItem -LiteralPath (Join-Path $dst 'snapshot') -File -Recurse | ForEach-Object {
+              [ordered]@{
+                path = $_.FullName.Substring($dst.Length + 1).Replace('\','/')
+                bytes = $_.Length
+                sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower()
+              }
+            }
+            $manifest = [ordered]@{
+              model_id=$m.model_id
+              revision=$m.revision
+              license=$m.license
+              role=$m.role
+              source_snapshot=$snapshot
+              trust_remote_code=$false
+              files=@($files)
+              delivery_status='BINARY_MATERIALIZED'
+            }
+            $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $dst 'MODEL_HANDOFF_MANIFEST.json') -Encoding utf8
+            @(
+              "MODEL_ID=$($m.model_id)",
+              "REVISION=$($m.revision)",
+              "ROLE=$($m.role)",
+              "AURA benchmark must bind this exact package and verify all SHA256 values before inference."
+            ) | Set-Content -LiteralPath (Join-Path $dst 'README_AURA_HANDOFF.txt') -Encoding utf8
+
+            $zip = Join-Path $out ("AURA_MODEL_HANDOFF_" + $m.slug + "_" + $m.revision.Substring(0,12) + ".zip")
+            Compress-Archive -Path (Join-Path $dst '*') -DestinationPath $zip -CompressionLevel Optimal -Force
+            $delivery += [ordered]@{
+              model_id=$m.model_id
+              revision=$m.revision
+              status='BINARY_MATERIALIZED'
+              package=(Split-Path $zip -Leaf)
+              package_bytes=(Get-Item $zip).Length
+              package_sha256=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLower()
+              file_count=@($files).Count
+            }
+          }
+
+          $delivery | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $out 'AURA_MODEL_BINARY_DELIVERY_INDEX.json') -Encoding utf8
+          Get-Content -LiteralPath (Join-Path $out 'AURA_MODEL_BINARY_DELIVERY_INDEX.json')
+          if (-not ($delivery | Where-Object { $_.status -eq 'BINARY_MATERIALIZED' })) {
+            throw 'No AURA model snapshot was materialized from the durable runner/cache.'
+          }
+
+      - name: Upload AURA model binary packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-model-binary-handoff
+          path: |
+            ${{ runner.temp }}/aura-model-handoff/*.zip
+            ${{ runner.temp }}/aura-model-handoff/AURA_MODEL_BINARY_DELIVERY_INDEX.json
+          if-no-files-found: error
+          retention-days: 30
