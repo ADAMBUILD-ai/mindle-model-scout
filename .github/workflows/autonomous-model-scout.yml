@@ -27,7 +27,7 @@ jobs:
     runs-on: [self-hosted, model-scout]
     timeout-minutes: 30
     env:
-      MODEL_SCOUT_CONFIGURED_REPOS: ${{ vars.MODEL_SCOUT_CONFIGURED_REPOS }}
+      MODEL_SCOUT_CONFIGURED_REPOS: ${{ vars.MODEL_SCOUT_CONFIGURED_REPOS || 'ADAMBUILD-ai/mindle-model-scout,ADAMBUILD-ai/adam-build,ADAMBUILD-ai/avora-engine,ADAMBUILD-ai/aura-engine,ADAMBUILD-ai/axiom-engine,ADAMBUILD-ai/agri-ai-business-platform,ADAMBUILD-ai/mindle-media-ai,ADAMBUILD-ai/kimserv-core,ADAMBUILD-ai/arcos-engine' }}
       MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
       MODEL_SCOUT_STALE_AFTER_SECONDS: '1800'
       MODEL_SCOUT_LIMIT: '10'
