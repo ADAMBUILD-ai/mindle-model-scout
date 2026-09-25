@@ -10,7 +10,8 @@ CFG={
 "minilm":("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",None,"semantic_source_caption_consistency",["P02","P03","P04","P09","P10","P11","P12"],["model.safetensors","*.json","*.model","vocab.txt","README.md","LICENSE*","1_Pooling/*"],"apache-2.0"),
 "siglip":("google/siglip-base-patch16-224","7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed","visual_reference_fidelity",["P04","P07","P10","P11"],["model.safetensors","*.json","*.model","*.txt","README.md","LICENSE*"],"apache-2.0"),
 "florence":("microsoft/Florence-2-base-ft","f6c1a25888ffc1d945ee8a1a77ac833c7303d46e","visual_source_understanding",["P03","P04","P07","P10","P11"],["*.safetensors","*.json","*.py","*.txt","*.model","README.md","LICENSE*"],"mit"),
-}\nmid,pin,role,pages,allow,expected_license=CFG[KEY]
+}
+mid,pin,role,pages,allow,expected_license=CFG[KEY]
 api=HfApi(); info=api.model_info(mid,revision=pin or "main"); rev=info.sha
 lic=next((t.split(":",1)[1] for t in (info.tags or []) if t.startswith("license:")),None)
 if lic!=expected_license: raise SystemExit(f"license gate failed: expected {expected_license}, got {lic}")
