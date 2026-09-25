@@ -134,6 +134,14 @@ def normalize_github_issue_request(
     state = _text(issue.get("state")).casefold()
     if state and state != "open":
         return None
+    # Central execution directives and binary handoff gates have their own workers.
+    # Sending them through the generic Hugging Face search runner produces retries
+    # without a model acquisition and can incorrectly exhaust the queue.
+    if repo.casefold() == CENTRAL_REQUEST_REPOSITORY.casefold() and (
+        "[execution]" in title.casefold()
+        or "binary handoff" in title.casefold()
+    ):
+        return None
     if not is_model_scout_request(title, body):
         return None
 
