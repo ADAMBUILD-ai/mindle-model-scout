@@ -1,7 +1,9 @@
 from __future__ import annotations
 import hashlib,json,os,shutil,time,zipfile
 from pathlib import Path
+from urllib.request import urlopen
 from huggingface_hub import HfApi,snapshot_download
+from build_aura_handoff_packages import write_common_runtime_scripts
 
 KEY=os.environ["AURA_HANDOFF_ONLY"]
 CFG={
@@ -43,6 +45,18 @@ if KEY in expected:
  if len(matches)!=1: raise SystemExit(f"expected one {name}, got {len(matches)}")
  if size is not None and matches[0].stat().st_size!=size: raise SystemExit(f"binary size mismatch: {name}")
  if sh(matches[0])!=digest: raise SystemExit(f"binary SHA-256 mismatch: {name}")
+with urlopen("https://www.apache.org/licenses/LICENSE-2.0.txt",timeout=30) as response:
+ (out/"LICENSE_APACHE_2_0_CANONICAL.txt").write_bytes(response.read())
+write_common_runtime_scripts(out)
+(out/"runtime"/"requirements.txt").write_text(
+ "torch==2.5.1\ntransformers==4.51.3\npillow==11.2.1\nnumpy==2.2.4\nonnxruntime==1.21.0\n",
+ encoding="utf-8")
+command={"ocr":"run_korean_ocr.py","sam21":"run_sam21_mask.py","minilm":"run_minilm_similarity.py","siglip":"run_siglip_similarity.py"}[KEY]
+(out/"README_AURA_HANDOFF.md").write_text(
+ (out/"README_AURA_HANDOFF.md").read_text(encoding="utf-8")
+ + f"\nRuntime: python runtime/{command} model/ <product-specific inputs>\n"
+ + "Runtime results are pending; do not treat this package as AURA TESTED_PASS.\n",
+ encoding="utf-8")
 files=[]
 for p in sorted(out.rglob("*")):
  if p.is_file(): files.append({"path":p.relative_to(out).as_posix(),"bytes":p.stat().st_size,"sha256":sh(p)})
