@@ -91,6 +91,20 @@ def test_watchdog_does_not_requeue_fresh_items(tmp_path):
     assert queue.get(queued.fingerprint).state == QueueState.QUEUED
 
 
+def test_watchdog_terminates_exhausted_stale_item(tmp_path):
+    now = [1000.0]
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3", clock=lambda: now[0])
+    queued, _ = queue.enqueue(normalize_request(project="ADMIN", request_text="stale work order"))
+    for _ in range(3):
+        now[0] += 100.0
+        assert queue.requeue_stale(stale_after_seconds=60, max_retries=3) == [queued.fingerprint]
+    now[0] += 100.0
+    assert queue.requeue_stale(stale_after_seconds=60, max_retries=3) == []
+    row = queue.snapshot()[0]
+    assert row["state"] == QueueState.FAILED_TERMINAL.value
+    assert row["retry_count"] == 3
+
+
 def test_watchdog_rejects_non_positive_timeout(tmp_path):
     queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
     try:

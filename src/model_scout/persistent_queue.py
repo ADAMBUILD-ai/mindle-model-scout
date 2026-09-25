@@ -214,6 +214,7 @@ class PersistentRequestQueue:
         self,
         *,
         stale_after_seconds: float,
+        max_retries: int = 3,
         now: float | None = None,
     ) -> list[str]:
         """Requeue stale QUEUED/RUNNING items without touching ready evidence.
@@ -226,6 +227,8 @@ class PersistentRequestQueue:
 
         if stale_after_seconds <= 0:
             raise ValueError("stale_after_seconds must be positive")
+        if max_retries < 1:
+            raise ValueError("max_retries must be positive")
         current_time = float(self._clock() if now is None else now)
         threshold = current_time - stale_after_seconds
         requeued: list[str] = []
@@ -243,6 +246,13 @@ class PersistentRequestQueue:
             for row in rows:
                 current = self._row_to_envelope(row)
                 failed = transition(current, QueueState.FAILED_RETRYABLE)
+                if int(row["retry_count"]) >= max_retries:
+                    terminal = transition(failed, QueueState.FAILED_TERMINAL)
+                    connection.execute(
+                        "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                        (terminal.state.value, f"watchdog retry limit reached ({max_retries})", current_time, terminal.fingerprint),
+                    )
+                    continue
                 queued = transition(failed, QueueState.QUEUED)
                 error = f"watchdog stale {current.state.value.lower()} request"
                 connection.execute(

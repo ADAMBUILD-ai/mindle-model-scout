@@ -29,7 +29,9 @@ jobs:
       - name: Install packaging dependencies
         run: python -m pip install --disable-pip-version-check huggingface-hub==0.34.4
       - name: Build slim exact model package
-        run: python scripts/build_aura_handoff_slim.py | tee aura-handoff-${{ matrix.key }}.log
+        run: |
+          set -o pipefail
+          python scripts/build_aura_handoff_slim.py | tee aura-handoff-${{ matrix.key }}.log
       - name: Upload exact model package
         uses: actions/upload-artifact@v4
         with:

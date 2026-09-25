@@ -57,7 +57,7 @@ def run_autonomous_cycle(
     # while preserving the drift in evidence for operators to repair.
     repos = tuple(intake_coverage["effective_repositories"])
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
-    requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds)
+    requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries)
     requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
     executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
     runtime_runner = load_runtime_executor_registry(
