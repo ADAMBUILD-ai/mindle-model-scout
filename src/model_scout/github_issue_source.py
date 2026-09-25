@@ -41,6 +41,7 @@ class GitHubIssueSource:
         self._api_base = resolved_base.rstrip("/")
         self._timeout = float(timeout)
         self._client = client
+        self.repository_failures: list[dict[str, Any]] = []
 
     def _get(self, url: str) -> httpx.Response:
         headers = {
@@ -59,6 +60,7 @@ class GitHubIssueSource:
         if per_page < 1 or per_page > 100:
             raise ValueError("per_page must be between 1 and 100")
         results: list[dict[str, Any]] = []
+        self.repository_failures = []
         for repo in repos:
             owner, name = _normalize_repo(repo)
             url = f"{self._api_base}/repos/{owner}/{name}/issues?state=open&per_page={per_page}"
@@ -67,7 +69,12 @@ class GitHubIssueSource:
             except httpx.HTTPError as exc:
                 raise GitHubIssueSourceError(f"GitHub issue source failed: {type(exc).__name__}") from None
             if not 200 <= response.status_code < 300:
-                raise GitHubIssueSourceError(f"GitHub issue source rejected with HTTP {response.status_code}")
+                self.repository_failures.append({
+                    "repository_full_name": f"{owner}/{name}",
+                    "status_code": response.status_code,
+                    "reason": "repository_issue_discovery_rejected",
+                })
+                continue
             try:
                 payload = response.json()
             except ValueError:
