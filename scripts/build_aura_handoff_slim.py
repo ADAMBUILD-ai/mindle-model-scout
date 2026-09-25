@@ -12,10 +12,18 @@ CFG={
 }
 mid,pin,role,pages,allow=CFG[KEY]
 api=HfApi(); info=api.model_info(mid,revision=pin or "main"); rev=info.sha
+if pin and rev!=pin: raise SystemExit("pinned revision mismatch")
 lic=next((t.split(":",1)[1] for t in (info.tags or []) if t.startswith("license:")),None)
 if lic!="apache-2.0": raise SystemExit(f"license gate failed: {lic}")
 out=Path("aura-handoff-slim"); shutil.rmtree(out,ignore_errors=True); (out/"model").mkdir(parents=True)
 snapshot_download(repo_id=mid,revision=rev,local_dir=out/"model",allow_patterns=allow)
+if not (out/"model"/"README.md").is_file(): raise SystemExit("model card missing from pinned snapshot")
+expected={
+ "ocr":("inference.onnx",None,"92f0b7785e64fc9090106a241cf4c1eb97472824558272751b88a2a4476d3a08"),
+ "siglip":("model.safetensors",812672320,"2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8"),
+}
+weights=list((out/"model").rglob("*.safetensors"))+list((out/"model").rglob("*.onnx"))
+if not weights: raise SystemExit("actual model binary missing")
 (out/"LICENSE_PERSISTENCE.json").write_text(json.dumps({
  "model_id":mid,"revision":rev,"license":lic,"status":"CONFIRMED_FOR_PINNED_REVISION",
  "basis":"Apache-2.0 metadata captured at exact revision; acquired exact bytes and hashes are frozen for AURA handoff."
@@ -29,6 +37,12 @@ def sh(p):
  with open(p,"rb") as f:
   for b in iter(lambda:f.read(1024*1024),b""): h.update(b)
  return h.hexdigest()
+if KEY in expected:
+ name,size,digest=expected[KEY]
+ matches=list((out/"model").rglob(name))
+ if len(matches)!=1: raise SystemExit(f"expected one {name}, got {len(matches)}")
+ if size is not None and matches[0].stat().st_size!=size: raise SystemExit(f"binary size mismatch: {name}")
+ if sh(matches[0])!=digest: raise SystemExit(f"binary SHA-256 mismatch: {name}")
 files=[]
 for p in sorted(out.rglob("*")):
  if p.is_file(): files.append({"path":p.relative_to(out).as_posix(),"bytes":p.stat().st_size,"sha256":sh(p)})
