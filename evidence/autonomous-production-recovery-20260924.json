@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-24",
+  "verdict": "CODE_REMEDIATION_PASS_LIVE_RUNNER_RECONNECT_REQUIRED",
+  "changes": {
+    "runner_visibility": "GitHub-hosted heartbeat fails with evidence when an autonomous run is queued for 20 minutes",
+    "dynamic_candidate_execution": "runtime commands receive the selected model_id and immutable revision",
+    "fixed_model_fallback_guard": "non-empty scout results fail closed when no licensed exact-revision candidate exists",
+    "retry_control": "three retries, exponential backoff, FAILED_TERMINAL isolation",
+    "cycle_budget": "maximum four actionable requests per cycle with event and P0 priority",
+    "intake_coverage": "team registry repositories are checked against MODEL_SCOUT_CONFIGURED_REPOS",
+    "registry_update": "ACQUIRED_VERIFIED is written after hashed artifact execution; TESTED_PASS is promoted separately",
+    "license_safety": "exact-revision model-card or license evidence is retained; trust_remote_code remains false",
+    "cross_repo_callback": "role-separated local and cross-repository token transport remains fail-closed"
+  },
+  "tests": {
+    "focused": "37 passed",
+    "broad_without_torch_dependent_request_profiles": "144 passed, 1 dependency warning",
+    "compileall": "PASS",
+    "diff_check": "PASS",
+    "excluded_local_suite_reason": "The current transient Linux environment does not contain torch; repository CI installs pinned requirements and is the authoritative full-suite gate."
+  },
+  "remaining_external_condition": {
+    "code": "SELF_HOSTED_RUNNER_RECONNECT_REQUIRED",
+    "runner": "mindle-model-scout",
+    "description": "Code cannot start a powered-off Windows runner service. The new heartbeat makes a 20-minute queued stall explicit instead of silently appearing as low throughput."
+  },
+  "safety": {
+    "remote_code": false,
+    "paid_compute_added": false,
+    "permission_expansion_performed": false,
+    "destructive_change": false,
+    "force_push": false
+  }
+}

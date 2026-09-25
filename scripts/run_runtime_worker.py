@@ -26,12 +26,28 @@ def _model_files(model) -> list[str]:
     return sorted(dict.fromkeys(files))
 
 
-def _embedding_reranker(model_id: str) -> dict:
+def _license_snapshot_files(model_id: str, revision: str | None) -> list[str]:
+    """Persist model-card/license evidence at the same immutable revision."""
+
+    from huggingface_hub import hf_hub_download
+
+    files: list[str] = []
+    for name in ("README.md", "LICENSE", "LICENSE.txt", "NOTICE", "NOTICE.txt"):
+        try:
+            files.append(hf_hub_download(model_id, name, revision=revision))
+        except Exception:
+            continue
+    if not files:
+        raise RuntimeError("exact-revision model card or license evidence is unavailable")
+    return sorted(dict.fromkeys(files))
+
+
+def _embedding_reranker(model_id: str, revision: str | None = None) -> dict:
     import torch
     from transformers import AutoModel, AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModel.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=False)
+    model = AutoModel.from_pretrained(model_id, revision=revision, trust_remote_code=False)
     sentences = [
         "한국어 문서 의미 검색",
         "다국어 임베딩 모델",
@@ -61,10 +77,10 @@ def _embedding_reranker(model_id: str) -> dict:
     }
 
 
-def _huggingface_model(model_id: str) -> dict:
+def _huggingface_model(model_id: str, revision: str | None = None) -> dict:
     from transformers import pipeline
 
-    classifier = pipeline("text-classification", model=model_id)
+    classifier = pipeline("text-classification", model=model_id, revision=revision, trust_remote_code=False)
     started = time.perf_counter()
     result = classifier("MODEL SCOUT runtime validation completed with a real model.")
     model = classifier.model
@@ -77,7 +93,7 @@ def _huggingface_model(model_id: str) -> dict:
     }
 
 
-def _ocr_vision(model_id: str, workspace: Path) -> dict:
+def _ocr_vision(model_id: str, workspace: Path, revision: str | None = None) -> dict:
     from PIL import Image, ImageDraw
     from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
@@ -85,8 +101,8 @@ def _ocr_vision(model_id: str, workspace: Path) -> dict:
     image = Image.new("RGB", (640, 120), "white")
     ImageDraw.Draw(image).text((30, 35), "ROOM 101  3500 mm", fill="black")
     image.save(sample)
-    processor = TrOCRProcessor.from_pretrained(model_id)
-    model = VisionEncoderDecoderModel.from_pretrained(model_id)
+    processor = TrOCRProcessor.from_pretrained(model_id, revision=revision, trust_remote_code=False)
+    model = VisionEncoderDecoderModel.from_pretrained(model_id, revision=revision, trust_remote_code=False)
     started = time.perf_counter()
     pixels = processor(images=image, return_tensors="pt").pixel_values
     generated = model.generate(pixels, max_new_tokens=32)
@@ -102,7 +118,7 @@ def _ocr_vision(model_id: str, workspace: Path) -> dict:
     }
 
 
-def _speech(model_id: str, workspace: Path) -> dict:
+def _speech(model_id: str, workspace: Path, revision: str | None = None) -> dict:
     from transformers import pipeline
 
     sample = workspace / "speech-sample.wav"
@@ -113,7 +129,7 @@ def _speech(model_id: str, workspace: Path) -> dict:
         handle.setsampwidth(2)
         handle.setframerate(rate)
         handle.writeframes(b"".join(struct.pack("<h", value) for value in frames))
-    recognizer = pipeline("automatic-speech-recognition", model=model_id)
+    recognizer = pipeline("automatic-speech-recognition", model=model_id, revision=revision, trust_remote_code=False)
     started = time.perf_counter()
     result = recognizer(str(sample))
     model = recognizer.model
@@ -156,26 +172,31 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--kind", required=True)
     parser.add_argument("--model-id")
+    parser.add_argument("--revision")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     workspace = Path(args.output).resolve().parent
     input_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
-    result = run_request_profile(input_payload, workspace)
+    result = None if args.model_id else run_request_profile(input_payload, workspace)
     if result is not None:
         pass
     elif args.kind == "huggingface-model":
-        result = _huggingface_model(args.model_id or "distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+        result = _huggingface_model(args.model_id or "distilbert/distilbert-base-uncased-finetuned-sst-2-english", args.revision)
     elif args.kind == "embedding-reranker":
-        result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", args.revision)
     elif args.kind == "ocr-vision":
-        result = _ocr_vision(args.model_id or "microsoft/trocr-small-printed", workspace)
+        result = _ocr_vision(args.model_id or "microsoft/trocr-small-printed", workspace, args.revision)
     elif args.kind == "stt-tts":
-        result = _speech(args.model_id or "openai/whisper-tiny", workspace)
+        result = _speech(args.model_id or "openai/whisper-tiny", workspace, args.revision)
     elif args.kind == "geometry-tool":
         result = _geometry(workspace)
     else:
         raise SystemExit(f"unsupported runtime worker kind: {args.kind}")
+    if args.model_id:
+        snapshots = _license_snapshot_files(args.model_id, args.revision)
+        result["_downloaded_files"] = sorted(dict.fromkeys([*result.get("_downloaded_files", []), *snapshots]))
+        result["license_evidence_files"] = snapshots
     result["request_input"] = str(Path(args.input).resolve())
     result.setdefault("validation_scope", "component")
     result.setdefault("acceptance_checks", {"runtime_component_executed": True})

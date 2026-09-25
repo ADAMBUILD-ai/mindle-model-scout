@@ -4,7 +4,7 @@
     "model_revision": "resolved-at-runtime",
     "source": "huggingface:distilbert/distilbert-base-uncased-finetuned-sst-2-english",
     "license": "apache-2.0",
-    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "huggingface-model", "--input", "{input}", "--output", "{output}"],
+    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "huggingface-model", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },
   "embedding-reranker": {
@@ -12,7 +12,7 @@
     "model_revision": "resolved-at-runtime",
     "source": "huggingface:sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "license": "apache-2.0",
-    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "embedding-reranker", "--input", "{input}", "--output", "{output}"],
+    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "embedding-reranker", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },
   "ocr-vision": {
@@ -20,7 +20,7 @@
     "model_revision": "resolved-at-runtime",
     "source": "huggingface:microsoft/trocr-small-printed",
     "license": "mit",
-    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "ocr-vision", "--input", "{input}", "--output", "{output}"],
+    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "ocr-vision", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },
   "stt-tts": {
@@ -28,7 +28,7 @@
     "model_revision": "resolved-at-runtime",
     "source": "huggingface:openai/whisper-tiny",
     "license": "mit",
-    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "stt-tts", "--input", "{input}", "--output", "{output}"],
+    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "stt-tts", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },
   "geometry-tool": {

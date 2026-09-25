@@ -25,6 +25,7 @@ def run_live_cycle(
     runtime_runner: RuntimeRunner | None = None,
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
+    max_requests: int = 4,
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
@@ -65,6 +66,7 @@ def run_live_cycle(
         "callback_writer": writer,
         "limit": limit,
         "preferred_source": preferred_source,
+        "max_requests": max_requests,
     }
     if runtime_runner is not None:
         cycle_args.update(runtime_runner=runtime_runner, delivery_ledger=ledger)

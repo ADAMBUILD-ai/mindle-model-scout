@@ -18,6 +18,7 @@ class QueueState(str, Enum):
     DELIVERED = "DELIVERED"
     BLOCKED_APPROVAL = "BLOCKED_APPROVAL"
     FAILED_RETRYABLE = "FAILED_RETRYABLE"
+    FAILED_TERMINAL = "FAILED_TERMINAL"
 
 
 _ALLOWED_TRANSITIONS: dict[QueueState, set[QueueState]] = {
@@ -36,7 +37,8 @@ _ALLOWED_TRANSITIONS: dict[QueueState, set[QueueState]] = {
     QueueState.EVIDENCE_READY: {QueueState.DELIVERED},
     QueueState.DELIVERED: set(),
     QueueState.BLOCKED_APPROVAL: {QueueState.QUEUED},
-    QueueState.FAILED_RETRYABLE: {QueueState.QUEUED},
+    QueueState.FAILED_RETRYABLE: {QueueState.QUEUED, QueueState.FAILED_TERMINAL},
+    QueueState.FAILED_TERMINAL: set(),
 }
 
 

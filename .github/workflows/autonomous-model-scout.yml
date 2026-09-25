@@ -32,7 +32,11 @@ jobs:
       MODEL_SCOUT_STALE_AFTER_SECONDS: '1800'
       MODEL_SCOUT_LIMIT: '10'
       MODEL_SCOUT_ACQUISITION_CONCURRENCY: '3'
+      MODEL_SCOUT_MAX_REQUESTS_PER_CYCLE: '4'
+      MODEL_SCOUT_MAX_RETRIES: '3'
+      MODEL_SCOUT_RETRY_BACKOFF_SECONDS: '900'
       MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
+      MODEL_SCOUT_TEAM_REGISTRY: 'config/team-registry.json'
       MODEL_SCOUT_LOCAL_GITHUB_TOKEN: ${{ github.token }}
       MODEL_SCOUT_CROSS_REPO_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
       MODEL_SCOUT_EVENT_REPOSITORY: ${{ github.repository }}
@@ -179,3 +183,10 @@ jobs:
         with:
           name: model-scout-autonomous-evidence
           path: autonomous-cycle-evidence.json
+      - name: Upload live model registry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-live-registry
+          path: C:\actions-runner\_work\_state\mindle-model-scout\model-registry.json
+          if-no-files-found: warn

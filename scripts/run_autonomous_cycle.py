@@ -13,7 +13,16 @@ def main() -> int:
     repos = [value.strip() for value in os.environ.get("MODEL_SCOUT_CONFIGURED_REPOS", "").split(",") if value.strip()]
     if not repos:
         raise SystemExit("MODEL_SCOUT_CONFIGURED_REPOS is required")
-    result = run_autonomous_cycle(configured_repos=repos, state_dir=state_dir, stale_after_seconds=float(os.environ.get("MODEL_SCOUT_STALE_AFTER_SECONDS", "1800")), limit=int(os.environ.get("MODEL_SCOUT_LIMIT", "10")))
+    result = run_autonomous_cycle(
+        configured_repos=repos,
+        state_dir=state_dir,
+        stale_after_seconds=float(os.environ.get("MODEL_SCOUT_STALE_AFTER_SECONDS", "1800")),
+        limit=int(os.environ.get("MODEL_SCOUT_LIMIT", "10")),
+        max_requests=int(os.environ.get("MODEL_SCOUT_MAX_REQUESTS_PER_CYCLE", "4")),
+        max_retries=int(os.environ.get("MODEL_SCOUT_MAX_RETRIES", "3")),
+        retry_backoff_seconds=float(os.environ.get("MODEL_SCOUT_RETRY_BACKOFF_SECONDS", "900")),
+        team_registry_path=os.environ.get("MODEL_SCOUT_TEAM_REGISTRY", "config/team-registry.json"),
+    )
     # Keep stdout ASCII-safe so the Windows self-hosted runner cannot fail on its
     # legacy cp949 console codec when evidence contains punctuation such as an em dash.
     print(json.dumps(result, ensure_ascii=True, sort_keys=True, default=str))

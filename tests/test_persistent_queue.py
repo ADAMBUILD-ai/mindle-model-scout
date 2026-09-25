@@ -107,8 +107,21 @@ def test_failed_retryable_is_requeued_on_next_cycle(tmp_path):
     queued, _ = queue.enqueue(envelope)
     queue.set_state(queued.fingerprint, QueueState.FAILED_RETRYABLE)
 
-    requeued = queue.requeue_retryable()
+    requeued = queue.requeue_retryable(backoff_seconds=0)
 
     assert requeued == [queued.fingerprint]
     assert queue.get(queued.fingerprint).state == QueueState.QUEUED
     assert queue.snapshot()[0]["retry_count"] == 1
+
+
+def test_retryable_uses_backoff_and_moves_to_terminal_after_limit(tmp_path):
+    now = [1000.0]
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3", clock=lambda: now[0])
+    queued, _ = queue.enqueue(normalize_request(project="TEST", request_text="bounded retry"))
+    queue.set_state(queued.fingerprint, QueueState.FAILED_RETRYABLE)
+
+    assert queue.requeue_retryable(max_retries=1, backoff_seconds=60, now=1059) == []
+    assert queue.requeue_retryable(max_retries=1, backoff_seconds=60, now=1060) == [queued.fingerprint]
+    queue.set_state(queued.fingerprint, QueueState.FAILED_RETRYABLE)
+    assert queue.requeue_retryable(max_retries=1, backoff_seconds=0, now=1061) == []
+    assert queue.get(queued.fingerprint).state == QueueState.FAILED_TERMINAL

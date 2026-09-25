@@ -78,7 +78,7 @@ class ModelRegistry:
 
     def _read(self) -> dict[str, Any]:
         payload = json.loads(self.path.read_text(encoding="utf-8"))
-        if payload.get("schema_version") != 1 or not isinstance(payload.get("models"), list):
+        if payload.get("schema_version") not in {1, 2} or not isinstance(payload.get("models"), list):
             raise ValueError("invalid model registry")
         return payload
 
@@ -107,6 +107,17 @@ class ModelRegistry:
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
             return self._read()
+
+    def mark_validation(self, model_id: str, revision: str, *, status: str, evidence: str) -> dict[str, Any]:
+        with self._lock:
+            payload = self._read()
+            for row in payload["models"]:
+                if row.get("model_id") == model_id and row.get("revision") == revision:
+                    row["validation_status"] = status
+                    row["runtime_evidence"] = evidence
+                    self._write(payload)
+                    return dict(row)
+        raise KeyError((model_id, revision))
 
 
 def _sha256(path: Path) -> str:

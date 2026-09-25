@@ -195,6 +195,17 @@ def run_runtime_validation(
 
     errors = validate_runtime_evidence(runtime_evidence)
     if errors:
+        if errors == ["validation_scope_not_request_complete"] and runtime_evidence.get("validation_scope") == "component":
+            ready = queue.set_state(fingerprint, QueueState.EVIDENCE_READY)
+            return {
+                "fingerprint": ready.fingerprint,
+                "state": ready.state.value,
+                "status": "ACQUIRED_VERIFIED",
+                "runner_invoked": True,
+                "runtime_evidence": runtime_evidence,
+                "validation_pending": True,
+                "callback": {"repo": ready.callback_repo, "issue": ready.callback_issue},
+            }
         failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
         return {
             "fingerprint": failed.fingerprint,

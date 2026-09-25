@@ -264,18 +264,46 @@ class PersistentRequestQueue:
 
         return requeued
 
-    def requeue_retryable(self) -> list[str]:
-        """Move retryable failures back to QUEUED for the next unattended cycle."""
+    def requeue_retryable(
+        self,
+        *,
+        max_retries: int = 3,
+        backoff_seconds: float = 900.0,
+        now: float | None = None,
+    ) -> list[str]:
+        """Requeue due failures with exponential backoff and terminal isolation."""
+
+        if max_retries < 1:
+            raise ValueError("max_retries must be positive")
+        if backoff_seconds < 0:
+            raise ValueError("backoff_seconds must not be negative")
 
         requeued: list[str] = []
+        current_time = float(self._clock() if now is None else now)
         with self._connect() as connection:
             rows = connection.execute(
                 "SELECT * FROM request_queue WHERE state = ? ORDER BY fingerprint",
                 (QueueState.FAILED_RETRYABLE.value,),
             ).fetchall()
-            now = float(self._clock())
             for row in rows:
                 current = self._row_to_envelope(row)
+                retry_count = int(row["retry_count"])
+                if retry_count >= max_retries:
+                    terminal = transition(current, QueueState.FAILED_TERMINAL)
+                    connection.execute(
+                        "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                        (
+                            terminal.state.value,
+                            f"retry limit reached ({max_retries})",
+                            current_time,
+                            terminal.fingerprint,
+                        ),
+                    )
+                    continue
+                last_attempt = float(row["last_attempt_at"] or row["updated_at"] or 0.0)
+                due_at = last_attempt + backoff_seconds * (2 ** retry_count)
+                if current_time < due_at:
+                    continue
                 queued = transition(current, QueueState.QUEUED)
                 connection.execute(
                     """
@@ -283,7 +311,7 @@ class PersistentRequestQueue:
                     SET state = ?, retry_count = retry_count + 1, updated_at = ?
                     WHERE fingerprint = ?
                     """,
-                    (queued.state.value, now, queued.fingerprint),
+                    (queued.state.value, current_time, queued.fingerprint),
                 )
                 requeued.append(queued.fingerprint)
         return requeued
