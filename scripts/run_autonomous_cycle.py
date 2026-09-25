@@ -11,8 +11,6 @@ def main() -> int:
     if not state_dir:
         raise SystemExit("MODEL_SCOUT_STATE_DIR must point to durable runner storage")
     repos = [value.strip() for value in os.environ.get("MODEL_SCOUT_CONFIGURED_REPOS", "").split(",") if value.strip()]
-    if not repos:
-        raise SystemExit("MODEL_SCOUT_CONFIGURED_REPOS is required")
     result = run_autonomous_cycle(
         configured_repos=repos,
         state_dir=state_dir,
