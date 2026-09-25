@@ -122,3 +122,13 @@ def test_central_request_repository_is_always_discovered():
         "ADAMBUILD-ai/adam-build",
         "ADAMBUILD-ai/mindle-model-scout",
     )
+
+
+def test_central_execution_and_binary_handoff_use_dedicated_workers():
+    for number, title in ((68, "[P0][EXECUTION] MODEL SCOUT throughput acceleration"),
+                          (82, "[P0][AURA] Binary handoff required before model benchmark")):
+        assert normalize_github_issue_request(
+            {"repository_full_name": "ADAMBUILD-ai/mindle-model-scout", "number": number,
+             "state": "open", "title": title, "body": "Model Scout actual binary package required"},
+            configured_repos=["ADAMBUILD-ai/mindle-model-scout"],
+        ) is None
