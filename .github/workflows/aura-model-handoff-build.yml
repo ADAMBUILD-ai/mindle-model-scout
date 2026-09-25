@@ -1,0 +1,85 @@
+name: aura-model-handoff-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_aura_handoff_packages.py'
+      - '.github/workflows/aura-model-handoff-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-aura-model-handoff:
+    runs-on: [self-hosted, model-scout]
+    timeout-minutes: 120
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve runner Python
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+            'C:\actions-runner\_work\_tool\python311-service\python.exe',
+            'python.exe',
+            'python'
+          )
+          $python = $null
+          foreach ($candidate in $candidates) {
+            try {
+              if ($candidate -like '*:\*') {
+                if (-not (Test-Path -LiteralPath $candidate)) { continue }
+                $v = & $candidate --version 2>&1
+              } else {
+                $cmd = Get-Command $candidate -ErrorAction SilentlyContinue
+                if (-not $cmd) { continue }
+                $candidate = $cmd.Source
+                $v = & $candidate --version 2>&1
+              }
+              if ($LASTEXITCODE -eq 0 -and "$v" -match '^Python 3\.') {
+                $python = $candidate
+                break
+              }
+            } catch {}
+          }
+          if (-not $python) { throw 'No Python 3 runtime found on self-hosted model-scout runner.' }
+          "PYTHON_EXE=$python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "PYTHON_EXE=$python"
+
+      - name: Ensure handoff dependencies
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:PYTHON_EXE -m pip install --disable-pip-version-check huggingface-hub==0.34.4 httpx==0.28.1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build exact AURA packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & $env:PYTHON_EXE scripts/build_aura_handoff_packages.py 2>&1 | Tee-Object -FilePath aura-handoff-build.log
+          $code = $LASTEXITCODE
+          Write-Host "builder_exit_code=$code"
+          if (-not (Test-Path -LiteralPath 'aura-handoff-output\AURA_MODEL_HANDOFF_INDEX.json')) {
+            throw 'AURA_MODEL_HANDOFF_INDEX.json was not produced.'
+          }
+
+      - name: Upload AURA binary handoff bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-model-binary-handoff
+          path: |
+            aura-handoff-output/*.zip
+            aura-handoff-output/AURA_MODEL_HANDOFF_INDEX.json
+            aura-handoff-build.log
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
