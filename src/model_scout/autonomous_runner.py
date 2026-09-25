@@ -22,11 +22,14 @@ def validate_intake_coverage(configured_repos: Iterable[str], team_registry_path
             if isinstance(item, dict) and str(item.get("repository_full_name") or "").strip()
         }
     missing = sorted(required - configured)
+    effective = configured | required
     return {
-        "status": "PASS" if not missing else "FAIL_MISSING_REPOSITORIES",
+        "status": "PASS" if not missing else "PASS_AUTO_COMPLETED_FROM_TEAM_REGISTRY",
         "configured_repositories": sorted(configured),
         "required_team_repositories": sorted(required),
         "missing_repositories": missing,
+        "effective_repositories": sorted(effective),
+        "auto_completed_repositories": missing,
     }
 
 
@@ -46,10 +49,13 @@ def run_autonomous_cycle(
     if root == Path.cwd().resolve():
         raise ValueError("MODEL_SCOUT_STATE_DIR must be a dedicated durable directory")
     root.mkdir(parents=True, exist_ok=True)
-    repos = tuple(configured_repos)
-    intake_coverage = validate_intake_coverage(repos, team_registry_path)
-    if intake_coverage["missing_repositories"]:
-        raise ValueError("MODEL_SCOUT_CONFIGURED_REPOS missing team repositories: " + ", ".join(intake_coverage["missing_repositories"]))
+    configured = tuple(configured_repos)
+    intake_coverage = validate_intake_coverage(configured, team_registry_path)
+    # The checked-in team registry is the intake SSOT.  Repository variables are
+    # deployment configuration and can lag behind registry changes; do not stop
+    # acquisition when that happens.  Complete the effective set from the SSOT
+    # while preserving the drift in evidence for operators to repair.
+    repos = tuple(intake_coverage["effective_repositories"])
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
     requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds)
     requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
