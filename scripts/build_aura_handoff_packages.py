@@ -25,6 +25,7 @@ CANDIDATES = [
         "license": "apache-2.0",
         "pages": ["P04", "P07", "P10", "P11"],
         "run_script": "run_siglip_similarity.py",
+        "required_files": {"model.safetensors": (812672320, "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8")},
     },
     {
         "key": "ocr",
@@ -34,6 +35,7 @@ CANDIDATES = [
         "license": "apache-2.0",
         "pages": ["P02", "P03", "P07", "P10", "P11", "P12"],
         "run_script": "run_korean_ocr.py",
+        "required_files": {"inference.onnx": (None, "92f0b7785e64fc9090106a241cf4c1eb97472824558272751b88a2a4476d3a08")},
     },
     {
         "key": "sam21",
@@ -96,6 +98,30 @@ def inventory(root: Path) -> list[dict]:
                 "sha256": sha256_file(p),
             })
     return rows
+
+
+def selected_candidates() -> list[dict]:
+    key = os.environ.get("AURA_HANDOFF_ONLY", "").strip().lower()
+    if key and key not in {candidate["key"] for candidate in CANDIDATES}:
+        raise ValueError(f"unknown AURA_HANDOFF_ONLY key: {key}")
+    return [candidate for candidate in CANDIDATES if not key or candidate["key"] == key]
+
+
+def verify_snapshot(model_dir: Path, candidate: dict) -> None:
+    if not (model_dir / "README.md").is_file():
+        raise RuntimeError("exact-revision model card missing")
+    weights = list(model_dir.rglob("*.safetensors")) + list(model_dir.rglob("*.onnx"))
+    if not weights:
+        raise RuntimeError("actual model binary missing")
+    for name, (expected_size, expected_sha) in candidate.get("required_files", {}).items():
+        matches = list(model_dir.rglob(name))
+        if len(matches) != 1:
+            raise RuntimeError(f"expected exactly one {name}, got {len(matches)}")
+        actual = matches[0]
+        if expected_size is not None and actual.stat().st_size != expected_size:
+            raise RuntimeError(f"size mismatch: {name}")
+        if sha256_file(actual) != expected_sha:
+            raise RuntimeError(f"SHA-256 mismatch: {name}")
 
 
 def write_common_runtime_scripts(pkg: Path) -> None:
@@ -215,16 +241,15 @@ def main() -> int:
         "failures": [],
     }
 
-    only = os.environ.get("AURA_HANDOFF_ONLY", "").strip()
-    selected = [c for c in CANDIDATES if not only or c["key"] == only]
-    if only and not selected:
-        raise SystemExit(f"Unknown AURA_HANDOFF_ONLY={only!r}")
-
+    selected = selected_candidates()
+    index["expected_keys"] = [candidate["key"] for candidate in selected]
     for c in selected:
         key = c["key"]
         try:
             info = api.model_info(c["model_id"], revision=c["revision"] or "main")
             exact_revision = info.sha
+            if c["revision"] and exact_revision != c["revision"]:
+                raise RuntimeError("Hub revision did not match the pinned commit")
             tags = list(info.tags or [])
             detected_license = None
             for tag in tags:
@@ -246,6 +271,7 @@ def main() -> int:
                 local_dir=model_dir,
                 allow_patterns=ALLOW,
             )
+            verify_snapshot(model_dir, c)
 
             # canonical Apache 2.0 license snapshot
             import httpx
@@ -334,9 +360,10 @@ runtime/{c['run_script']}
             index["failures"].append(fail)
             print(json.dumps(fail, ensure_ascii=False), file=sys.stderr, flush=True)
 
+    index["complete"] = len(index["packages"]) == len(selected) and not index["failures"]
     (OUT / "AURA_MODEL_HANDOFF_INDEX.json").write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(index, ensure_ascii=False, indent=2))
-    return 0 if index["packages"] else 2
+    return 0 if index["complete"] else 2
 
 
 if __name__ == "__main__":
