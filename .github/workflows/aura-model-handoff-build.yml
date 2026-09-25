@@ -70,6 +70,7 @@ jobs:
           if (-not (Test-Path -LiteralPath 'aura-handoff-output\AURA_MODEL_HANDOFF_INDEX.json')) {
             throw 'AURA_MODEL_HANDOFF_INDEX.json was not produced.'
           }
+          if ($code -ne 0) { exit $code }
 
       - name: Upload AURA binary handoff bundle
         if: always()
