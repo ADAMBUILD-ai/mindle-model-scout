@@ -1,0 +1,116 @@
+name: aura-model-handoff-chunks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_aura_handoff_slim.py'
+      - '.github/workflows/aura-model-handoff-chunks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        key: [minilm, siglip, florence]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      AURA_HANDOFF_ONLY: ${{ matrix.key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install packaging dependencies
+        run: python -m pip install --disable-pip-version-check huggingface-hub==0.34.4
+      - name: Build exact model package
+        run: python scripts/build_aura_handoff_slim.py
+      - name: Split package into materializable chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p aura-chunks
+          pkg=$(ls AURA_*_HANDOFF_*.zip | head -1)
+          cp AURA_MODEL_HANDOFF_INDEX.json aura-chunks/${{ matrix.key }}.index.json
+          python - "$pkg" "${{ matrix.key }}" <<'PY'
+import sys, json, hashlib
+from pathlib import Path
+pkg=Path(sys.argv[1]); key=sys.argv[2]
+chunk_size=180*1024*1024
+parts=[]
+with pkg.open("rb") as f:
+    i=0
+    while True:
+        b=f.read(chunk_size)
+        if not b: break
+        name=f"{key}.part-{i:02d}"
+        p=Path("aura-chunks")/name
+        p.write_bytes(b)
+        parts.append({"name":name,"bytes":len(b),"sha256":hashlib.sha256(b).hexdigest()})
+        i+=1
+manifest={
+    "key":key,
+    "package":pkg.name,
+    "package_bytes":pkg.stat().st_size,
+    "package_sha256":hashlib.sha256(pkg.read_bytes()).hexdigest(),
+    "chunk_size":chunk_size,
+    "parts":parts,
+}
+Path(f"aura-chunks/{key}.reassembly.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+print(json.dumps(manifest,indent=2))
+PY
+      - name: Upload chunk 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-${{ matrix.key }}-chunk-00
+          path: |
+            aura-chunks/${{ matrix.key }}.part-00
+            aura-chunks/${{ matrix.key }}.reassembly.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload chunk 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-${{ matrix.key }}-chunk-01
+          path: |
+            aura-chunks/${{ matrix.key }}.part-01
+            aura-chunks/${{ matrix.key }}.reassembly.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Upload chunk 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-${{ matrix.key }}-chunk-02
+          path: |
+            aura-chunks/${{ matrix.key }}.part-02
+            aura-chunks/${{ matrix.key }}.reassembly.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Upload chunk 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-${{ matrix.key }}-chunk-03
+          path: |
+            aura-chunks/${{ matrix.key }}.part-03
+            aura-chunks/${{ matrix.key }}.reassembly.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Upload chunk 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-${{ matrix.key }}-chunk-04
+          path: |
+            aura-chunks/${{ matrix.key }}.part-04
+            aura-chunks/${{ matrix.key }}.reassembly.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 30
