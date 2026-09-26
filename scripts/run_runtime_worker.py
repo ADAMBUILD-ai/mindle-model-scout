@@ -120,12 +120,11 @@ def _ocr_vision(model_id: str, workspace: Path, revision: str | None = None) -> 
 
 def _vision_understanding(model_id: str, workspace: Path, revision: str, pipeline_tag: str) -> dict:
     """Use a built-in Transformers task for visual candidates, without remote code."""
-    from PIL import Image, ImageDraw
-    from transformers import pipeline
-
     supported = {"image-to-text", "visual-question-answering", "document-question-answering"}
     if pipeline_tag not in supported:
         raise ValueError(f"no safe built-in vision adapter for pipeline tag: {pipeline_tag}")
+    from PIL import Image, ImageDraw
+    from transformers import pipeline
     sample = workspace / "vision-sample.png"
     image = Image.new("RGB", (640, 160), "white")
     ImageDraw.Draw(image).text((30, 35), "ROOM 101  3500 mm", fill="black")
