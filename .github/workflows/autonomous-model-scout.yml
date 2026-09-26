@@ -28,7 +28,9 @@ permissions:
   issues: write
 
 concurrency:
-  group: model-scout-autonomous-${{ github.event.issue.number || github.event.client_payload.request_fingerprint || 'watchdog' }}
+  # One durable SQLite queue and JSON registry per runner: serialize cycles,
+  # while each cycle acquires up to four independent requests in worker threads.
+  group: model-scout-autonomous
   cancel-in-progress: false
 
 jobs:
@@ -187,13 +189,14 @@ jobs:
             watchdog_requeued = $cycle.watchdog_requeued
             idle_reason = $cycle.idle_reason
             eligible_request_count = $cycle.eligible_request_count
+            acquisition_concurrency = $cycle.acquisition_concurrency
             intake_coverage = $cycle.intake_coverage
             discovery_access = $cycle.discovery_access
             discovery_diagnostics = $cycle.discovery_diagnostics
           } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath autonomous-cycle-evidence.json -Encoding utf8
           $failedResults = @($cycle.results | Where-Object { $_.status -in @('FAILED_RETRYABLE', 'FAILED_TERMINAL') })
           $terminalItems = @($cycle.queue | Where-Object { $_.state -eq 'FAILED_TERMINAL' })
-          "MODEL SCOUT processed results: $(@($cycle.results).Count); failed this cycle: $($failedResults.Count); historical terminal: $($terminalItems.Count); eligible remaining: $($cycle.eligible_request_count); idle reason: $($cycle.idle_reason); repository access: $($cycle.discovery_access.status)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "MODEL SCOUT processed results: $(@($cycle.results).Count); failed this cycle: $($failedResults.Count); historical terminal: $($terminalItems.Count); eligible remaining: $($cycle.eligible_request_count); acquisition workers: $($cycle.acquisition_concurrency); idle reason: $($cycle.idle_reason); repository access: $($cycle.discovery_access.status)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           if ($failedResults.Count -gt 0) { Write-Host "::warning::MODEL SCOUT had $($failedResults.Count) failed request(s) this cycle; inspect the Evidence artifact before claiming acquisition." }
           if ($cycle.discovery_access.status -ne 'PASS') {
             $blockedRepos = @($cycle.discovery_access.failed_repositories | ForEach-Object { $_.repository_full_name }) -join ', '
