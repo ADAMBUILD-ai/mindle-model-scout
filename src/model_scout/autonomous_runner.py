@@ -40,11 +40,14 @@ def run_autonomous_cycle(
     stale_after_seconds: float = 1800,
     limit: int = 10,
     max_requests: int = 4,
+    acquisition_concurrency: int = 3,
     max_retries: int = 3,
     retry_backoff_seconds: float = 900.0,
     team_registry_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run watchdog recovery before one idempotent live cycle on durable storage."""
+    if not 1 <= acquisition_concurrency <= 4:
+        raise ValueError("acquisition_concurrency must be between 1 and 4")
     root = Path(state_dir).resolve()
     if root == Path.cwd().resolve():
         raise ValueError("MODEL_SCOUT_STATE_DIR must be a dedicated durable directory")
@@ -88,6 +91,7 @@ def run_autonomous_cycle(
         runtime_runner=runtime_runner,
         preferred_source=preferred_source,
         max_requests=max_requests,
+        acquisition_concurrency=acquisition_concurrency,
         scoped_requests=scoped_requests,
         discovery_diagnostics=discovery_diagnostics,
     )
@@ -106,6 +110,7 @@ def run_autonomous_cycle(
             "DISCOVERY_PARTIAL_FAILURE" if discovery_failures else "NO_ELIGIBLE_REQUESTS"
         ) if not results and not eligible else None,
         "eligible_request_count": eligible,
+        "acquisition_concurrency": acquisition_concurrency,
         "model_registry": str(root / "model-registry.json"),
         "intake_coverage": intake_coverage,
         "discovery_access": discovery_access,
