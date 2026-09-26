@@ -1,0 +1,10 @@
+[
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 51,
+    "model_id": "intfloat/multilingual-e5-small",
+    "capability": "memory",
+    "requesting_team": "AI 닥터 김서방",
+    "product": "KIMSERV"
+  }
+]
