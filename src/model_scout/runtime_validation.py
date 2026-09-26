@@ -195,7 +195,9 @@ def run_runtime_validation(
 
     errors = validate_runtime_evidence(runtime_evidence)
     if errors:
-        if errors == ["validation_scope_not_request_complete"] and runtime_evidence.get("validation_scope") == "component":
+        if (errors == ["validation_scope_not_request_complete"]
+                and runtime_evidence.get("validation_scope") == "component"
+                and runtime_evidence.get("acquisition_verified") is True):
             ready = queue.set_state(fingerprint, QueueState.EVIDENCE_READY)
             return {
                 "fingerprint": ready.fingerprint,

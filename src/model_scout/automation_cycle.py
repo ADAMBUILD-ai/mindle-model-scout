@@ -223,6 +223,9 @@ def run_runtime_cycle(
                     raise ValueError("search produced no executable candidates")
             except Exception as exc:
                 failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
+                record_failure = getattr(queue, "record_failure", None)
+                if callable(record_failure):
+                    record_failure(fingerprint, f"search:{type(exc).__name__}: {exc}")
                 results.append({
                     "fingerprint": fingerprint,
                     "state": failed.state.value,
@@ -245,6 +248,11 @@ def run_runtime_cycle(
                 runner=lambda current: runtime_runner(current, scout_result),
             )
             results.append(dict(runtime_result))
+            if runtime_result.get("status") == "FAILED_RETRYABLE":
+                record_failure = getattr(queue, "record_failure", None)
+                if callable(record_failure):
+                    detail = runtime_result.get("error") or runtime_result.get("validation_errors") or "runtime failure"
+                    record_failure(fingerprint, f"runtime:{runtime_result.get('error_type', 'validation')}: {detail}")
             if runtime_result.get("status") not in {"TESTED_PASS", "ACQUIRED_VERIFIED"}:
                 continue
 

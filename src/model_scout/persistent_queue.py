@@ -188,6 +188,15 @@ class PersistentRequestQueue:
                 (pointer, float(self._clock()), fingerprint),
             )
 
+    def record_failure(self, fingerprint: str, error: str) -> None:
+        with self._connect() as connection:
+            if connection.execute("SELECT 1 FROM request_queue WHERE fingerprint = ?", (fingerprint,)).fetchone() is None:
+                raise KeyError(fingerprint)
+            connection.execute(
+                "UPDATE request_queue SET last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                (error[:2000], float(self._clock()), fingerprint),
+            )
+
     def snapshot(self) -> list[Mapping[str, object]]:
         with self._connect() as connection:
             rows = connection.execute(
@@ -250,7 +259,7 @@ class PersistentRequestQueue:
                     terminal = transition(failed, QueueState.FAILED_TERMINAL)
                     connection.execute(
                         "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
-                        (terminal.state.value, f"watchdog retry limit reached ({max_retries})", current_time, terminal.fingerprint),
+                        (terminal.state.value, f"{row['last_error'] or 'stale request'}; watchdog retry limit reached ({max_retries})"[:2000], current_time, terminal.fingerprint),
                     )
                     continue
                 queued = transition(failed, QueueState.QUEUED)
@@ -304,7 +313,7 @@ class PersistentRequestQueue:
                         "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
                         (
                             terminal.state.value,
-                            f"retry limit reached ({max_retries})",
+                            f"{row['last_error'] or 'unknown failure'}; retry limit reached ({max_retries})"[:2000],
                             current_time,
                             terminal.fingerprint,
                         ),

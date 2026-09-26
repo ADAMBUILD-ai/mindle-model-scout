@@ -81,6 +81,10 @@ def test_selects_real_scout_candidate_only_with_revision_and_allowed_license():
         {"model_id": "good/model", "revision": "1234567890abcdef", "license": "apache-2.0", "status": "APPROVED"},
     ]})
     assert selected["model_id"] == "good/model"
+    assert select_executable_candidate({"candidates": [
+        {"model_id": "other/model", "revision": "a" * 40, "license": "mit", "status": "APPROVED"},
+        {"model_id": "good/model", "revision": "b" * 40, "license": "mit", "status": "APPROVED"},
+    ]}, "good/model")["model_id"] == "good/model"
 
 
 def test_candidate_values_are_passed_to_executor_and_registry(tmp_path):

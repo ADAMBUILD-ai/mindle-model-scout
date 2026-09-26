@@ -36,6 +36,7 @@ jobs:
       MODEL_SCOUT_MAX_RETRIES: '3'
       MODEL_SCOUT_RETRY_BACKOFF_SECONDS: '900'
       MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
+      MODEL_SCOUT_SCOPED_REQUESTS_CONFIG: 'config/autonomous-scoped-requests.json'
       MODEL_SCOUT_TEAM_REGISTRY: 'config/team-registry.json'
       MODEL_SCOUT_LOCAL_GITHUB_TOKEN: ${{ github.token }}
       MODEL_SCOUT_CROSS_REPO_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}

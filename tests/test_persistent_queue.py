@@ -137,5 +137,7 @@ def test_retryable_uses_backoff_and_moves_to_terminal_after_limit(tmp_path):
     assert queue.requeue_retryable(max_retries=1, backoff_seconds=60, now=1059) == []
     assert queue.requeue_retryable(max_retries=1, backoff_seconds=60, now=1060) == [queued.fingerprint]
     queue.set_state(queued.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.record_failure(queued.fingerprint, "runtime:OSError: pinned download unavailable")
     assert queue.requeue_retryable(max_retries=1, backoff_seconds=0, now=1061) == []
     assert queue.get(queued.fingerprint).state == QueueState.FAILED_TERMINAL
+    assert "pinned download unavailable" in queue.snapshot()[0]["last_error"]
