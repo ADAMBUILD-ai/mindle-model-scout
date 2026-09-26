@@ -80,7 +80,7 @@ def classify_executor_kind(envelope: RequestEnvelope) -> str:
     text = f"{envelope.project} {envelope.request_text}".casefold()
     if any(value in text for value in ("embedding", "rerank", "임베딩", "리랭")):
         return "embedding-reranker"
-    if any(value in text for value in ("ocr", "vision", "image", "이미지", "도면", "비전")):
+    if any(value in text for value in ("ocr", "vision", "visual", "image", "이미지", "도면", "비전")):
         return "ocr-vision"
     if any(value in text for value in ("stt", "tts", "speech", "whisper", "음성")):
         return "stt-tts"
@@ -157,6 +157,7 @@ class LocalCommandAdapter:
             "package_root": str(Path(__file__).resolve().parents[2]),
             "model_id": selected_model_id,
             "revision": selected_revision,
+            "pipeline_tag": str(selected.get("pipeline_tag") or "") if selected else "",
         }
         command = [part.format_map(placeholders) for part in self.command]
         completed = subprocess.run(
