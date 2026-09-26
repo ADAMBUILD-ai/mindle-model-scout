@@ -21,6 +21,7 @@
     "source": "huggingface:microsoft/trocr-small-printed",
     "license": "mit",
     "preflight_weights": true,
+    "preflight_builtin_transformers": true,
     "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "ocr-vision", "--model-id", "{model_id}", "--revision", "{revision}", "--pipeline-tag", "{pipeline_tag}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },

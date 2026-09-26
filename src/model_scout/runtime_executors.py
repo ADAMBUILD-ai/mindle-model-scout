@@ -120,6 +120,23 @@ def _candidate_has_pinned_weights(model_id: str, revision: str) -> bool:
     return any(str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS) for sibling in (info.siblings or []))
 
 
+def _candidate_has_safe_builtin_config(model_id: str, revision: str) -> tuple[bool, str]:
+    """Reject candidates that require unsupported or repository-supplied Python code.
+
+    This deliberately resolves only the pinned config with ``trust_remote_code``
+    disabled. Network and Hub failures are not converted into an incompatibility:
+    they must remain retryable infrastructure errors.
+    """
+    from transformers import AutoConfig
+
+    try:
+        AutoConfig.from_pretrained(model_id, revision=revision, trust_remote_code=False)
+    except (KeyError, ValueError) as exc:
+        summary = " ".join(str(exc).split())[:400]
+        return False, f"unsupported_safe_transformers_config:{summary}"
+    return True, ""
+
+
 @dataclass(frozen=True)
 class LocalCommandAdapter:
     kind: str
@@ -131,6 +148,7 @@ class LocalCommandAdapter:
     downloaded_files: tuple[Path, ...]
     timeout_seconds: float = 900.0
     preflight_weights: bool = False
+    preflight_builtin_transformers: bool = False
 
     def __post_init__(self) -> None:
         if self.kind not in EXECUTOR_KINDS:
@@ -185,6 +203,11 @@ class LocalCommandAdapter:
             ):
                 selection_diagnostics.append({"model_id": candidate_id, "reason": "no_weights_at_exact_revision"})
                 continue
+            if self.preflight_builtin_transformers:
+                compatible, reason = _candidate_has_safe_builtin_config(candidate_id, candidate_revision)
+                if not compatible:
+                    selection_diagnostics.append({"model_id": candidate_id, "reason": reason})
+                    continue
             selected = candidate
             break
         if isinstance(raw_candidates, list) and raw_candidates and selected is None:
@@ -219,7 +242,11 @@ class LocalCommandAdapter:
         )
         if completed.returncode != 0:
             stderr = completed.stderr.strip()[-2000:]
-            raise RuntimeError(f"executor exited {completed.returncode}: {stderr}")
+            pipeline_tag = str(selected.get("pipeline_tag") or "") if selected else ""
+            raise RuntimeError(
+                f"executor exited {completed.returncode} for model={selected_model_id}@{selected_revision} "
+                f"pipeline={pipeline_tag or 'unspecified'}: {stderr}"
+            )
         if not output_path.is_file() or output_path.stat().st_size <= 0:
             raise RuntimeError("executor did not create a non-empty output file")
 
@@ -388,6 +415,7 @@ def load_runtime_executor_registry(
             downloaded_files=downloads,
             timeout_seconds=float(raw.get("timeout_seconds", 900)),
             preflight_weights=bool(raw.get("preflight_weights", False)),
+            preflight_builtin_transformers=bool(raw.get("preflight_builtin_transformers", False)),
         )
     registry = ModelRegistry(model_registry_path) if model_registry_path else None
     return RuntimeExecutorRegistry(adapters, work_root=work_root, model_registry=registry)

@@ -188,6 +188,56 @@ def test_vision_preflight_reuses_pinned_search_file_listing(tmp_path, monkeypatc
     assert registry(_envelope("visual image request"), scout)["model_id"] == "example/working"
 
 
+def test_vision_preflight_skips_unsupported_transformers_candidate(tmp_path, monkeypatch):
+    from src.model_scout import runtime_executors
+
+    monkeypatch.setattr(runtime_executors, "_candidate_has_pinned_weights", lambda *args: True)
+    checked = []
+
+    def compatible(model_id, revision):
+        checked.append((model_id, revision))
+        if model_id == "example/glm-ocr":
+            return False, "unsupported_safe_transformers_config:glm_ocr"
+        return True, ""
+
+    monkeypatch.setattr(runtime_executors, "_candidate_has_safe_builtin_config", compatible)
+    worker = tmp_path / "worker.py"
+    worker.write_text("import json,sys\njson.dump({'selected':sys.argv[1]},open(sys.argv[2],'w'))\n", encoding="utf-8")
+    adapter = LocalCommandAdapter(
+        kind="ocr-vision", model_id="fallback/trocr", model_revision="fallback",
+        source="https://huggingface.co/fallback/trocr", license="mit",
+        command=(sys.executable, str(worker), "{model_id}", "{output}"),
+        downloaded_files=(), preflight_weights=True, preflight_builtin_transformers=True,
+    )
+    registry = RuntimeExecutorRegistry({"ocr-vision": adapter}, work_root=tmp_path / "work")
+    scout = {"candidates": [
+        {"model_id": "example/glm-ocr", "revision": "a" * 40, "license": "mit", "status": "APPROVED",
+         "pipeline_tag": "document-question-answering"},
+        {"model_id": "example/working", "revision": "b" * 40, "license": "apache-2.0", "status": "APPROVED",
+         "pipeline_tag": "image-to-text"},
+    ]}
+    evidence = registry(_envelope("visual image request"), scout)
+    assert evidence["model_id"] == "example/working"
+    assert evidence["selection_diagnostics"] == [
+        {"model_id": "example/glm-ocr", "reason": "unsupported_safe_transformers_config:glm_ocr"}
+    ]
+    assert len(checked) == 2
+
+
+def test_executor_failure_names_selected_candidate(tmp_path):
+    worker = tmp_path / "worker.py"
+    worker.write_text("import sys\nsys.stderr.write('loader failed')\nsys.exit(3)\n", encoding="utf-8")
+    adapter = LocalCommandAdapter(
+        kind="ocr-vision", model_id="fallback/trocr", model_revision="fallback",
+        source="https://huggingface.co/fallback/trocr", license="mit",
+        command=(sys.executable, str(worker), "{output}"), downloaded_files=(),
+    )
+    candidate = {"model_id": "example/vision", "revision": "c" * 40, "license": "mit",
+                 "status": "APPROVED", "pipeline_tag": "image-to-text"}
+    with pytest.raises(RuntimeError, match=r"model=example/vision@c{40} pipeline=image-to-text"):
+        adapter.run(_envelope("visual image request"), {"candidates": [candidate]}, work_root=tmp_path / "work")
+
+
 def test_unrelated_site_package_cannot_be_registered_as_acquired_model(tmp_path):
     from src.model_scout.acquisition import ModelRegistry
 

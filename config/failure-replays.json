@@ -4,5 +4,11 @@
     "source_repo": "ADAMBUILD-ai/aura-engine",
     "source_issue": 35,
     "error_contains": "no runnable candidate with allowed license"
+  },
+  {
+    "replay_id": "aura-35-transformers-compat-v1-20260927",
+    "source_repo": "ADAMBUILD-ai/aura-engine",
+    "source_issue": 35,
+    "error_contains": "glm_ocr"
   }
 ]
