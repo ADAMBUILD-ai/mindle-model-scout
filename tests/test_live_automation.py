@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+import pytest
 
 from src.model_scout.github_issue_source import GitHubIssueSource
 from src.model_scout.live_automation import run_live_cycle
@@ -235,3 +236,32 @@ def test_live_cycle_bounds_work_and_prioritizes_p0(tmp_path, monkeypatch):
         max_requests=1,
     )
     assert calls == [" ".join(high["body"].split())]
+
+
+def test_scoped_real_issue_executes_once_after_parent_is_terminal_or_delivered(tmp_path, monkeypatch):
+    issue = _issue("ADAMBUILD-ai/mindle-model-scout", 51, "KIMSERV")
+    issue["body"] += "\nmemory retrieval requested"
+    source = FakeIssueSource([issue])
+    calls = []
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda query, limit, resource:
+                        calls.append(query) or {"query": query, "candidates": []})
+    args = dict(configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
+                issue_source=source, callback_writer=RecordingWriter())
+    run_live_cycle(**args)  # prior broad request is already completed
+    scope = {"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 51,
+             "model_id": "intfloat/multilingual-e5-small", "capability": "memory"}
+    result = run_live_cycle(**args, scoped_requests=[scope])
+    assert sum(item.get("state") == "DELIVERED" for item in result) == 1
+    assert "intfloat/multilingual-e5-small" in calls[-1]
+    assert "embedding retrieval" in calls[-1]
+    assert run_live_cycle(**args, scoped_requests=[scope]) == []
+
+
+def test_scoped_request_requires_open_matching_real_issue(tmp_path, monkeypatch):
+    source = FakeIssueSource([])
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda *args: pytest.fail("must not run"))
+    result = run_live_cycle(configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
+                            issue_source=source, callback_writer=RecordingWriter(),
+                            scoped_requests=[{"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 51,
+                                              "model_id": "intfloat/multilingual-e5-small", "capability": "memory"}])
+    assert result == []
