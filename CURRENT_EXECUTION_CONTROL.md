@@ -6,7 +6,7 @@ Status source: actual GitHub runs, uploaded artifacts and the live registry. Thi
 
 - Repository: `ADAMBUILD-ai/mindle-model-scout`.
 - Verified binary handoff code baseline: `3977a1d7ebf047a668b49365a6ba79284733d46e` (PR #95). Its exact-head run proof remains valid.
-- Newer main `40cede7fd76b09cef4ad56c408a56677d63af4cf` (PR #96) adds discovery diagnostics; inspect a post-merge autonomous run before asserting that change works in service.
+- Newer main `40cede7fd76b09cef4ad56c408a56677d63af4cf` (PR #96) adds discovery diagnostics. Exact-head [run #36239504756](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36239504756) succeeded, with zero eligible and no duplicate work. Its Evidence reports HTTP 404 during issue discovery for `aura-engine`, `avora-engine`, and `axiom-engine`; the other six configured/effective repositories responded 200. Those three teams' new direct Issues are **not** currently available to this runner token.
 - Earlier recovery PRs #86–#92, inspection #93, binary handoff #95 and discovery diagnostics #96 are merged. The user authorized main merges; no obsolete “merge forbidden” instruction applies.
 - Cross-repository intake, Team Router, bounded retries, durable queue, source-grounded scoped requests, exact-model selection, license/revision/bytes/SHA gates, CPU component validation and runner cache remain in service.
 
@@ -36,6 +36,7 @@ Obtain actual team fixtures and acceptance thresholds. In particular, MEDIA's sy
 3. Attach real product fixtures and output metrics, advance at least one request through genuine `TESTED_PASS → DELIVERED` with idempotent receipt. Where fixtures are unavailable, record `BLOCKED_INPUT` and continue another executable request.
 4. Preserve exact acquired-version license/card evidence and get the rights-persistence condition reviewed before commercial release. Preserve an independently restored private long-term model archive; expiring GitHub artifacts are not permanent storage.
 5. Keep tests, cli-smoke, hf-e2e and exact-main run Evidence green; classify internal failed requests in the Actions summary and do not treat a green workflow alone as model PASS.
+6. Route AURA/AVORA/AXIOM requests through the already accessible central MODEL SCOUT Issues while their repository discovery remains HTTP 404. Do not claim direct team intake coverage; expanding the runner token's repository access is a separate permission approval gate.
 
 ## Approval boundaries
 
