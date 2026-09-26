@@ -137,9 +137,12 @@ def _explicit_model_ids(raw: str) -> list[str]:
         r"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?![A-Za-z0-9_.-])",
         raw,
     )
+    reserved_path_parts = {"docs", "benchmarks", "hardware", "source", "input", "output", "license"}
     return [
         value
         for value in matches
+        if value.split("/", 1)[0].casefold() not in reserved_path_parts
+        and not value.casefold().endswith((".json", ".md", ".yaml", ".yml", ".py", ".txt"))
         if any(character.isupper() or character.isdigit() or character in ".-" for character in value)
     ]
 
