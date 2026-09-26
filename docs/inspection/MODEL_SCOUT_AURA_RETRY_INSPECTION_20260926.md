@@ -1,0 +1,25 @@
+# MODEL SCOUT AURA retry inspection — 2026-09-26
+
+## Reproducible production result
+
+Run [#532](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36243562533) used exact main `9b2030fa8625f289cb31edd410590b09e48cdb57` and a deliberate manual retry backoff of 0 seconds (verified in the job environment). Evidence artifact ID `10906294305`; live registry artifact ID `10906893061`. All required team repositories were discoverable; `discovery_access.status=PASS`. Five retryable fingerprints were requeued, four processed. Queue afterward: 20 historical `FAILED_TERMINAL`, 18 historical `DELIVERED`, four `FAILED_RETRYABLE`, one `QUEUED`. Registry ZIP digest remained unchanged; no new acquisition or product delivery.
+
+| Request | Observed result | Correct disposition |
+| --- | --- | --- |
+| AURA #35 architectural visual understanding | Search found a licensed pinned candidate, then CPU worker's TrOCR-specific `TrOCRProcessor` failed while loading that non-TrOCR candidate; tokenizer `vocab_file` was None. Retry count 2. | `FAILED_RETRYABLE`; candidate has no validated CPU inference or six-class benchmark. Do not promote to `ACQUIRED_VERIFIED`. |
+| AURA #36 geometry-preserving visual edit | Search yielded candidates, but none passed allowed-license plus immutable-revision gate. In local Hub query the four modality-matched entries had license `other`. Retry count 2. | `FAILED_RETRYABLE`; no download, no license persistence proof, no `TESTED_PASS`. Exclude these candidates pending explicit license evidence. |
+| AURA #28/#29 | Existing runtime/search failures reoccurred on this forced run. | Separate request triage; do not count as #35/#36 progress. |
+
+The latest production evidence establishes that cross-repository permissions and Issue intake work, and PR #101/#102 fixed form parsing and coarse modality search. It does not establish product-model execution. Workflow success means the cycle and Evidence upload completed, not that model acquisition succeeded.
+
+## Next PC WORK EXECUTION DIRECTIVE
+
+Repository: `ADAMBUILD-ai/mindle-model-scout`. Branch from latest main after `9b2030f`. Do not repeat the completed access repair, PR #98/#101/#102/#103, historical ZIP packaging, or relabel the prior Florence-2 negative baseline.
+
+1. **AURA #35: candidate-specific execution.** Add an image-to-text / visual QA adapter selected by the candidate's actual pipeline/config. Keep `trust_remote_code=False`, CPU only, no paid/GPU resources. Validate model architecture and required tokenizer/processor files before full weight download; an incompatible candidate must be skipped with its exact error, allowing the next licensed candidate. Obtain a pinned 40-hex Hub revision, same-revision model card/LICENSE snapshot and persisted-use license evidence. Execute on AURA's six specified genuine fixture classes; report raw answers, omissions, contradictions, hallucinations, RAM/time, input/output hashes. Component acquisition may be `ACQUIRED_VERIFIED` only after real files, hashes and CPU output; product `TESTED_PASS` requires all acceptance metrics, then independent delivery.
+2. **AURA #36: license gate first.** Search further official repositories for geometry-preserving candidates with an allowed, persistent license. Reject `other`, gated or unclear rights without override. Only then implement a bounded CPU adapter and test protected-pixel and outside-scope delta=0 on the actual P04 v56.1 fixture. A successful download alone is insufficient.
+3. **Retry safety.** AURA #35/#36 now have retry_count 2 of max 3. Do not run another `0` backoff cycle until the adapter and candidate selection are corrected; the next failure can make them terminal. Preserve the queue and evidence. If terminal, resolve through an explicit audited recovery path, not direct SQLite edits or fabricated new fingerprints.
+4. **Throughput and health.** `MODEL_SCOUT_ACQUISITION_CONCURRENCY=3` still is not wired to the autonomous request path, which processes eligible requests sequentially. Implement bounded parallel acquisition with durable SQLite transitions, deduplication and callback isolation. The self-hosted Actions cache post step has emitted a Windows tar path warning (`C:\Program`); repair and prove an actual cache restore/save hit. Keep degraded repository access as a separate operational gate.
+5. **Verify and hand off.** Run the full tests/CLI smoke/HF E2E, then exact main autonomous execution. Inspect uploaded Evidence and registry, re-download model ZIP independently and recompute all SHA-256 values. Record new per-model ACQUIRED_VERIFIED, CPU result, product TESTED_PASS and DELIVERED counts separately. Report zero when absent.
+
+No new permission or paid resource was used for this inspection. Any future license uncertainty, external storage right, new paid compute, or repository permission expansion requires a separate explicit decision.
