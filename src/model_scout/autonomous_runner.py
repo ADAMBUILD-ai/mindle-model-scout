@@ -80,6 +80,7 @@ def run_autonomous_cycle(
             preferred_source = (event_repo, int(event_issue_raw))
         except ValueError as exc:
             raise ValueError("MODEL_SCOUT_EVENT_ISSUE must be an integer") from exc
+    discovery_diagnostics: dict[str, Any] = {}
     results = run_live_cycle(
         configured_repos=repos,
         state_dir=root,
@@ -88,6 +89,7 @@ def run_autonomous_cycle(
         preferred_source=preferred_source,
         max_requests=max_requests,
         scoped_requests=scoped_requests,
+        discovery_diagnostics=discovery_diagnostics,
     )
     queue_snapshot = queue.snapshot()
     eligible = sum(item["state"] in {"QUEUED", "EVIDENCE_READY"} for item in queue_snapshot)
@@ -99,4 +101,5 @@ def run_autonomous_cycle(
         "eligible_request_count": eligible,
         "model_registry": str(root / "model-registry.json"),
         "intake_coverage": intake_coverage,
+        "discovery_diagnostics": discovery_diagnostics,
     }
