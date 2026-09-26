@@ -106,6 +106,16 @@ def test_issue_form_paths_and_owner_do_not_displace_capability(capability, expec
     assert scout_module._explicit_model_ids(body) == []
 
 
+def test_open_ended_visual_requests_exclude_unrelated_image_generation():
+    wrong = {"model_id": "Tongyi-MAI/Z-Image", "pipeline_tag": "text-to-image"}
+    vlm = {"model_id": "org/vision-model", "pipeline_tag": "image-to-text"}
+    inpaint = {"model_id": "org/controlnet-inpainting", "pipeline_tag": "image-to-image"}
+    assert not scout_module._capability_compatible(wrong, "ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT")
+    assert scout_module._capability_compatible(vlm, "ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT")
+    assert not scout_module._capability_compatible(wrong, "GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT")
+    assert scout_module._capability_compatible(inpaint, "GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT")
+
+
 def test_explicit_model_id_bypasses_inferred_pipeline_mismatch():
     candidates = [{
         "model_id": "BAAI/bge-m3",
