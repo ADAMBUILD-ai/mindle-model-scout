@@ -99,6 +99,15 @@ class ModelRegistry:
             key = (record["model_id"], record["revision"])
             for row in rows:
                 if (row["model_id"], row["revision"]) == key:
+                    if row.get("acquisition_status") == record.get("acquisition_status") == "ACQUIRED_VERIFIED":
+                        changed = False
+                        for field in ("originating_requests", "consuming_teams"):
+                            merged = list(dict.fromkeys([*(row.get(field) or []), *(record.get(field) or [])]))
+                            if merged != (row.get(field) or []):
+                                row[field] = merged
+                                changed = True
+                        if changed:
+                            self._write(payload)
                     return dict(row), False
             rows.append(dict(record)); rows.sort(key=lambda row: (row["model_id"], row["revision"]))
             self._write(payload)

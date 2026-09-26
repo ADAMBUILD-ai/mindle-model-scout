@@ -15,6 +15,18 @@ def test_registry_atomic_duplicate_suppression(tmp_path):
     r=ModelRegistry(tmp_path/"registry.json"); row={"model_id":"a/b","revision":"1234567","acquisition_status":"ACQUIRED_VERIFIED"}
     assert r.upsert(row)[1] is True; assert r.upsert(row)[1] is False; assert len(r.snapshot()["models"])==1
 
+def test_duplicate_verified_model_adds_consuming_team_without_overwriting_proof(tmp_path):
+    r = ModelRegistry(tmp_path / "registry.json")
+    original = {"model_id": "a/b", "revision": "a" * 40, "acquisition_status": "ACQUIRED_VERIFIED",
+                "originating_requests": ["owner/repo#1"], "consuming_teams": ["TEAM_A"], "files": [{"sha256": "original"}]}
+    r.upsert(original)
+    r.upsert({**original, "originating_requests": ["owner/repo#2"], "consuming_teams": ["TEAM_B"],
+              "files": [{"sha256": "untrusted"}]})
+    row = r.snapshot()["models"][0]
+    assert row["originating_requests"] == ["owner/repo#1", "owner/repo#2"]
+    assert row["consuming_teams"] == ["TEAM_A", "TEAM_B"]
+    assert row["files"] == original["files"]
+
 def test_parallel_acquisition_isolated_and_overlapping(tmp_path, monkeypatch):
     active=0; peak=0; lock=threading.Lock()
     class Response:

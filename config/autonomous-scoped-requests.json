@@ -6,5 +6,21 @@
     "capability": "memory",
     "requesting_team": "AI 닥터 김서방",
     "product": "KIMSERV"
+  },
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 52,
+    "model_id": "sentence-transformers/distiluse-base-multilingual-cased-v2",
+    "capability": "embedding",
+    "requesting_team": "MINDLE NAS Knowledge AI",
+    "product": "NAS_KNOWLEDGE"
+  },
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 54,
+    "model_id": "intfloat/multilingual-e5-small",
+    "capability": "embedding",
+    "requesting_team": "AXIOM",
+    "product": "AXIOM"
   }
 ]
