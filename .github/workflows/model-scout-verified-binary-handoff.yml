@@ -1,0 +1,80 @@
+name: MODEL SCOUT verified binary handoff
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/model-scout-verified-binary-handoff.yml'
+      - 'scripts/package_verified_model.py'
+
+permissions:
+  contents: read
+
+jobs:
+  package-and-redownload:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - slug: e5-small
+            model_id: intfloat/multilingual-e5-small
+          - slug: distiluse-multilingual
+            model_id: sentence-transformers/distiluse-base-multilingual-cased-v2
+          - slug: whisper-tiny
+            model_id: openai/whisper-tiny
+    runs-on: [self-hosted, model-scout]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate registry bytes and build exact model ZIP
+        shell: powershell
+        env:
+          MODEL_ID: ${{ matrix.model_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $python = 'C:\actions-runner\_work\_tool\python311-service\python.exe'
+          $registry = 'C:\actions-runner\_work\_state\mindle-model-scout\model-registry.json'
+          $out = Join-Path $env:RUNNER_TEMP 'verified-model-package'
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          & $python scripts/package_verified_model.py build --registry $registry --model-id $env:MODEL_ID --output-dir $out
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload actual model ZIP and build receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-binary-${{ matrix.slug }}
+          path: |
+            ${{ runner.temp }}/verified-model-package/*.zip
+            ${{ runner.temp }}/verified-model-package/PACKAGE_BUILD_RECEIPT.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Download the uploaded artifact independently
+        uses: actions/download-artifact@v4
+        with:
+          name: model-scout-binary-${{ matrix.slug }}
+          path: ${{ runner.temp }}/verified-model-redownload
+
+      - name: Verify downloaded ZIP and every file digest
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $python = 'C:\actions-runner\_work\_tool\python311-service\python.exe'
+          $download = Join-Path $env:RUNNER_TEMP 'verified-model-redownload'
+          $receipt = Get-Content -LiteralPath (Join-Path $download 'PACKAGE_BUILD_RECEIPT.json') -Raw | ConvertFrom-Json
+          $zip = Join-Path $download $receipt.package
+          if (-not (Test-Path -LiteralPath $zip)) { throw 'Model ZIP was not present in the downloaded artifact.' }
+          & $python scripts/package_verified_model.py verify --archive $zip --expected-sha256 $receipt.package_sha256 | Tee-Object -FilePath (Join-Path $download 'INDEPENDENT_DOWNLOAD_RECEIPT.json')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload independent download receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-scout-redownload-receipt-${{ matrix.slug }}
+          path: ${{ runner.temp }}/verified-model-redownload/INDEPENDENT_DOWNLOAD_RECEIPT.json
+          if-no-files-found: error
+          retention-days: 30
