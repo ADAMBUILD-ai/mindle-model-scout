@@ -93,13 +93,21 @@ def run_autonomous_cycle(
     )
     queue_snapshot = queue.snapshot()
     eligible = sum(item["state"] in {"QUEUED", "EVIDENCE_READY"} for item in queue_snapshot)
+    discovery_failures = discovery_diagnostics.get("repository_failures", [])
+    discovery_access = {
+        "status": "DEGRADED_REPOSITORY_ACCESS" if discovery_failures else "PASS",
+        "failed_repositories": discovery_failures,
+    }
     return {
         "watchdog_requeued": requeued,
         "results": results,
         "queue": queue_snapshot,
-        "idle_reason": "NO_ELIGIBLE_REQUESTS" if not results and not eligible else None,
+        "idle_reason": (
+            "DISCOVERY_PARTIAL_FAILURE" if discovery_failures else "NO_ELIGIBLE_REQUESTS"
+        ) if not results and not eligible else None,
         "eligible_request_count": eligible,
         "model_registry": str(root / "model-registry.json"),
         "intake_coverage": intake_coverage,
+        "discovery_access": discovery_access,
         "discovery_diagnostics": discovery_diagnostics,
     }
