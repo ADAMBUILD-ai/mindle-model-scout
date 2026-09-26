@@ -22,5 +22,14 @@
     "capability": "embedding",
     "requesting_team": "AXIOM",
     "product": "AXIOM"
+  },
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 50,
+    "model_id": "openai/whisper-tiny",
+    "capability": "STT",
+    "task_query": "speech recognition",
+    "requesting_team": "MINDLE MEDIA AI",
+    "product": "MINDLE_MEDIA_AI"
   }
 ]
