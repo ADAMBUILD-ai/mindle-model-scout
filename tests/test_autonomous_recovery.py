@@ -52,3 +52,21 @@ def test_autonomous_cycle_uses_registry_repositories_when_variable_is_empty(tmp_
     )
     assert "owner/team-a" in captured["configured_repos"]
     assert result["intake_coverage"]["status"] == "PASS_AUTO_COMPLETED_FROM_TEAM_REGISTRY"
+
+
+def test_autonomous_idle_reports_repository_access_failure_instead_of_healthy_idle(tmp_path, monkeypatch):
+    import src.model_scout.autonomous_runner as runner
+
+    def fake_cycle(**kwargs):
+        kwargs["discovery_diagnostics"]["repository_failures"] = [{
+            "repository_full_name": "owner/private-team",
+            "status_code": 404,
+            "reason": "repository_issue_discovery_rejected",
+        }]
+        return []
+
+    monkeypatch.setattr(runner, "run_live_cycle", fake_cycle)
+    result = run_autonomous_cycle(configured_repos=["owner/private-team"], state_dir=tmp_path / "durable")
+    assert result["idle_reason"] == "DISCOVERY_PARTIAL_FAILURE"
+    assert result["discovery_access"]["status"] == "DEGRADED_REPOSITORY_ACCESS"
+    assert result["discovery_access"]["failed_repositories"][0]["status_code"] == 404
