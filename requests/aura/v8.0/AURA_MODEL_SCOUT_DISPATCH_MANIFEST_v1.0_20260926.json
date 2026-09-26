@@ -1,0 +1,70 @@
+{
+  "version": "1.1",
+  "date": "2026-09-26",
+  "source": {
+    "repository": "ADAMBUILD-ai/aura-engine",
+    "branch": "research/aura-reference-warehouse-20260923",
+    "source_head_before_v7_1_execution": "e183bb01de14ba6b1b7e0fd35334549792058b7f"
+  },
+  "requests": [
+    {
+      "capability_id": "ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT",
+      "priority": "P0",
+      "request_path": "docs/model-scout/AURA_ARCHITECTURAL_VISUAL_UNDERSTANDING_MODEL_REQUEST_v2.0_20260926.md",
+      "benchmark_fixture_path": "docs/model-scout/benchmarks/AURA_ARCH_VISUAL_UNDERSTANDING_FIXTURE_v1.0_20260926.json",
+      "expected_artifact_root": "evidence/model-scout/aura/architectural-visual-understanding/"
+    },
+    {
+      "capability_id": "GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT",
+      "priority": "P0",
+      "request_path": "docs/model-scout/AURA_GEOMETRY_PRESERVING_VISUAL_EDIT_MODEL_REQUEST_v2.0_20260926.md",
+      "benchmark_fixture_path": "docs/model-scout/benchmarks/AURA_GEOMETRY_PRESERVING_EDIT_FIXTURE_v1.0_20260926.json",
+      "expected_artifact_root": "evidence/model-scout/aura/geometry-preserving-edit/"
+    }
+  ],
+  "license_persistence_hard_rule": "Only adopt a pinned acquired version when evidence shows the acquired version remains usable even if the original publisher later changes license/distribution/access policy. Otherwise REJECT_AND_REPLACE.",
+  "runtime_cost_constraints": {
+    "default": "CPU-first where feasible",
+    "gpu": "only when benchmark requires it and explicit cost/runtime evidence is returned",
+    "repeated_paid_runs": "forbidden_without_explicit_authorization"
+  },
+  "required_decision_set": [
+    "KEEP",
+    "SUPPORT_ONLY",
+    "REJECT"
+  ],
+  "evidence_return_contract": [
+    "exact model ID",
+    "pinned revision",
+    "exact files",
+    "SHA-256",
+    "license snapshot",
+    "acquired-version persistence evidence",
+    "hardware/RAM/VRAM",
+    "runtime and cost",
+    "raw outputs",
+    "benchmark scores",
+    "reproducibility command",
+    "final decision"
+  ],
+  "no_family_name_authorization_rule": true,
+  "cross_repo_mutation_performed_in_v7_1": false,
+  "geometry_fixture_audit": {
+    "status": "RESOLVED",
+    "resolution": "docs/evidence/AURA_NEW_WINDOW_HANDOVER_GEOMETRY_FIXTURE_AUDIT_RESOLUTION_20260926.md",
+    "authority": "P04_FINAL_PASS_v56.1",
+    "source_sha256": "028d6db8f939b4cf82e2b99814949ab2760b59122d157acaeca7334069d38e82",
+    "edit_mask_sha256": "f11727e71d7322144cc9ccd73c9ef0c5c9af7f5f87b3e1a30e841e12f0d0563b",
+    "protected_mask_sha256": "0b53a0d9432f48bce86e33f425d783fd035c1c35078ced0415fcfc143d1ef96a",
+    "edit_region_count": 3,
+    "dropped_v55_patch": {
+      "x": 620,
+      "y": 560,
+      "width": 125,
+      "height": 150
+    },
+    "safety_dilation_px": 5,
+    "required_intersection_pixels": 0,
+    "required_outside_mask_changed_pixels": 0
+  }
+}
