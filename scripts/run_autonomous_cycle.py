@@ -17,6 +17,7 @@ def main() -> int:
         stale_after_seconds=float(os.environ.get("MODEL_SCOUT_STALE_AFTER_SECONDS", "1800")),
         limit=int(os.environ.get("MODEL_SCOUT_LIMIT", "10")),
         max_requests=int(os.environ.get("MODEL_SCOUT_MAX_REQUESTS_PER_CYCLE", "4")),
+        acquisition_concurrency=int(os.environ.get("MODEL_SCOUT_ACQUISITION_CONCURRENCY", "3")),
         max_retries=int(os.environ.get("MODEL_SCOUT_MAX_RETRIES", "3")),
         retry_backoff_seconds=float(os.environ.get("MODEL_SCOUT_RETRY_BACKOFF_SECONDS", "900")),
         team_registry_path=os.environ.get("MODEL_SCOUT_TEAM_REGISTRY", "config/team-registry.json"),
