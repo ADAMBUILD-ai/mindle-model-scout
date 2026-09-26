@@ -5,8 +5,9 @@ Status source: actual GitHub runs, uploaded artifacts and the live registry. Thi
 ## Verified code baseline — 2026-09-26
 
 - Repository: `ADAMBUILD-ai/mindle-model-scout`.
-- Latest verified functional main baseline: `3977a1d7ebf047a668b49365a6ba79284733d46e` (PR #95). Subsequent docs-only commits do not replace its run proof.
-- Earlier recovery PRs #86–#92, inspection #93, and binary handoff #95 are merged. The user authorized main merges; no obsolete “merge forbidden” instruction applies.
+- Verified binary handoff code baseline: `3977a1d7ebf047a668b49365a6ba79284733d46e` (PR #95). Its exact-head run proof remains valid.
+- Newer main `40cede7fd76b09cef4ad56c408a56677d63af4cf` (PR #96) adds discovery diagnostics; inspect a post-merge autonomous run before asserting that change works in service.
+- Earlier recovery PRs #86–#92, inspection #93, binary handoff #95 and discovery diagnostics #96 are merged. The user authorized main merges; no obsolete “merge forbidden” instruction applies.
 - Cross-repository intake, Team Router, bounded retries, durable queue, source-grounded scoped requests, exact-model selection, license/revision/bytes/SHA gates, CPU component validation and runner cache remain in service.
 
 ## Live Evidence and state
