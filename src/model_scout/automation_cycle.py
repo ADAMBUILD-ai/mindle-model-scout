@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import Any, Protocol
@@ -178,12 +179,15 @@ def run_runtime_cycle(
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
     max_requests: int = 4,
+    acquisition_concurrency: int = 1,
 ) -> list[dict[str, Any]]:
-    """Run discovery, search, runtime validation, and callback as one durable cycle."""
+    """Acquire independent requests in parallel, then deliver durable callbacks in order."""
 
     discovered = discover_github_issue_requests(issues, configured_repos=configured_repos)
     if max_requests < 1:
         raise ValueError("max_requests must be positive")
+    if not 1 <= acquisition_concurrency <= 4:
+        raise ValueError("acquisition_concurrency must be between 1 and 4")
     priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
     preferred_key = (preferred_source[0].casefold(), preferred_source[1]) if preferred_source else None
     discovered.sort(key=lambda item: (
@@ -202,15 +206,16 @@ def run_runtime_cycle(
             next_action="search for a license-compatible executable candidate",
         )
 
-    eligible = [
+    eligible = list(dict.fromkeys(
         fingerprint for fingerprint in fingerprints
         if (queue.get(fingerprint) is not None and queue.get(fingerprint).state in {QueueState.QUEUED, QueueState.EVIDENCE_READY})
-    ][:max_requests]
-    results: list[dict[str, Any]] = []
-    for fingerprint in eligible:
+    ))[:max_requests]
+
+    def acquire_one(fingerprint: str) -> list[dict[str, Any]]:
+        acquired: list[dict[str, Any]] = []
         envelope = queue.get(fingerprint)
-        if envelope is None:
-            continue
+        if envelope is None or envelope.state != QueueState.QUEUED:
+            return acquired
 
         if envelope.state == QueueState.QUEUED:
             owner = str(envelope.callback_repo or envelope.source_repo or "MODEL_SCOUT_AUTOMATION")
@@ -226,14 +231,14 @@ def run_runtime_cycle(
                 record_failure = getattr(queue, "record_failure", None)
                 if callable(record_failure):
                     record_failure(fingerprint, f"search:{type(exc).__name__}: {exc}")
-                results.append({
+                acquired.append({
                     "fingerprint": fingerprint,
                     "state": failed.state.value,
                     "stage": "search",
                     "error_type": type(exc).__name__,
                     "error": str(exc),
                 })
-                continue
+                return acquired
 
             delivery_ledger.advance(
                 fingerprint,
@@ -247,14 +252,14 @@ def run_runtime_cycle(
                 fingerprint,
                 runner=lambda current: runtime_runner(current, scout_result),
             )
-            results.append(dict(runtime_result))
+            acquired.append(dict(runtime_result))
             if runtime_result.get("status") == "FAILED_RETRYABLE":
                 record_failure = getattr(queue, "record_failure", None)
                 if callable(record_failure):
                     detail = runtime_result.get("error") or runtime_result.get("validation_errors") or "runtime failure"
                     record_failure(fingerprint, f"runtime:{runtime_result.get('error_type', 'validation')}: {detail}")
             if runtime_result.get("status") not in {"TESTED_PASS", "ACQUIRED_VERIFIED"}:
-                continue
+                return acquired
 
             runtime_evidence = dict(runtime_result["runtime_evidence"])
             delivery_ledger.advance(
@@ -282,7 +287,20 @@ def run_runtime_cycle(
                 "result": {"scout": dict(scout_result), "runtime": runtime_evidence},
             }
             evidence_store.put(fingerprint, callback_evidence)
-            envelope = queue.get(fingerprint)
+        return acquired
+
+    queued = [fingerprint for fingerprint in eligible if queue.get(fingerprint).state == QueueState.QUEUED]
+    if acquisition_concurrency == 1 or len(queued) <= 1:
+        acquired_by_fingerprint = {fingerprint: acquire_one(fingerprint) for fingerprint in queued}
+    else:
+        with ThreadPoolExecutor(max_workers=min(acquisition_concurrency, len(queued)), thread_name_prefix="model-acquire") as pool:
+            futures = {fingerprint: pool.submit(acquire_one, fingerprint) for fingerprint in queued}
+            acquired_by_fingerprint = {fingerprint: future.result() for fingerprint, future in futures.items()}
+
+    results: list[dict[str, Any]] = []
+    for fingerprint in eligible:
+        results.extend(acquired_by_fingerprint.get(fingerprint, ()))
+        envelope = queue.get(fingerprint)
 
         if envelope is not None and envelope.state == QueueState.EVIDENCE_READY:
             evidence = evidence_store.get(fingerprint)
