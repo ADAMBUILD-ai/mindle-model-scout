@@ -16,6 +16,7 @@ def test_autonomous_cycle_requeues_stale_work_before_processing(tmp_path, monkey
     monkeypatch.setattr(runner, "run_live_cycle", lambda **_kwargs: [])
     result = run_autonomous_cycle(configured_repos=["owner/repo"], state_dir=tmp_path / "durable")
     assert result["watchdog_requeued"] == []
+    assert result["discovery_diagnostics"] == {}
 
 
 def test_intake_coverage_auto_completes_when_team_repository_is_missing(tmp_path):
