@@ -23,6 +23,12 @@ on:
       - 'config/autonomous-scoped-requests.json'
       - 'config/terminal-recoveries.json'
       - 'scripts/run_runtime_worker.py'
+      - 'scripts/run_autonomous_cycle.py'
+      - 'src/model_scout/automation_cycle.py'
+      - 'src/model_scout/autonomous_runner.py'
+      - 'src/model_scout/runtime_executors.py'
+      - 'src/model_scout/scout.py'
+      - 'config/runtime-executors.json'
 
 permissions:
   contents: read
