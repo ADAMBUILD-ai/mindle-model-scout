@@ -181,6 +181,7 @@ jobs:
             idle_reason = $cycle.idle_reason
             eligible_request_count = $cycle.eligible_request_count
             intake_coverage = $cycle.intake_coverage
+            discovery_diagnostics = $cycle.discovery_diagnostics
           } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath autonomous-cycle-evidence.json -Encoding utf8
           $failedResults = @($cycle.results | Where-Object { $_.status -in @('FAILED_RETRYABLE', 'FAILED_TERMINAL') })
           $terminalItems = @($cycle.queue | Where-Object { $_.state -eq 'FAILED_TERMINAL' })
