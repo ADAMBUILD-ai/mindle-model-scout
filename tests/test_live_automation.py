@@ -265,3 +265,17 @@ def test_scoped_request_requires_open_matching_real_issue(tmp_path, monkeypatch)
                             scoped_requests=[{"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 51,
                                               "model_id": "intfloat/multilingual-e5-small", "capability": "memory"}])
     assert result == []
+
+
+def test_stt_scope_uses_speech_query_and_real_issue_capability(tmp_path, monkeypatch):
+    issue = _issue("ADAMBUILD-ai/mindle-model-scout", 50, "MEDIA")
+    issue["body"] += "\nKorean STT requested"
+    source = FakeIssueSource([issue])
+    queries = []
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda query, limit, resource:
+                        queries.append(query) or {"query": query, "candidates": []})
+    scope = {"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 50,
+             "model_id": "openai/whisper-tiny", "capability": "STT", "task_query": "speech recognition"}
+    run_live_cycle(configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
+                   issue_source=source, callback_writer=RecordingWriter(), scoped_requests=[scope])
+    assert any("openai/whisper-tiny" in query and "speech recognition" in query for query in queries)

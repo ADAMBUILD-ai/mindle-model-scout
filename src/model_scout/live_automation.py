@@ -57,6 +57,7 @@ def run_live_cycle(
             continue  # Never manufacture a request from a missing or closed Issue.
         model_id = str(scope["model_id"]).strip()
         capability = str(scope["capability"]).strip()
+        task_query = str(scope.get("task_query") or "embedding retrieval").strip()
         if not model_id or not capability:
             raise ValueError("scoped request requires model_id and capability")
         if capability.casefold() not in str(original.get("body") or "").casefold():
@@ -71,7 +72,7 @@ def run_live_cycle(
                 f"### 요청 개발팀\n{str(scope.get('requesting_team') or 'UNKNOWN')}\n"
                 f"### 제품 / 앱\n{str(scope.get('product') or 'UNKNOWN')}\n"
                 f"### 요청 Model ID\n{model_id}\n"
-                f"### 필요한 기능 / 해결할 문제\n{capability} embedding retrieval\n"
+                f"### 필요한 기능 / 해결할 문제\n{capability} {task_query}\n"
                 "### PASS 기준\nPinned official model download, license snapshot, SHA-256 and CPU component evidence. "
                 "Product TESTED_PASS remains pending the parent Issue's full acceptance inputs."
             ),
