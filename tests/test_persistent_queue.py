@@ -26,6 +26,33 @@ def test_persistent_queue_survives_reopen(tmp_path):
     assert restored.callback_issue == 33
 
 
+def test_exact_terminal_recovery_runs_once_and_preserves_prior_failure(tmp_path):
+    import sqlite3
+
+    db = tmp_path / "queue.sqlite3"
+    queue = PersistentRequestQueue(db)
+    aura, _ = queue.enqueue(normalize_request(project="AURA", request_text="visual image request",
+                                                source_repo="ADAMBUILD-ai/aura-engine", source_issue=35))
+    other, _ = queue.enqueue(normalize_request(project="AURA", request_text="license request",
+                                                 source_repo="ADAMBUILD-ai/aura-engine", source_issue=36))
+    for item, error in ((aura, "tokenization_gpt2.py failed"), (other, "license rejected")):
+        queue.set_state(item.fingerprint, QueueState.FAILED_RETRYABLE)
+        queue.set_state(item.fingerprint, QueueState.FAILED_TERMINAL)
+        queue.record_failure(item.fingerprint, error)
+    assert queue.reopen_terminal_once(recovery_id="adapter-v1", source_repo="ADAMBUILD-ai/aura-engine",
+                                      source_issue=35, error_contains="different error") is None
+    assert queue.reopen_terminal_once(recovery_id="adapter-v1", source_repo="ADAMBUILD-ai/aura-engine",
+                                      source_issue=35, error_contains="tokenization_gpt2.py") == aura.fingerprint
+    assert queue.get(aura.fingerprint).state == QueueState.QUEUED
+    assert queue.get(other.fingerprint).state == QueueState.FAILED_TERMINAL
+    queue.set_state(aura.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.set_state(aura.fingerprint, QueueState.FAILED_TERMINAL)
+    assert queue.reopen_terminal_once(recovery_id="adapter-v1", source_repo="ADAMBUILD-ai/aura-engine",
+                                      source_issue=35, error_contains="tokenization_gpt2.py") is None
+    with sqlite3.connect(db) as conn:
+        assert conn.execute("SELECT previous_error FROM terminal_recoveries WHERE recovery_id = 'adapter-v1'").fetchone()[0] == "tokenization_gpt2.py failed"
+
+
 def test_persistent_queue_preserves_evidence_pointer_and_runtime_state(tmp_path):
     now = [1000.0]
     db = tmp_path / "model-scout-queue.sqlite3"
