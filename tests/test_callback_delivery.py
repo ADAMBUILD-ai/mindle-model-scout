@@ -39,6 +39,14 @@ def test_render_callback_marks_scout_result_not_tested_pass():
     assert '"candidate_count": 2' in body
 
 
+def test_render_callback_labels_component_acquisition_without_product_pass():
+    _queue, _ready, evidence = _ready_queue()
+    evidence["status"] = "ACQUIRED_VERIFIED"
+    body = render_callback_markdown(evidence)
+    assert "evidence_class: `ACQUIRED_VERIFIED`" in body
+    assert "product TESTED_PASS remains pending" in body
+
+
 def test_deliver_evidence_writes_source_callback_and_marks_delivered():
     queue, ready, evidence = _ready_queue()
     calls = []
