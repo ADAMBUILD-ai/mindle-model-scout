@@ -44,6 +44,7 @@ def run_autonomous_cycle(
     max_retries: int = 3,
     retry_backoff_seconds: float = 900.0,
     team_registry_path: str | Path | None = None,
+    terminal_recoveries_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run watchdog recovery before one idempotent live cycle on durable storage."""
     if not 1 <= acquisition_concurrency <= 4:
@@ -60,6 +61,20 @@ def run_autonomous_cycle(
     # while preserving the drift in evidence for operators to repair.
     repos = tuple(intake_coverage["effective_repositories"])
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
+    recovered: list[str] = []
+    if terminal_recoveries_path:
+        recovery_specs = json.loads(Path(terminal_recoveries_path).read_text(encoding="utf-8"))
+        if not isinstance(recovery_specs, list):
+            raise ValueError("terminal recovery config must be a list")
+        for spec in recovery_specs:
+            if not isinstance(spec, dict):
+                raise ValueError("terminal recovery entry must be a mapping")
+            fingerprint = queue.reopen_terminal_once(
+                recovery_id=str(spec["recovery_id"]), source_repo=str(spec["source_repo"]),
+                source_issue=int(spec["source_issue"]), error_contains=str(spec["error_contains"]),
+            )
+            if fingerprint:
+                recovered.append(fingerprint)
     requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries)
     requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
     executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
@@ -104,6 +119,7 @@ def run_autonomous_cycle(
     }
     return {
         "watchdog_requeued": requeued,
+        "terminal_recovered_once": recovered,
         "results": results,
         "queue": queue_snapshot,
         "idle_reason": (
