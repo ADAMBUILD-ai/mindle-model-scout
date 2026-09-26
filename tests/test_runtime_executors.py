@@ -25,6 +25,7 @@ def _envelope(text: str):
         ("download a Hugging Face classifier", "huggingface-model"),
         ("Korean embedding and reranker", "embedding-reranker"),
         ("OCR document vision", "ocr-vision"),
+        ("architectural visual understanding", "ocr-vision"),
         ("Korean STT and TTS", "stt-tts"),
         ("GLB geometry to SVG", "geometry-tool"),
     ],
@@ -112,6 +113,26 @@ def test_candidate_values_are_passed_to_executor_and_registry(tmp_path):
     evidence = registry(_envelope("classify text"), scout)
     assert evidence["model_id"] == "new/model"
     assert model_registry.snapshot()["models"][0]["validation_status"] == "PENDING"
+
+
+def test_scout_pipeline_tag_reaches_vision_worker(tmp_path):
+    worker = tmp_path / "worker.py"
+    worker.write_text(
+        "import json,sys\njson.dump({'tag':sys.argv[1]},open(sys.argv[2],'w'))\n",
+        encoding="utf-8",
+    )
+    adapter = LocalCommandAdapter(
+        kind="ocr-vision", model_id="fallback/trocr", model_revision="fallback",
+        source="https://huggingface.co/fallback/trocr", license="mit",
+        command=(sys.executable, str(worker), "{pipeline_tag}", "{output}"),
+        downloaded_files=(),
+    )
+    registry = RuntimeExecutorRegistry({"ocr-vision": adapter}, work_root=tmp_path / "work")
+    scout = {"candidates": [{"model_id": "example/vision", "revision": "a" * 40,
+                              "license": "apache-2.0", "status": "APPROVED",
+                              "pipeline_tag": "image-to-text"}]}
+    evidence = registry(_envelope("architectural visual understanding image"), scout)
+    assert evidence["result"]["tag"] == "image-to-text"
 
 
 def test_unrelated_site_package_cannot_be_registered_as_acquired_model(tmp_path):

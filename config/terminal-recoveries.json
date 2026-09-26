@@ -1,0 +1,8 @@
+[
+  {
+    "recovery_id": "aura-35-vision-adapter-v1-20260927",
+    "source_repo": "ADAMBUILD-ai/aura-engine",
+    "source_issue": 35,
+    "error_contains": "tokenization_gpt2.py"
+  }
+]

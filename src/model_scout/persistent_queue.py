@@ -71,6 +71,42 @@ class PersistentRequestQueue:
                 "CREATE INDEX IF NOT EXISTS idx_request_queue_state_updated "
                 "ON request_queue(state, updated_at)"
             )
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS terminal_recoveries (
+                    recovery_id TEXT PRIMARY KEY,
+                    fingerprint TEXT NOT NULL,
+                    previous_error TEXT,
+                    recovered_at REAL NOT NULL
+                )"""
+            )
+
+    def reopen_terminal_once(
+        self, *, recovery_id: str, source_repo: str, source_issue: int, error_contains: str
+    ) -> str | None:
+        """One reviewed recovery for one exact failed issue; preserve the prior error."""
+        if not recovery_id.strip() or not source_repo.strip() or source_issue <= 0 or not error_contains.strip():
+            raise ValueError("terminal recovery requires exact id, source, issue, and error match")
+        with self._connect() as connection:
+            if connection.execute("SELECT 1 FROM terminal_recoveries WHERE recovery_id = ?", (recovery_id,)).fetchone():
+                return None
+            rows = connection.execute(
+                "SELECT * FROM request_queue WHERE lower(source_repo) = ? AND source_issue = ? AND state = ?",
+                (source_repo.casefold(), source_issue, QueueState.FAILED_TERMINAL.value),
+            ).fetchall()
+            matches = [row for row in rows if error_contains.casefold() in str(row["last_error"] or "").casefold()]
+            if len(matches) != 1:
+                return None
+            row = matches[0]
+            now = float(self._clock())
+            connection.execute(
+                "INSERT INTO terminal_recoveries (recovery_id, fingerprint, previous_error, recovered_at) VALUES (?, ?, ?, ?)",
+                (recovery_id, row["fingerprint"], row["last_error"], now),
+            )
+            connection.execute(
+                "UPDATE request_queue SET state = ?, retry_count = 0, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                (QueueState.QUEUED.value, f"recovered once: {recovery_id}; prior error in terminal_recoveries", now, row["fingerprint"]),
+            )
+            return str(row["fingerprint"])
 
     @staticmethod
     def _row_to_envelope(row: sqlite3.Row) -> RequestEnvelope:

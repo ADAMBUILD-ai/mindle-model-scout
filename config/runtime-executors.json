@@ -20,7 +20,7 @@
     "model_revision": "resolved-at-runtime",
     "source": "huggingface:microsoft/trocr-small-printed",
     "license": "mit",
-    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "ocr-vision", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
+    "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "ocr-vision", "--model-id", "{model_id}", "--revision", "{revision}", "--pipeline-tag", "{pipeline_tag}", "--input", "{input}", "--output", "{output}"],
     "timeout_seconds": 1800
   },
   "stt-tts": {
