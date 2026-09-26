@@ -79,6 +79,43 @@ class PersistentRequestQueue:
                     recovered_at REAL NOT NULL
                 )"""
             )
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS failure_replays (
+                    replay_id TEXT PRIMARY KEY,
+                    fingerprint TEXT NOT NULL,
+                    previous_state TEXT NOT NULL,
+                    previous_error TEXT,
+                    replayed_at REAL NOT NULL
+                )"""
+            )
+
+    def replay_failed_once(
+        self, *, replay_id: str, source_repo: str, source_issue: int, error_contains: str
+    ) -> str | None:
+        """Replay one exact reviewed failure after a code fix, without resetting retries."""
+        if not replay_id.strip() or not source_repo.strip() or source_issue <= 0 or not error_contains.strip():
+            raise ValueError("failure replay requires exact id, source, issue, and error match")
+        with self._connect() as connection:
+            if connection.execute("SELECT 1 FROM failure_replays WHERE replay_id = ?", (replay_id,)).fetchone():
+                return None
+            rows = connection.execute(
+                "SELECT * FROM request_queue WHERE lower(source_repo) = ? AND source_issue = ? AND state IN (?, ?)",
+                (source_repo.casefold(), source_issue, QueueState.FAILED_RETRYABLE.value, QueueState.FAILED_TERMINAL.value),
+            ).fetchall()
+            matches = [row for row in rows if error_contains.casefold() in str(row["last_error"] or "").casefold()]
+            if len(matches) != 1:
+                return None
+            row = matches[0]
+            now = float(self._clock())
+            connection.execute(
+                "INSERT INTO failure_replays (replay_id, fingerprint, previous_state, previous_error, replayed_at) VALUES (?, ?, ?, ?, ?)",
+                (replay_id, row["fingerprint"], row["state"], row["last_error"], now),
+            )
+            connection.execute(
+                "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                (QueueState.QUEUED.value, f"reviewed replay: {replay_id}; prior failure in failure_replays", now, row["fingerprint"]),
+            )
+            return str(row["fingerprint"])
 
     def reopen_terminal_once(
         self, *, recovery_id: str, source_repo: str, source_issue: int, error_contains: str
