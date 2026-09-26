@@ -31,6 +31,7 @@ def run_live_cycle(
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
     max_requests: int = 4,
+    acquisition_concurrency: int = 1,
     scoped_requests: Iterable[Mapping[str, str]] = (),
     discovery_diagnostics: MutableMapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
@@ -169,7 +170,7 @@ def run_live_cycle(
         "max_requests": max_requests,
     }
     if runtime_runner is not None:
-        cycle_args.update(runtime_runner=runtime_runner, delivery_ledger=ledger)
+        cycle_args.update(runtime_runner=runtime_runner, delivery_ledger=ledger, acquisition_concurrency=acquisition_concurrency)
     results = cycle(**cycle_args)
     for item in queue.snapshot():
         fingerprint = str(item["fingerprint"])
