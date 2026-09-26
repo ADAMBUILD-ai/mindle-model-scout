@@ -84,23 +84,81 @@ def test_selects_real_scout_candidate_only_with_revision_and_allowed_license():
 
 
 def test_candidate_values_are_passed_to_executor_and_registry(tmp_path):
+    revision = "a" * 40
+    snapshot = tmp_path / "models--new--model" / "snapshots" / revision
+    snapshot.mkdir(parents=True)
+    (snapshot / "README.md").write_text("---\nlicense: apache-2.0\n---\n", encoding="utf-8")
     worker = tmp_path / "worker.py"
     worker.write_text(
         "import json,pathlib,sys\n"
         "p=pathlib.Path(sys.argv[3]); p.write_bytes(b'weights')\n"
-        "json.dump({'model_id':sys.argv[1],'revision':sys.argv[2],'license':'apache-2.0','_downloaded_files':[str(p)]},open(sys.argv[4],'w'))\n",
+        "json.dump({'model_id':sys.argv[1],'revision':sys.argv[2],'license':'apache-2.0','_downloaded_files':[str(p),str(p.parent/'README.md')]},open(sys.argv[4],'w'))\n",
         encoding="utf-8",
     )
     adapter = LocalCommandAdapter(
         kind="huggingface-model", model_id="fallback/model", model_revision="fallback-rev",
         source="huggingface:fallback/model", license="apache-2.0",
-        command=(sys.executable, str(worker), "{model_id}", "{revision}", "{workspace}/weights.bin", "{output}"),
+        command=(sys.executable, str(worker), "{model_id}", "{revision}", str(snapshot / "model.safetensors"), "{output}"),
         downloaded_files=(),
     )
     from src.model_scout.acquisition import ModelRegistry
     model_registry = ModelRegistry(tmp_path / "registry.json")
     registry = RuntimeExecutorRegistry({"huggingface-model": adapter}, work_root=tmp_path / "work", model_registry=model_registry)
-    scout = {"candidates": [{"model_id":"new/model","revision":"1234567890abcdef","license":"apache-2.0","status":"APPROVED","source_url":"https://huggingface.co/new/model"}]}
+    scout = {"candidates": [{"model_id":"new/model","revision":revision,"license":"apache-2.0","status":"APPROVED","source_url":"https://huggingface.co/new/model"}]}
     evidence = registry(_envelope("classify text"), scout)
     assert evidence["model_id"] == "new/model"
     assert model_registry.snapshot()["models"][0]["validation_status"] == "PENDING"
+
+
+def test_unrelated_site_package_cannot_be_registered_as_acquired_model(tmp_path):
+    from src.model_scout.acquisition import ModelRegistry
+
+    unrelated = tmp_path / "site-packages" / "trimesh" / "__init__.py"
+    unrelated.parent.mkdir(parents=True)
+    unrelated.write_text("# unrelated library", encoding="utf-8")
+    worker = tmp_path / "worker.py"
+    worker.write_text(
+        "import json,sys\njson.dump({'revision':'4.12.2','_downloaded_files':[sys.argv[1]]},open(sys.argv[2],'w'))\n",
+        encoding="utf-8",
+    )
+    registry_file = ModelRegistry(tmp_path / "registry.json")
+    adapter = LocalCommandAdapter(
+        kind="huggingface-model", model_id="fallback/model", model_revision="fallback",
+        source="https://huggingface.co/fallback/model", license="mit",
+        command=(sys.executable, str(worker), str(unrelated), "{output}"), downloaded_files=(),
+    )
+    registry = RuntimeExecutorRegistry({"huggingface-model": adapter}, work_root=tmp_path / "work", model_registry=registry_file)
+    scout = {"candidates": [{"model_id": "pyannote/wespeaker-voxceleb-resnet34-LM", "revision": "b" * 40,
+                             "license": "cc-by-4.0", "status": "APPROVED"}]}
+    with pytest.raises(RuntimeExecutorUnavailable, match="no model weights"):
+        registry(_envelope("classify text"), scout)
+    assert registry_file.snapshot()["models"] == []
+
+
+def test_fallback_component_does_not_create_acquisition(tmp_path):
+    from src.model_scout.acquisition import ModelRegistry
+
+    worker = tmp_path / "worker.py"
+    worker.write_text("import json,sys\njson.dump({'ok':True},open(sys.argv[1],'w'))\n", encoding="utf-8")
+    registry_file = ModelRegistry(tmp_path / "registry.json")
+    adapter = LocalCommandAdapter(kind="geometry-tool", model_id="trimesh/trimesh", model_revision="resolved-at-runtime",
+                                  source="pypi:trimesh", license="mit", command=(sys.executable, str(worker), "{output}"), downloaded_files=())
+    registry = RuntimeExecutorRegistry({"geometry-tool": adapter}, work_root=tmp_path / "work", model_registry=registry_file)
+    assert registry(_envelope("GLB geometry"), {"candidates": []})["selected_candidate"] is False
+    assert registry_file.snapshot()["models"] == []
+
+
+def test_legacy_pyannote_false_positive_is_demoted_without_deleting_evidence(tmp_path):
+    from src.model_scout.acquisition import ModelRegistry
+
+    model_registry = ModelRegistry(tmp_path / "registry.json")
+    model_registry.upsert({
+        "model_id": "pyannote/wespeaker-voxceleb-resnet34-LM", "revision": "4.12.2",
+        "acquisition_runner": "candidate-aware-runtime-v2", "acquisition_status": "ACQUIRED_VERIFIED",
+        "validation_status": "PENDING", "files": [{"path": "C:\\Python\\site-packages\\trimesh\\__init__.py", "size": 2433, "sha256": "abc"}],
+        "runtime_evidence": "evidence/output.json",
+    })
+    RuntimeExecutorRegistry({}, work_root=tmp_path / "work", model_registry=model_registry)
+    row = model_registry.snapshot()["models"][0]
+    assert row["acquisition_status"] == "VERIFY_REQUIRED"
+    assert row["runtime_evidence"] == "evidence/output.json"
