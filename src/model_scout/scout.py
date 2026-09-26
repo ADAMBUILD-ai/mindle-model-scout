@@ -94,34 +94,33 @@ def score_model(model: dict[str, Any], profile: dict[str, Any] | None = None) ->
     return score, status, (status if status != "LICENSE_ALLOWED" and status.startswith("LICENSE_") else f"{components}; license:{lic or 'UNKNOWN'}")
 
 
-def search_huggingface(query: str, limit: int = 10, timeout: int = 20, max_attempts: int = 3) -> list[dict[str, Any]]:
-    if not query or not query.strip():
-        raise ValueError("query must not be empty")
-    if limit < 1 or limit > 100:
-        raise ValueError("limit must be between 1 and 100")
+def _fetch_huggingface_models(params: dict[str, Any], *, timeout: int, max_attempts: int) -> list[dict[str, Any]]:
     if timeout <= 0:
         raise ValueError("timeout must be positive")
     if max_attempts < 1 or max_attempts > 5:
         raise ValueError("max_attempts must be between 1 and 5")
 
-    params = urllib.parse.urlencode({"search": query.strip(), "limit": limit, "full": "true"})
-    req = urllib.request.Request(f"{HF_API}?{params}", headers={"User-Agent": "mindle-model-scout/0.2"})
+    encoded = urllib.parse.urlencode(params)
+    req = urllib.request.Request(f"{HF_API}?{encoded}", headers={"User-Agent": "mindle-model-scout/0.2"})
     for attempt in range(1, max_attempts + 1):
+        retry_after = ""
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.load(resp)
             break
         except urllib.error.HTTPError as exc:
-            if exc.code not in {500, 502, 503, 504} or attempt == max_attempts:
+            if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
                 raise HuggingFaceSearchError(
                     f"Hugging Face search failed after {attempt} attempt(s): HTTP {exc.code}"
                 ) from exc
+            retry_after = exc.headers.get("Retry-After", "")
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             if attempt == max_attempts:
                 raise HuggingFaceSearchError(
                     f"Hugging Face search failed after {attempt} attempt(s): {type(exc).__name__}"
                 ) from exc
-        time.sleep(0.25 * (2 ** (attempt - 1)))
+        delay = float(retry_after) if str(retry_after).isdigit() else 0.25 * (2 ** (attempt - 1))
+        time.sleep(min(10.0, max(0.25, delay)))
 
     if not isinstance(data, list):
         raise HuggingFaceSearchError("Hugging Face returned an invalid models payload")
@@ -129,6 +128,27 @@ def search_huggingface(query: str, limit: int = 10, timeout: int = 20, max_attem
         raise HuggingFaceSearchError("Hugging Face returned a malformed model entry")
 
     return [normalize_model(item) for item in data]
+
+
+def search_huggingface(query: str, limit: int = 10, timeout: int = 20, max_attempts: int = 3) -> list[dict[str, Any]]:
+    if not query or not query.strip():
+        raise ValueError("query must not be empty")
+    if limit < 1 or limit > 100:
+        raise ValueError("limit must be between 1 and 100")
+    return _fetch_huggingface_models(
+        {"search": query.strip(), "limit": limit, "full": "true"}, timeout=timeout, max_attempts=max_attempts
+    )
+
+
+def search_huggingface_task(task: str, limit: int = 10, timeout: int = 20, max_attempts: int = 3) -> list[dict[str, Any]]:
+    if not task or not task.strip():
+        raise ValueError("task must not be empty")
+    if limit < 1 or limit > 100:
+        raise ValueError("limit must be between 1 and 100")
+    return _fetch_huggingface_models(
+        {"pipeline_tag": task.strip(), "sort": "downloads", "direction": "-1", "limit": limit, "full": "true"},
+        timeout=timeout, max_attempts=max_attempts,
+    )
 
 
 def _upstream_search_query(profile: dict[str, Any]) -> str:
@@ -171,7 +191,7 @@ def _capability_queries(raw: str) -> list[str]:
         "architectural visual understanding", "visual understanding",
         "proposal page", "floor plan", "site plan", "cross-view consistency",
     )):
-        return ["document visual question answering", "vision language model", "image-to-text"]
+        return ["task:document-question-answering", "task:visual-question-answering", "task:image-to-text"]
     return []
 
 
@@ -182,7 +202,7 @@ def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
         return True
     model_id = str(model.get("model_id") or "").casefold()
     pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
-    if queries[0] == "document visual question answering":
+    if queries[0] == "task:document-question-answering":
         return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
     return ("controlnet" in model_id or "inpaint" in model_id) and pipeline_tag in {"image-to-image", "text-to-image"}
 
@@ -208,7 +228,10 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     for kind in types:
         for planned_query in query_plan:
             if kind == "model":
-                models.extend(search_huggingface(planned_query, limit))
+                if planned_query.startswith("task:"):
+                    models.extend(search_huggingface_task(planned_query.split(":", 1)[1], limit))
+                else:
+                    models.extend(search_huggingface(planned_query, limit))
             else:
                 models.extend(search_resource(kind, planned_query, limit))
 
