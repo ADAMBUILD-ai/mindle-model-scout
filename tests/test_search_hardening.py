@@ -86,6 +86,24 @@ def test_query_plan_maps_geometry_preserving_visual_edit_capability():
     ]
 
 
+@pytest.mark.parametrize("capability,expected", [
+    ("ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT", "document visual question answering"),
+    ("GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT", "controlnet inpainting"),
+])
+def test_issue_form_paths_and_owner_do_not_displace_capability(capability, expected):
+    body = (
+        "### 요청 Owner / 담당자\nAURA Commander\n"
+        f"### 필요한 기능 / 해결할 문제\n{capability}\n"
+        "Reference: docs/model-scout/REQUEST.md\n"
+        "Benchmark: docs/model-scout/benchmarks/FIXTURE.json\n"
+        "### PASS 기준\npinned revision + SHA-256 + license snapshot + hardware/RAM"
+    )
+    profile = scout_module.parse_requirement(body)
+    assert profile["task_hint"] != "token-classification"
+    assert query_plan(profile)[0] == expected
+    assert scout_module._explicit_model_ids(body) == []
+
+
 def test_explicit_model_id_bypasses_inferred_pipeline_mismatch():
     candidates = [{
         "model_id": "BAAI/bge-m3",
