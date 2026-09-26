@@ -176,7 +176,11 @@ jobs:
             queue = $cycle.queue
             results = $cycle.results
             watchdog_requeued = $cycle.watchdog_requeued
+            idle_reason = $cycle.idle_reason
+            eligible_request_count = $cycle.eligible_request_count
+            intake_coverage = $cycle.intake_coverage
           } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath autonomous-cycle-evidence.json -Encoding utf8
+          "MODEL SCOUT processed results: $(@($cycle.results).Count); eligible requests remaining: $($cycle.eligible_request_count); idle reason: $($cycle.idle_reason)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
       - name: Upload execution evidence
         if: always()
