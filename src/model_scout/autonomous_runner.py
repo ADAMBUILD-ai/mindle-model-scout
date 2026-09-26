@@ -45,6 +45,7 @@ def run_autonomous_cycle(
     retry_backoff_seconds: float = 900.0,
     team_registry_path: str | Path | None = None,
     terminal_recoveries_path: str | Path | None = None,
+    failure_replays_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run watchdog recovery before one idempotent live cycle on durable storage."""
     if not 1 <= acquisition_concurrency <= 4:
@@ -75,6 +76,20 @@ def run_autonomous_cycle(
             )
             if fingerprint:
                 recovered.append(fingerprint)
+    replayed: list[str] = []
+    if failure_replays_path:
+        replay_specs = json.loads(Path(failure_replays_path).read_text(encoding="utf-8"))
+        if not isinstance(replay_specs, list):
+            raise ValueError("failure replay config must be a list")
+        for spec in replay_specs:
+            if not isinstance(spec, dict):
+                raise ValueError("failure replay entry must be a mapping")
+            fingerprint = queue.replay_failed_once(
+                replay_id=str(spec["replay_id"]), source_repo=str(spec["source_repo"]),
+                source_issue=int(spec["source_issue"]), error_contains=str(spec["error_contains"]),
+            )
+            if fingerprint:
+                replayed.append(fingerprint)
     requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries)
     requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
     executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
@@ -120,6 +135,7 @@ def run_autonomous_cycle(
     return {
         "watchdog_requeued": requeued,
         "terminal_recovered_once": recovered,
+        "failure_replayed_once": replayed,
         "results": results,
         "queue": queue_snapshot,
         "idle_reason": (

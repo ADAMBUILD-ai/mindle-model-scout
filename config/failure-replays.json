@@ -1,0 +1,8 @@
+[
+  {
+    "replay_id": "aura-35-task-filter-search-v1-20260927",
+    "source_repo": "ADAMBUILD-ai/aura-engine",
+    "source_issue": 35,
+    "error_contains": "no runnable candidate with allowed license"
+  }
+]

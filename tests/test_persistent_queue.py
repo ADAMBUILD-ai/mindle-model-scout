@@ -53,6 +53,31 @@ def test_exact_terminal_recovery_runs_once_and_preserves_prior_failure(tmp_path)
         assert conn.execute("SELECT previous_error FROM terminal_recoveries WHERE recovery_id = 'adapter-v1'").fetchone()[0] == "tokenization_gpt2.py failed"
 
 
+def test_exact_failure_replay_preserves_retry_count_and_runs_once(tmp_path):
+    import sqlite3
+
+    db = tmp_path / "queue.sqlite3"
+    queue = PersistentRequestQueue(db)
+    request, _ = queue.enqueue(normalize_request(project="AURA", request_text="visual model",
+                                                   source_repo="ADAMBUILD-ai/aura-engine", source_issue=35))
+    queue.set_state(request.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.record_failure(request.fingerprint, "no runnable candidate with allowed license")
+    with sqlite3.connect(db) as connection:
+        connection.execute("UPDATE request_queue SET retry_count = 2 WHERE fingerprint = ?", (request.fingerprint,))
+    assert queue.replay_failed_once(replay_id="task-search-v1", source_repo="ADAMBUILD-ai/aura-engine",
+                                    source_issue=35, error_contains="no runnable candidate") == request.fingerprint
+    row = queue.snapshot()[0]
+    assert row["state"] == QueueState.QUEUED.value
+    assert row["retry_count"] == 2
+    queue.set_state(request.fingerprint, QueueState.RUNNING)
+    queue.set_state(request.fingerprint, QueueState.FAILED_RETRYABLE)
+    assert queue.replay_failed_once(replay_id="task-search-v1", source_repo="ADAMBUILD-ai/aura-engine",
+                                    source_issue=35, error_contains="no runnable candidate") is None
+    with sqlite3.connect(db) as connection:
+        prior = connection.execute("SELECT previous_state, previous_error FROM failure_replays").fetchone()
+    assert prior == (QueueState.FAILED_RETRYABLE.value, "no runnable candidate with allowed license")
+
+
 def test_persistent_queue_preserves_evidence_pointer_and_runtime_state(tmp_path):
     now = [1000.0]
     db = tmp_path / "model-scout-queue.sqlite3"

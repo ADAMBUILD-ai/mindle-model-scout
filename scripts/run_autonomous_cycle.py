@@ -22,6 +22,7 @@ def main() -> int:
         retry_backoff_seconds=float(os.environ.get("MODEL_SCOUT_RETRY_BACKOFF_SECONDS", "900")),
         team_registry_path=os.environ.get("MODEL_SCOUT_TEAM_REGISTRY", "config/team-registry.json"),
         terminal_recoveries_path=os.environ.get("MODEL_SCOUT_TERMINAL_RECOVERIES_CONFIG") or None,
+        failure_replays_path=os.environ.get("MODEL_SCOUT_FAILURE_REPLAYS_CONFIG") or None,
     )
     # Keep stdout ASCII-safe so the Windows self-hosted runner cannot fail on its
     # legacy cp949 console codec when evidence contains punctuation such as an em dash.

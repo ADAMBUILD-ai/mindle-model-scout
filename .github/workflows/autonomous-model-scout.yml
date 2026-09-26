@@ -22,6 +22,7 @@ on:
       - '.github/workflows/autonomous-model-scout.yml'
       - 'config/autonomous-scoped-requests.json'
       - 'config/terminal-recoveries.json'
+      - 'config/failure-replays.json'
       - 'scripts/run_runtime_worker.py'
       - 'scripts/run_autonomous_cycle.py'
       - 'src/model_scout/automation_cycle.py'
@@ -57,6 +58,7 @@ jobs:
       MODEL_SCOUT_SCOPED_REQUESTS_CONFIG: 'config/autonomous-scoped-requests.json'
       MODEL_SCOUT_TEAM_REGISTRY: 'config/team-registry.json'
       MODEL_SCOUT_TERMINAL_RECOVERIES_CONFIG: 'config/terminal-recoveries.json'
+      MODEL_SCOUT_FAILURE_REPLAYS_CONFIG: 'config/failure-replays.json'
       MODEL_SCOUT_LOCAL_GITHUB_TOKEN: ${{ github.token }}
       MODEL_SCOUT_CROSS_REPO_TOKEN: ${{ secrets.MODEL_SCOUT_CROSS_REPO_TOKEN }}
       MODEL_SCOUT_EVENT_REPOSITORY: ${{ github.repository }}
@@ -196,6 +198,7 @@ jobs:
             results = $cycle.results
             watchdog_requeued = $cycle.watchdog_requeued
             terminal_recovered_once = $cycle.terminal_recovered_once
+            failure_replayed_once = $cycle.failure_replayed_once
             idle_reason = $cycle.idle_reason
             eligible_request_count = $cycle.eligible_request_count
             acquisition_concurrency = $cycle.acquisition_concurrency
