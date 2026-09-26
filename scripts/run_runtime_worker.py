@@ -118,6 +118,34 @@ def _ocr_vision(model_id: str, workspace: Path, revision: str | None = None) -> 
     }
 
 
+def _vision_understanding(model_id: str, workspace: Path, revision: str, pipeline_tag: str) -> dict:
+    """Use a built-in Transformers task for visual candidates, without remote code."""
+    from PIL import Image, ImageDraw
+    from transformers import pipeline
+
+    supported = {"image-to-text", "visual-question-answering", "document-question-answering"}
+    if pipeline_tag not in supported:
+        raise ValueError(f"no safe built-in vision adapter for pipeline tag: {pipeline_tag}")
+    sample = workspace / "vision-sample.png"
+    image = Image.new("RGB", (640, 160), "white")
+    ImageDraw.Draw(image).text((30, 35), "ROOM 101  3500 mm", fill="black")
+    image.save(sample)
+    worker = pipeline(pipeline_tag, model=model_id, revision=revision, trust_remote_code=False, device=-1)
+    started = time.perf_counter()
+    if pipeline_tag == "image-to-text":
+        output = worker(image)
+    else:
+        output = worker(image=image, question="What does the drawing say?")
+    return {
+        "task": pipeline_tag,
+        "input_image": str(sample),
+        "prediction": output,
+        "latency_seconds": time.perf_counter() - started,
+        "revision": getattr(worker.model.config, "_commit_hash", None),
+        "_downloaded_files": _model_files(worker.model),
+    }
+
+
 def _speech(model_id: str, workspace: Path, revision: str | None = None) -> dict:
     import numpy as np
     from transformers import pipeline
@@ -176,6 +204,7 @@ def main() -> int:
     parser.add_argument("--kind", required=True)
     parser.add_argument("--model-id")
     parser.add_argument("--revision")
+    parser.add_argument("--pipeline-tag", default="")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -189,7 +218,10 @@ def main() -> int:
     elif args.kind == "embedding-reranker":
         result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", args.revision)
     elif args.kind == "ocr-vision":
-        result = _ocr_vision(args.model_id or "microsoft/trocr-small-printed", workspace, args.revision)
+        if "trocr" in (args.model_id or "microsoft/trocr-small-printed").casefold():
+            result = _ocr_vision(args.model_id or "microsoft/trocr-small-printed", workspace, args.revision)
+        else:
+            result = _vision_understanding(args.model_id, workspace, args.revision, args.pipeline_tag)
     elif args.kind == "stt-tts":
         result = _speech(args.model_id or "openai/whisper-tiny", workspace, args.revision)
     elif args.kind == "geometry-tool":
