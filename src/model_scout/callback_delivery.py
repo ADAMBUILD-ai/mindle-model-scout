@@ -61,8 +61,13 @@ def render_callback_markdown(evidence: Mapping[str, Any]) -> str:
     dispatched_resource = str(evidence.get("dispatched_resource") or "all")
     result_json = json.dumps(_public_evidence(dict(result)), ensure_ascii=False, sort_keys=True, default=str)
 
-    evidence_class = "TESTED_PASS" if evidence.get("status") == "TESTED_PASS" else "SCOUT_RESULT"
-    evidence_note = "verified runtime output" if evidence_class == "TESTED_PASS" else "not TESTED_PASS unless separate runtime evidence exists"
+    status = evidence.get("status")
+    evidence_class = status if status in {"TESTED_PASS", "ACQUIRED_VERIFIED"} else "SCOUT_RESULT"
+    evidence_note = (
+        "verified request-complete runtime output" if evidence_class == "TESTED_PASS" else
+        "component acquisition only; product TESTED_PASS remains pending" if evidence_class == "ACQUIRED_VERIFIED" else
+        "not TESTED_PASS unless separate runtime evidence exists"
+    )
     return (
         "## MODEL SCOUT Evidence Callback\n\n"
         f"- fingerprint: `{fingerprint}`\n"
