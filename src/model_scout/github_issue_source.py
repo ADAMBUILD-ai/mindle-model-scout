@@ -42,6 +42,7 @@ class GitHubIssueSource:
         self._timeout = float(timeout)
         self._client = client
         self.repository_failures: list[dict[str, Any]] = []
+        self.repository_diagnostics: list[dict[str, Any]] = []
 
     def _get(self, url: str) -> httpx.Response:
         headers = {
@@ -61,18 +62,33 @@ class GitHubIssueSource:
             raise ValueError("per_page must be between 1 and 100")
         results: list[dict[str, Any]] = []
         self.repository_failures = []
+        self.repository_diagnostics = []
         for repo in repos:
             owner, name = _normalize_repo(repo)
             url = f"{self._api_base}/repos/{owner}/{name}/issues?state=open&per_page={per_page}"
             try:
                 response = self._get(url)
             except httpx.HTTPError as exc:
+                self.repository_diagnostics.append({
+                    "repository_full_name": f"{owner}/{name}",
+                    "requested": True,
+                    "status_code": None,
+                    "open_issue_count": None,
+                    "error_type": type(exc).__name__,
+                })
                 raise GitHubIssueSourceError(f"GitHub issue source failed: {type(exc).__name__}") from None
             if not 200 <= response.status_code < 300:
                 self.repository_failures.append({
                     "repository_full_name": f"{owner}/{name}",
                     "status_code": response.status_code,
                     "reason": "repository_issue_discovery_rejected",
+                })
+                self.repository_diagnostics.append({
+                    "repository_full_name": f"{owner}/{name}",
+                    "requested": True,
+                    "status_code": response.status_code,
+                    "open_issue_count": None,
+                    "error_type": "repository_issue_discovery_rejected",
                 })
                 continue
             try:
@@ -81,6 +97,16 @@ class GitHubIssueSource:
                 raise GitHubIssueSourceError("GitHub issue source returned invalid JSON") from None
             if not isinstance(payload, list):
                 raise GitHubIssueSourceError("GitHub issue source payload must be a list")
+            issue_count = sum(
+                isinstance(item, Mapping) and not item.get("pull_request") for item in payload
+            )
+            self.repository_diagnostics.append({
+                "repository_full_name": f"{owner}/{name}",
+                "requested": True,
+                "status_code": response.status_code,
+                "open_issue_count": issue_count,
+                "error_type": None,
+            })
             for item in payload:
                 if not isinstance(item, Mapping) or item.get("pull_request"):
                     continue
