@@ -165,6 +165,29 @@ def test_vision_preflight_skips_weightless_candidate_and_runs_next(tmp_path, mon
     assert len(checked) == 2
 
 
+def test_vision_preflight_reuses_pinned_search_file_listing(tmp_path, monkeypatch):
+    from src.model_scout import runtime_executors
+
+    monkeypatch.setattr(runtime_executors, "_candidate_has_pinned_weights",
+                        lambda *args: pytest.fail("search file listing should avoid another Hub request"))
+    worker = tmp_path / "worker.py"
+    worker.write_text("import json,sys\njson.dump({'selected':sys.argv[1]},open(sys.argv[2],'w'))\n", encoding="utf-8")
+    adapter = LocalCommandAdapter(
+        kind="ocr-vision", model_id="fallback/trocr", model_revision="fallback",
+        source="https://huggingface.co/fallback/trocr", license="mit",
+        command=(sys.executable, str(worker), "{model_id}", "{output}"),
+        downloaded_files=(), preflight_weights=True,
+    )
+    registry = RuntimeExecutorRegistry({"ocr-vision": adapter}, work_root=tmp_path / "work")
+    scout = {"candidates": [
+        {"model_id": "example/weightless", "revision": "a" * 40, "license": "mit", "status": "APPROVED",
+         "pipeline_tag": "image-to-text", "model_files": ["README.md"]},
+        {"model_id": "example/working", "revision": "b" * 40, "license": "mit", "status": "APPROVED",
+         "pipeline_tag": "image-to-text", "model_files": ["model.safetensors", "README.md"]},
+    ]}
+    assert registry(_envelope("visual image request"), scout)["model_id"] == "example/working"
+
+
 def test_unrelated_site_package_cannot_be_registered_as_acquired_model(tmp_path):
     from src.model_scout.acquisition import ModelRegistry
 
