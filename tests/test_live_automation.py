@@ -114,6 +114,43 @@ def test_live_cycle_duplicate_source_request_executes_once(tmp_path, monkeypatch
     assert len(writer.calls) == 1
 
 
+def test_live_cycle_exposes_repository_and_canonical_request_diagnostics(tmp_path, monkeypatch):
+    source = FakeIssueSource([
+        _issue("ADAMBUILD-ai/aura-engine", 35, "AURA"),
+        _issue("ADAMBUILD-ai/aura-engine", 36, "AURA"),
+    ])
+    source.repository_failures = []
+    source.repository_diagnostics = [{
+        "repository_full_name": "ADAMBUILD-ai/aura-engine",
+        "requested": True,
+        "status_code": 200,
+        "open_issue_count": 2,
+        "error_type": None,
+    }]
+    monkeypatch.setattr(
+        "src.model_scout.live_automation.run_scout_core",
+        lambda query, limit, resource: {
+            "query": query, "search_query": query, "query_plan": [query],
+            "resource_type": resource, "searched_candidate_count": 0,
+            "candidate_count": 0, "candidates": [],
+        },
+    )
+    diagnostics = {}
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/aura-engine",),
+        state_dir=tmp_path,
+        issue_source=source,
+        callback_writer=RecordingWriter(),
+        discovery_diagnostics=diagnostics,
+    )
+    aura = next(row for row in diagnostics["repository_discovery"] if row["repository_full_name"] == "ADAMBUILD-ai/aura-engine")
+    assert aura["status_code"] == 200
+    assert aura["matching_request_count"] == 2
+    assert aura["normalized_request_count"] == 2
+    assert all(item["present_in_raw_list"] for item in diagnostics["canonical_aura_requests"])
+    assert all(item["normalized"] for item in diagnostics["canonical_aura_requests"])
+
+
 def test_live_cycle_ingests_central_requests_without_configuration(tmp_path, monkeypatch):
     source = FakeIssueSource([_issue("ADAMBUILD-ai/mindle-model-scout", 47, "ADAM")])
     writer = RecordingWriter()
