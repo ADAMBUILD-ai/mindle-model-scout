@@ -35,7 +35,11 @@ def parse_requirement(text: str) -> dict:
         "image-to-text": ["image to text", "이미지 설명"],
     }
     for task, keywords in task_keywords.items():
-        if any(keyword in lowered for keyword in keywords):
+        if any(
+            bool(re.search(rf"(?<![a-z0-9]){re.escape(keyword)}(?![a-z0-9])", lowered))
+            if keyword in {"llm", "asr", "tts", "ner"} else keyword in lowered
+            for keyword in keywords
+        ):
             task_hint = task
             break
     commercial_use = any(token in lowered for token in ["commercial", "상업", "상업용", "commercial use"])
