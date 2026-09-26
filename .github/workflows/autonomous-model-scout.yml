@@ -9,6 +9,13 @@ on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
+    inputs:
+      retry_backoff_seconds:
+        description: 'Manual recovery only: 0 retries due failures now; default keeps scheduled exponential backoff'
+        type: choice
+        required: true
+        default: '900'
+        options: ['900', '0']
   push:
     branches: [main]
     paths:
@@ -36,7 +43,7 @@ jobs:
       MODEL_SCOUT_ACQUISITION_CONCURRENCY: '3'
       MODEL_SCOUT_MAX_REQUESTS_PER_CYCLE: '4'
       MODEL_SCOUT_MAX_RETRIES: '3'
-      MODEL_SCOUT_RETRY_BACKOFF_SECONDS: '900'
+      MODEL_SCOUT_RETRY_BACKOFF_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.retry_backoff_seconds || '900' }}
       MODEL_SCOUT_EXECUTOR_CONFIG: 'config/runtime-executors.json'
       MODEL_SCOUT_SCOPED_REQUESTS_CONFIG: 'config/autonomous-scoped-requests.json'
       MODEL_SCOUT_TEAM_REGISTRY: 'config/team-registry.json'
