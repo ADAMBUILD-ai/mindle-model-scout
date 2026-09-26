@@ -277,6 +277,8 @@ def run_runtime_cycle(
                     marker(runtime_evidence)
             callback_evidence = {
                 **runtime_result,
+                "requested_resource": envelope.resource,
+                "dispatched_resource": str(scout_result.get("resource_type") or envelope.resource),
                 "result": {"scout": dict(scout_result), "runtime": runtime_evidence},
             }
             evidence_store.put(fingerprint, callback_evidence)
