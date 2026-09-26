@@ -26,6 +26,7 @@ def run_live_cycle(
     limit: int = 10,
     preferred_source: tuple[str, int] | None = None,
     max_requests: int = 4,
+    scoped_requests: Iterable[Mapping[str, str]] = (),
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
@@ -44,6 +45,37 @@ def run_live_cycle(
     source = issue_source or GitHubIssueSource()
     writer = callback_writer or GitHubIssueCommentWriter()
     issues = source.list_open_issues(discovery_repos)
+    issue_index = {
+        (str(issue.get("repository_full_name", "")).casefold(), int(issue.get("number") or 0)): issue
+        for issue in issues
+    }
+    for scope in scoped_requests:
+        repo = str(scope["source_repo"]).strip()
+        number = int(scope["source_issue"])
+        original = issue_index.get((repo.casefold(), number))
+        if original is None or str(original.get("state", "open")).casefold() != "open":
+            continue  # Never manufacture a request from a missing or closed Issue.
+        model_id = str(scope["model_id"]).strip()
+        capability = str(scope["capability"]).strip()
+        if not model_id or not capability:
+            raise ValueError("scoped request requires model_id and capability")
+        if capability.casefold() not in str(original.get("body") or "").casefold():
+            continue  # Scope must be grounded in the real developer request.
+        issues.append({
+            "repository_full_name": repo,
+            "number": number,
+            "state": "open",
+            "title": f"[P0] MODEL SCOUT scoped {capability}",
+            "body": (
+                f"MODEL SCOUT scoped subrequest from real Issue #{number}.\n"
+                f"### 요청 개발팀\n{str(scope.get('requesting_team') or 'UNKNOWN')}\n"
+                f"### 제품 / 앱\n{str(scope.get('product') or 'UNKNOWN')}\n"
+                f"### 요청 Model ID\n{model_id}\n"
+                f"### 필요한 기능 / 해결할 문제\n{capability} embedding retrieval\n"
+                "### PASS 기준\nPinned official model download, license snapshot, SHA-256 and CPU component evidence. "
+                "Product TESTED_PASS remains pending the parent Issue's full acceptance inputs."
+            ),
+        })
     if preferred_source:
         preferred_repo, preferred_issue = preferred_source
         if not any(
