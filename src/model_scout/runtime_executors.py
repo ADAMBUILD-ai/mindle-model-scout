@@ -7,6 +7,7 @@ import platform
 import re
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -100,12 +101,20 @@ def _sha256(path: Path) -> str:
 def _candidate_has_pinned_weights(model_id: str, revision: str) -> bool:
     """Check official Hub metadata before spending CPU time on a model loader."""
     from huggingface_hub import HfApi
-    from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
+    from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError, RevisionNotFoundError
 
-    try:
-        info = HfApi().model_info(model_id, revision=revision)
-    except (RepositoryNotFoundError, RevisionNotFoundError):
-        return False
+    for attempt in range(3):
+        try:
+            info = HfApi().model_info(model_id, revision=revision)
+            break
+        except (RepositoryNotFoundError, RevisionNotFoundError):
+            return False
+        except HfHubHTTPError as exc:
+            if getattr(getattr(exc, "response", None), "status_code", None) != 429 or attempt == 2:
+                raise
+            retry_after = getattr(exc.response, "headers", {}).get("Retry-After", "")
+            delay = float(retry_after) if str(retry_after).isdigit() else 2 ** attempt
+            time.sleep(min(10.0, max(1.0, delay)))
     if str(info.sha or "").casefold() != revision.casefold():
         return False
     return any(str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS) for sibling in (info.siblings or []))
@@ -169,7 +178,11 @@ class LocalCommandAdapter:
             }:
                 selection_diagnostics.append({"model_id": candidate_id, "reason": "unsupported_safe_vision_pipeline"})
                 continue
-            if self.preflight_weights and not _candidate_has_pinned_weights(candidate_id, candidate_revision):
+            listed_files = candidate.get("model_files")
+            if self.preflight_weights and not (
+                any(str(name).casefold().endswith(_MODEL_WEIGHTS) for name in listed_files)
+                if isinstance(listed_files, list) else _candidate_has_pinned_weights(candidate_id, candidate_revision)
+            ):
                 selection_diagnostics.append({"model_id": candidate_id, "reason": "no_weights_at_exact_revision"})
                 continue
             selected = candidate
