@@ -49,7 +49,7 @@ def _verified_hub_files(model_id: str, revision: str, files: list[dict[str, Any]
         raise RuntimeExecutorUnavailable("no license/model-card snapshot for the selected revision")
 
 
-def select_executable_candidate(scout_result: Mapping[str, Any]) -> Mapping[str, Any] | None:
+def select_executable_candidate(scout_result: Mapping[str, Any], requested_model_id: str = "") -> Mapping[str, Any] | None:
     """Select the highest-ranked safe model with an immutable Hub revision."""
 
     candidates = scout_result.get("candidates", ())
@@ -59,6 +59,8 @@ def select_executable_candidate(scout_result: Mapping[str, Any]) -> Mapping[str,
         if not isinstance(candidate, Mapping):
             continue
         model_id = str(candidate.get("model_id") or candidate.get("id") or "").strip()
+        if requested_model_id and model_id.casefold() != requested_model_id.casefold():
+            continue
         revision = str(candidate.get("revision") or "").strip()
         license_name = str(candidate.get("license") or "").strip().casefold()
         status = str(candidate.get("status") or "").upper()
@@ -134,7 +136,10 @@ class LocalCommandAdapter:
             encoding="utf-8",
         )
 
-        selected = select_executable_candidate(scout_result)
+        requested_model_id = envelope.requested_model_id
+        if requested_model_id in {"UNKNOWN", "SCOUT_SELECTION_REQUIRED"}:
+            requested_model_id = ""
+        selected = select_executable_candidate(scout_result, requested_model_id)
         raw_candidates = scout_result.get("candidates")
         if isinstance(raw_candidates, list) and raw_candidates and selected is None:
             raise RuntimeExecutorUnavailable(
@@ -272,6 +277,7 @@ class RuntimeExecutorRegistry:
         if adapter is None:
             raise RuntimeExecutorUnavailable(f"no configured local executor for {kind}")
         evidence = adapter.run(envelope, scout_result, work_root=self.work_root)
+        evidence["acquisition_verified"] = False
         if self.model_registry is not None and evidence["selected_candidate"]:
             _verified_hub_files(str(evidence["model_id"]), str(evidence["model_revision"]), evidence["downloaded_files"])
             record = {
@@ -289,7 +295,8 @@ class RuntimeExecutorRegistry:
                 "validation_status": "PENDING",
                 "runtime_evidence": evidence["output_path"],
             }
-            self.model_registry.upsert(record)
+            persisted, _created = self.model_registry.upsert(record)
+            evidence["acquisition_verified"] = persisted.get("acquisition_status") == "ACQUIRED_VERIFIED"
         return evidence
 
     def mark_tested_pass(self, evidence: Mapping[str, Any]) -> None:
