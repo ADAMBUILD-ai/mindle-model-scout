@@ -144,10 +144,27 @@ def _explicit_model_ids(raw: str) -> list[str]:
     ]
 
 
+def _capability_queries(raw: str) -> list[str]:
+    """Map open-ended capability requests to short, deterministic Hub queries."""
+    text = " ".join(raw.casefold().replace("_", " ").split())
+    if any(term in text for term in (
+        "geometry preserving", "controlled visual", "protected pixel",
+        "outside mask delta", "controlnet", "inpainting",
+    )):
+        return ["controlnet inpainting", "image-to-image", "diffusers controlnet"]
+    if any(term in text for term in (
+        "architectural visual understanding", "visual understanding",
+        "proposal page", "floor plan", "site plan", "cross-view consistency",
+    )):
+        return ["document visual question answering", "vision language model", "image-to-text"]
+    return []
+
+
 def _query_plan(profile: dict[str, Any]) -> list[str]:
     raw = str(profile.get("raw") or "")
     explicit_model_ids = _explicit_model_ids(raw)
-    values = [*explicit_model_ids, profile.get("query"), profile.get("task_hint")]
+    capability_queries = _capability_queries(raw)
+    values = [*explicit_model_ids, *capability_queries, profile.get("query"), profile.get("task_hint")]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
 
 

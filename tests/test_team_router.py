@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import httpx
 
@@ -84,6 +85,22 @@ def test_registry_loads_and_router_creates_an_idempotent_child_issue(tmp_path):
     assert "model-scout-route:ADAMBUILD-ai/mindle-model-scout#50" in body
     assert "Central Issue: https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/50" in body
     assert "Required actual input: Authorized originals" in body
+
+
+def test_canonical_registry_includes_adam_adraw_aura_avora_axiom():
+    registry = TeamRegistry.load(Path("config/team-registry.json"))
+    expected = {
+        "adam": "ADAMBUILD-ai/adam-build",
+        "adraw": "ADAMBUILD-ai/adraw-engine",
+        "aura": "ADAMBUILD-ai/aura-engine",
+        "avora": "ADAMBUILD-ai/avora-engine",
+        "axiom": "ADAMBUILD-ai/axiom-engine",
+    }
+
+    for team_id, repository in expected.items():
+        entry = registry.get(team_id)
+        assert entry.repository_full_name == repository
+        assert entry.issue_or_task_channel == "issues"
 
 
 def test_ack_and_timeout_are_distinguished(tmp_path):
