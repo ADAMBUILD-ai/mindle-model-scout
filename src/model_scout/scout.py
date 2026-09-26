@@ -133,6 +133,14 @@ def _upstream_search_query(profile: dict[str, Any]) -> str:
 
 
 def _explicit_model_ids(raw: str) -> list[str]:
+    # An Issue form contains many slash-delimited paths, ratios and callback
+    # repositories. Only its dedicated model field can pin a model selection.
+    if re.search(r"###\s+요청 Model ID\b", raw, flags=re.IGNORECASE):
+        field = re.search(r"###\s+요청 Model ID\s+(.*?)(?=\s+###|$)", raw, flags=re.IGNORECASE | re.DOTALL)
+        value = field.group(1).strip() if field else ""
+        if value in {"", "UNKNOWN", "SCOUT_SELECTION_REQUIRED"}:
+            return []
+        return re.findall(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", value)
     matches = re.findall(
         r"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?![A-Za-z0-9_.-])",
         raw,
