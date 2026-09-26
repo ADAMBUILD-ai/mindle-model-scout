@@ -135,6 +135,36 @@ def test_scout_pipeline_tag_reaches_vision_worker(tmp_path):
     assert evidence["result"]["tag"] == "image-to-text"
 
 
+def test_vision_preflight_skips_weightless_candidate_and_runs_next(tmp_path, monkeypatch):
+    from src.model_scout import runtime_executors
+
+    checked = []
+
+    def has_weights(model_id, revision):
+        checked.append((model_id, revision))
+        return model_id == "example/working"
+
+    monkeypatch.setattr(runtime_executors, "_candidate_has_pinned_weights", has_weights)
+    worker = tmp_path / "worker.py"
+    worker.write_text("import json,sys\njson.dump({'selected':sys.argv[1]},open(sys.argv[2],'w'))\n", encoding="utf-8")
+    adapter = LocalCommandAdapter(
+        kind="ocr-vision", model_id="fallback/trocr", model_revision="fallback",
+        source="https://huggingface.co/fallback/trocr", license="mit",
+        command=(sys.executable, str(worker), "{model_id}", "{output}"),
+        downloaded_files=(), preflight_weights=True,
+    )
+    registry = RuntimeExecutorRegistry({"ocr-vision": adapter}, work_root=tmp_path / "work")
+    scout = {"candidates": [
+        {"model_id": "example/weightless", "revision": "a" * 40, "license": "mit", "status": "APPROVED", "pipeline_tag": "image-to-text"},
+        {"model_id": "example/working", "revision": "b" * 40, "license": "apache-2.0", "status": "APPROVED", "pipeline_tag": "image-to-text"},
+    ]}
+    evidence = registry(_envelope("visual image request"), scout)
+    assert evidence["model_id"] == "example/working"
+    assert evidence["result"]["selected"] == "example/working"
+    assert evidence["selection_diagnostics"] == [{"model_id": "example/weightless", "reason": "no_weights_at_exact_revision"}]
+    assert len(checked) == 2
+
+
 def test_unrelated_site_package_cannot_be_registered_as_acquired_model(tmp_path):
     from src.model_scout.acquisition import ModelRegistry
 
