@@ -12,6 +12,17 @@
       "owner_or_executor": "ADAM maintainer"
     },
     {
+      "team_id": "adraw",
+      "display_name": "ADRAW",
+      "repository_full_name": "ADAMBUILD-ai/adraw-engine",
+      "issue_or_task_channel": "issues",
+      "execution_workflow": "team issue triage and artifact handoff",
+      "artifact_return_channel": "central issue callback comment",
+      "ack_timeout_minutes": 15,
+      "retry_policy": "audit once at timeout; classify a second missed ACK as EXECUTOR_UNREACHABLE",
+      "owner_or_executor": "ADRAW maintainer"
+    },
+    {
       "team_id": "avora",
       "display_name": "AVORA",
       "repository_full_name": "ADAMBUILD-ai/avora-engine",
