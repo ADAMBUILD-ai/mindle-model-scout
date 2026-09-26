@@ -1,0 +1,117 @@
+{
+  "version": "1.0",
+  "source_package": {
+    "id": "AURA_V73_2_CORRECTED_CONTROL_PAGE_BUNDLE",
+    "zip_sha256": "75c63af312e84923f54aaee4d0d5d7165086a754b5723710dcfef0d127df14be",
+    "source_report": "docs/evidence/AURA_PC_WORK_V74_3_6_PAGE_BUNDLE_HANDOFF_REPORT_20260926.md"
+  },
+  "fixtures": [
+    {
+      "class": "site_plan",
+      "artifact_id": "P04",
+      "sha256": "028d6db8f939b4cf82e2b99814949ab2760b59122d157acaeca7334069d38e82",
+      "questions": [
+        "identify major building groups",
+        "describe circulation/open-space relationships",
+        "state only visible programme labels"
+      ],
+      "expected_grounded_facts": [
+        "building-group relationships",
+        "central COMMON/open-space relation"
+      ],
+      "forbidden_hallucinations": [
+        "invented rooms",
+        "invented dimensions",
+        "invented programme"
+      ]
+    },
+    {
+      "class": "floor_plan",
+      "artifact_id": "P03",
+      "sha256": "7cd78fd90e88f730a4259cedea0b33cb69ed89062597aa9768f71a0041a2f37f",
+      "questions": [
+        "identify visible plan organization",
+        "trace circulation"
+      ],
+      "expected_grounded_facts": [
+        "only visible spatial relationships"
+      ],
+      "forbidden_hallucinations": [
+        "unseen levels",
+        "fabricated dimensions"
+      ]
+    },
+    {
+      "class": "section",
+      "artifact_id": "P10",
+      "sha256": "9d149d745df459744c558e30030cc22284fa269ee830da10af394b39b5022d79",
+      "questions": [
+        "identify section relationships",
+        "describe level/topography only when visible"
+      ],
+      "expected_grounded_facts": [
+        "visible vertical relationships"
+      ],
+      "forbidden_hallucinations": [
+        "hidden structure",
+        "unreadable numeric levels"
+      ]
+    },
+    {
+      "class": "elevation",
+      "artifact_id": "P11",
+      "sha256": "b079a4cad4c2ee9badf2bc788b8bc574b32db04a44b0a255965024aa2429fcae",
+      "questions": [
+        "describe facade/material evidence",
+        "identify repeated elevation logic"
+      ],
+      "expected_grounded_facts": [
+        "visible facade relationships"
+      ],
+      "forbidden_hallucinations": [
+        "unseen materials",
+        "fabricated specifications"
+      ]
+    },
+    {
+      "class": "aerial_perspective",
+      "artifact_id": "P07",
+      "sha256": "d87362f5c8221d143bab54840bcc227975cf5c25e36934bea87d9f25d7905a53",
+      "questions": [
+        "describe mass relationships",
+        "identify open-space hierarchy"
+      ],
+      "expected_grounded_facts": [
+        "visible mass/open-space relation"
+      ],
+      "forbidden_hallucinations": [
+        "unseen programme",
+        "invented site context"
+      ]
+    },
+    {
+      "class": "proposal_page",
+      "artifact_id": "P12",
+      "sha256": "b75e5126efefe269e6159733bc6f67ac348c6cc321c61a7b05b802149388dbc7",
+      "questions": [
+        "identify page hierarchy",
+        "separate text evidence from image evidence",
+        "check cross-view consistency"
+      ],
+      "expected_grounded_facts": [
+        "visible page hierarchy"
+      ],
+      "forbidden_hallucinations": [
+        "invented claims",
+        "invented jury rationale"
+      ]
+    }
+  ],
+  "scoring_profile": {
+    "grounded_fact_accuracy": 0.4,
+    "relationship_reasoning": 0.25,
+    "cross_view_consistency": 0.2,
+    "hallucination_penalty": 0.15
+  },
+  "baseline": "Florence-2 = negative baseline / REJECT_QUALITY"
+}
