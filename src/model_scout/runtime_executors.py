@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -25,6 +26,27 @@ EXECUTOR_KINDS = (
 
 class RuntimeExecutorUnavailable(RuntimeError):
     pass
+
+
+_IMMUTABLE_REVISION = re.compile(r"[0-9a-f]{40}\Z")
+_MODEL_WEIGHTS = (".safetensors", ".bin", ".onnx", ".gguf", ".pt", ".pth", ".ckpt")
+
+
+def _verified_hub_files(model_id: str, revision: str, files: list[dict[str, Any]]) -> None:
+    """Require actual weights and a model card at the selected Hub snapshot."""
+    if not _IMMUTABLE_REVISION.fullmatch(revision):
+        raise RuntimeExecutorUnavailable("acquisition requires an immutable 40-character Hub revision")
+    snapshot = f"models--{model_id.replace('/', '--')}/snapshots/{revision}/".casefold()
+    names = []
+    for entry in files:
+        path = str(entry["path"]).replace("\\", "/").casefold()
+        if snapshot not in path or not path.endswith(tuple(_MODEL_WEIGHTS) + ("/readme.md", "/license", "/license.txt")):
+            continue
+        names.append(path)
+    if not any(name.endswith(_MODEL_WEIGHTS) for name in names):
+        raise RuntimeExecutorUnavailable("no model weights from the selected pinned Hub snapshot")
+    if not any(name.endswith(("/readme.md", "/license", "/license.txt")) for name in names):
+        raise RuntimeExecutorUnavailable("no license/model-card snapshot for the selected revision")
 
 
 def select_executable_candidate(scout_result: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -161,9 +183,17 @@ class LocalCommandAdapter:
 
         downloads = []
         for raw_path in (*self.downloaded_files, *reported_downloads):
-            path = raw_path.resolve()
+            path = raw_path.absolute()
             if not path.is_file() or path.stat().st_size <= 0:
                 raise RuntimeError(f"downloaded artifact is missing or empty: {path}")
+            # Hub snapshots may symlink into their own blobs directory, but
+            # never accept a symlink to an unrelated package or filesystem.
+            lexical = str(path).replace("\\", "/").casefold()
+            actual = str(path.resolve()).replace("\\", "/").casefold()
+            if "/snapshots/" in lexical:
+                repo_root = lexical.split("/snapshots/", 1)[0]
+                if not (actual.startswith(repo_root + "/snapshots/") or actual.startswith(repo_root + "/blobs/")):
+                    raise RuntimeExecutorUnavailable(f"snapshot file escapes its model repository: {path}")
             downloads.append({
                 "path": str(path),
                 "size": path.stat().st_size,
@@ -171,12 +201,13 @@ class LocalCommandAdapter:
             })
 
         return {
-            "model_id": str(output_payload.get("model_id") or selected_model_id),
-            "model_revision": str(output_payload.get("revision") or selected_revision),
-            "source": str(output_payload.get("source") or selected_source),
+            "model_id": selected_model_id,
+            "model_revision": selected_revision,
+            "source": selected_source,
             "validation_scope": str(output_payload.get("validation_scope") or "component"),
             "acceptance_checks": dict(output_payload.get("acceptance_checks") or {}),
-            "license": str(output_payload.get("license") or selected_license),
+            "license": selected_license,
+            "selected_candidate": selected is not None,
             "input": str(input_path),
             "output_path": str(output_path),
             "output_size": output_path.stat().st_size,
@@ -210,6 +241,26 @@ class RuntimeExecutorRegistry:
         self.adapters = dict(adapters)
         self.work_root = Path(work_root)
         self.model_registry = model_registry
+        if self.model_registry is not None:
+            self._reconcile_prior_runtime_records()
+
+    def _reconcile_prior_runtime_records(self) -> None:
+        """Demote old runtime rows whose recorded files cannot prove acquisition."""
+        assert self.model_registry is not None
+        with self.model_registry._lock:
+            payload = self.model_registry._read()
+            changed = False
+            for row in payload["models"]:
+                if row.get("acquisition_runner") != "candidate-aware-runtime-v2" or row.get("acquisition_status") != "ACQUIRED_VERIFIED":
+                    continue
+                try:
+                    _verified_hub_files(str(row["model_id"]), str(row["revision"]), row.get("files", []))
+                except (RuntimeExecutorUnavailable, KeyError, TypeError):
+                    row["acquisition_status"] = "VERIFY_REQUIRED"
+                    row["acquisition_review_reason"] = "missing pinned model bytes or model-card evidence"
+                    changed = True
+            if changed:
+                self.model_registry._write(payload)
 
     def __call__(
         self,
@@ -221,7 +272,8 @@ class RuntimeExecutorRegistry:
         if adapter is None:
             raise RuntimeExecutorUnavailable(f"no configured local executor for {kind}")
         evidence = adapter.run(envelope, scout_result, work_root=self.work_root)
-        if self.model_registry is not None:
+        if self.model_registry is not None and evidence["selected_candidate"]:
+            _verified_hub_files(str(evidence["model_id"]), str(evidence["model_revision"]), evidence["downloaded_files"])
             record = {
                 "model_id": evidence["model_id"],
                 "revision": evidence["model_revision"],
@@ -241,7 +293,7 @@ class RuntimeExecutorRegistry:
         return evidence
 
     def mark_tested_pass(self, evidence: Mapping[str, Any]) -> None:
-        if self.model_registry is not None:
+        if self.model_registry is not None and evidence.get("selected_candidate"):
             self.model_registry.mark_validation(
                 str(evidence["model_id"]),
                 str(evidence["model_revision"]),
