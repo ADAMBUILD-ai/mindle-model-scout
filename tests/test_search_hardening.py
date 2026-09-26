@@ -96,7 +96,9 @@ def test_issue_form_paths_and_owner_do_not_displace_capability(capability, expec
         f"### 필요한 기능 / 해결할 문제\n{capability}\n"
         "Reference: docs/model-scout/REQUEST.md\n"
         "Benchmark: docs/model-scout/benchmarks/FIXTURE.json\n"
+        "### 요청 Model ID\nSCOUT_SELECTION_REQUIRED\n"
         "### PASS 기준\npinned revision + SHA-256 + license snapshot + hardware/RAM"
+        " + visual A/B + KEEP/SUPPORT_ONLY + ADAMBUILD-ai/aura-engine"
     )
     profile = scout_module.parse_requirement(body)
     assert profile["task_hint"] != "token-classification"
