@@ -14,6 +14,7 @@ on:
     paths:
       - '.github/workflows/autonomous-model-scout.yml'
       - 'config/autonomous-scoped-requests.json'
+      - 'scripts/run_runtime_worker.py'
 
 permissions:
   contents: read
@@ -181,7 +182,10 @@ jobs:
             eligible_request_count = $cycle.eligible_request_count
             intake_coverage = $cycle.intake_coverage
           } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath autonomous-cycle-evidence.json -Encoding utf8
-          "MODEL SCOUT processed results: $(@($cycle.results).Count); eligible requests remaining: $($cycle.eligible_request_count); idle reason: $($cycle.idle_reason)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          $failedResults = @($cycle.results | Where-Object { $_.status -in @('FAILED_RETRYABLE', 'FAILED_TERMINAL') })
+          $terminalItems = @($cycle.queue | Where-Object { $_.state -eq 'FAILED_TERMINAL' })
+          "MODEL SCOUT processed results: $(@($cycle.results).Count); failed this cycle: $($failedResults.Count); historical terminal: $($terminalItems.Count); eligible remaining: $($cycle.eligible_request_count); idle reason: $($cycle.idle_reason)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          if ($failedResults.Count -gt 0) { Write-Host "::warning::MODEL SCOUT had $($failedResults.Count) failed request(s) this cycle; inspect the Evidence artifact before claiming acquisition." }
 
       - name: Upload execution evidence
         if: always()
