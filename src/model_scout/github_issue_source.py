@@ -65,62 +65,65 @@ class GitHubIssueSource:
         self.repository_diagnostics = []
         for repo in repos:
             owner, name = _normalize_repo(repo)
-            url = f"{self._api_base}/repos/{owner}/{name}/issues?state=open&per_page={per_page}"
-            try:
-                response = self._get(url)
-            except httpx.HTTPError as exc:
-                self.repository_diagnostics.append({
-                    "repository_full_name": f"{owner}/{name}",
-                    "requested": True,
-                    "status_code": None,
-                    "open_issue_count": None,
-                    "error_type": type(exc).__name__,
-                })
-                raise GitHubIssueSourceError(f"GitHub issue source failed: {type(exc).__name__}") from None
-            if not 200 <= response.status_code < 300:
+            first_url = f"{self._api_base}/repos/{owner}/{name}/issues?state=open&per_page={per_page}"
+            url: str | None = first_url
+            seen: set[str] = set()
+            repo_results: list[dict[str, Any]] = []
+            failure_code: int | None = None
+            while url:
+                if url in seen or len(seen) >= 20:
+                    raise GitHubIssueSourceError(f"GitHub issue pagination exceeded safe limit: {owner}/{name}")
+                seen.add(url)
+                try:
+                    response = self._get(url)
+                except httpx.HTTPError as exc:
+                    self.repository_diagnostics.append({
+                        "repository_full_name": f"{owner}/{name}", "requested": True,
+                        "status_code": None, "open_issue_count": None,
+                        "error_type": type(exc).__name__,
+                    })
+                    raise GitHubIssueSourceError(f"GitHub issue source failed: {type(exc).__name__}") from None
+                if not 200 <= response.status_code < 300:
+                    failure_code = response.status_code
+                    break
+                try:
+                    payload = response.json()
+                except ValueError:
+                    raise GitHubIssueSourceError("GitHub issue source returned invalid JSON") from None
+                if not isinstance(payload, list):
+                    raise GitHubIssueSourceError("GitHub issue source payload must be a list")
+                for item in payload:
+                    if not isinstance(item, Mapping) or item.get("pull_request"):
+                        continue
+                    repo_results.append({
+                        "repository_full_name": f"{owner}/{name}",
+                        "number": item.get("number"), "title": str(item.get("title") or ""),
+                        "body": str(item.get("body") or ""), "state": str(item.get("state") or "open"),
+                    })
+                next_url = str(response.links.get("next", {}).get("url") or "")
+                if next_url and not next_url.startswith(f"{self._api_base}/repos/{owner}/{name}/issues?"):
+                    raise GitHubIssueSourceError("GitHub issue pagination redirected outside repository")
+                url = next_url or None
+            if failure_code is not None:
                 self.repository_failures.append({
-                    "repository_full_name": f"{owner}/{name}",
-                    "status_code": response.status_code,
+                    "repository_full_name": f"{owner}/{name}", "status_code": failure_code,
                     "reason": "repository_issue_discovery_rejected",
                 })
                 self.repository_diagnostics.append({
-                    "repository_full_name": f"{owner}/{name}",
-                    "requested": True,
-                    "status_code": response.status_code,
-                    "open_issue_count": None,
+                    "repository_full_name": f"{owner}/{name}", "requested": True,
+                    "status_code": failure_code, "open_issue_count": None,
                     "error_type": "repository_issue_discovery_rejected",
                 })
-                continue
-            try:
-                payload = response.json()
-            except ValueError:
-                raise GitHubIssueSourceError("GitHub issue source returned invalid JSON") from None
-            if not isinstance(payload, list):
-                raise GitHubIssueSourceError("GitHub issue source payload must be a list")
-            issue_count = sum(
-                isinstance(item, Mapping) and not item.get("pull_request") for item in payload
-            )
+                continue  # Never enqueue an incomplete first page as the full repository.
             self.repository_diagnostics.append({
                 "repository_full_name": f"{owner}/{name}",
                 "requested": True,
-                "status_code": response.status_code,
-                "open_issue_count": issue_count,
+                "status_code": 200,
+                "open_issue_count": len(repo_results),
+                "page_count": len(seen),
                 "error_type": None,
             })
-            for item in payload:
-                if not isinstance(item, Mapping) or item.get("pull_request"):
-                    continue
-                number = item.get("number")
-                title = str(item.get("title") or "")
-                body = str(item.get("body") or "")
-                state = str(item.get("state") or "open")
-                results.append({
-                    "repository_full_name": f"{owner}/{name}",
-                    "number": number,
-                    "title": title,
-                    "body": body,
-                    "state": state,
-                })
+            results.extend(repo_results)
         return results
 
     def get_issue(self, repo: str, issue: int) -> dict[str, Any]:
