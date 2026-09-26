@@ -119,6 +119,7 @@ def _ocr_vision(model_id: str, workspace: Path, revision: str | None = None) -> 
 
 
 def _speech(model_id: str, workspace: Path, revision: str | None = None) -> dict:
+    import numpy as np
     from transformers import pipeline
 
     sample = workspace / "speech-sample.wav"
@@ -131,7 +132,9 @@ def _speech(model_id: str, workspace: Path, revision: str | None = None) -> dict
         handle.writeframes(b"".join(struct.pack("<h", value) for value in frames))
     recognizer = pipeline("automatic-speech-recognition", model=model_id, revision=revision, trust_remote_code=False)
     started = time.perf_counter()
-    result = recognizer(str(sample))
+    # Supply decoded PCM samples: the Windows service does not install ffmpeg.
+    audio = np.asarray(frames, dtype=np.float32) / 32768.0
+    result = recognizer({"raw": audio, "sampling_rate": rate})
     model = recognizer.model
     return {
         "task": "stt-tts",
