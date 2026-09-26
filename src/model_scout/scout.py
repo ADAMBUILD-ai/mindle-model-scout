@@ -30,6 +30,7 @@ class Candidate:
     source_url: str | None = None
     last_modified: str | None = None
     revision: str | None = None
+    model_files: list[str] | None = None
 
 
 def _license_from_tags(tags: list[str]) -> str | None:
@@ -53,6 +54,9 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
         "license": _license_from_tags(tags),
         "tags": tags,
         "revision": raw.get("sha"),
+        "model_files": [str(item.get("rfilename")) for item in raw.get("siblings", [])
+                        if isinstance(item, dict) and item.get("rfilename")]
+        if isinstance(raw.get("siblings"), list) else None,
     }
 
 
@@ -233,6 +237,7 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
                 model.get("source_url"),
                 model.get("last_modified"),
                 model.get("revision"),
+                model.get("model_files"),
             )
         )
     candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))
