@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import hashlib
+import threading
 
 from src.model_scout.automation_cycle import DurableEvidenceStore, run_scout_cycle
 from src.model_scout.automation_cycle import run_runtime_cycle
@@ -196,3 +197,61 @@ def test_runtime_cycle_does_not_promote_empty_search_results(tmp_path: Path) -> 
     assert runtime_calls == []
     assert queue.snapshot()[0]["state"] == QueueState.FAILED_RETRYABLE.value
     assert results[0]["stage"] == "search"
+
+
+def test_runtime_acquisitions_overlap_but_callbacks_follow_priority_order(tmp_path: Path) -> None:
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    store = DurableEvidenceStore(tmp_path / "evidence.sqlite3")
+    ledger = DeliveryLedger(tmp_path / "ledger.sqlite3")
+    barrier = threading.Barrier(3, timeout=5)
+    callbacks: list[int] = []
+    issues = [{**_issue(), "number": number, "body": f"MODEL SCOUT request {number}: model search"} for number in (9, 7, 8)]
+
+    def scout_runner(query: str, limit: int, resource: str):
+        barrier.wait()  # A sequential cycle cannot pass this production-relevant gate.
+        return {"resource_type": resource, "candidates": [{"model_id": "org/model"}]}
+
+    def runtime_runner(envelope, scout_result):
+        output = tmp_path / f"{envelope.fingerprint}.json"
+        download = tmp_path / f"{envelope.fingerprint}.bin"
+        output.write_bytes(b'{"ok": true}')
+        download.write_bytes(b"verified weights")
+        return {
+            "model_id": "org/model", "model_revision": "a" * 40,
+            "source": "https://huggingface.co/org/model", "license": "mit",
+            "input": envelope.request_text, "log": "CPU execution completed",
+            "output_path": str(output), "output_size": output.stat().st_size,
+            "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+            "downloaded_files": [{"path": str(download), "size": download.stat().st_size,
+                                  "sha256": hashlib.sha256(download.read_bytes()).hexdigest()}],
+            "settings": {"seed": 1}, "runtime": {"engine": "test"},
+            "hardware": {"device": "cpu"}, "validation_scope": "request",
+            "acceptance_checks": {"fixture_pass": True},
+        }
+
+    def callback_writer(repo: str, issue: int, body: str):
+        assert threading.current_thread() is threading.main_thread()
+        callbacks.append(issue)
+
+    results = run_runtime_cycle(
+        issues=issues, configured_repos=["ADAMBUILD-ai/example-project"],
+        queue=queue, evidence_store=store, delivery_ledger=ledger,
+        scout_runner=scout_runner, runtime_runner=runtime_runner,
+        callback_writer=callback_writer, max_requests=3, acquisition_concurrency=3,
+    )
+    assert callbacks == [7, 8, 9]
+    assert len([row for row in results if row.get("status") == "TESTED_PASS"]) == 3
+    assert {row["state"] for row in queue.snapshot()} == {"DELIVERED"}
+    assert all(store.get(row["fingerprint"]) is not None for row in queue.snapshot())
+
+
+def test_runtime_concurrency_rejects_out_of_range(tmp_path: Path) -> None:
+    import pytest
+    with pytest.raises(ValueError, match="acquisition_concurrency"):
+        run_runtime_cycle(
+            issues=[], configured_repos=[], queue=PersistentRequestQueue(tmp_path / "q.sqlite3"),
+            evidence_store=DurableEvidenceStore(tmp_path / "e.sqlite3"),
+            delivery_ledger=DeliveryLedger(tmp_path / "l.sqlite3"),
+            scout_runner=lambda *args: {}, runtime_runner=lambda *args: {},
+            callback_writer=lambda *args: None, acquisition_concurrency=5,
+        )
