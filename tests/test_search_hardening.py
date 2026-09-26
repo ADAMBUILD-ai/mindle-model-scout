@@ -58,6 +58,34 @@ def test_query_plan_ignores_generic_slash_terms():
     assert query_plan(profile) == ["BAAI/bge-m3", "full issue body", "feature-extraction"]
 
 
+def test_query_plan_maps_architectural_visual_understanding_capability():
+    profile = {
+        "raw": "ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT for site plan, floor plan, section, elevation and proposal page",
+        "query": "full issue body",
+        "task_hint": None,
+    }
+
+    assert query_plan(profile) == [
+        "document visual question answering",
+        "vision language model",
+        "image-to-text",
+    ]
+
+
+def test_query_plan_maps_geometry_preserving_visual_edit_capability():
+    profile = {
+        "raw": "GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT with protected pixels and outside-mask delta = 0",
+        "query": "full issue body",
+        "task_hint": None,
+    }
+
+    assert query_plan(profile) == [
+        "controlnet inpainting",
+        "image-to-image",
+        "diffusers controlnet",
+    ]
+
+
 def test_explicit_model_id_bypasses_inferred_pipeline_mismatch():
     candidates = [{
         "model_id": "BAAI/bge-m3",
