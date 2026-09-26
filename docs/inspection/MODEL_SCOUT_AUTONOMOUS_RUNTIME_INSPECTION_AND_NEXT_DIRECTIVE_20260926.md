@@ -18,3 +18,14 @@
 5. Complete AURA Issue #82 transfer, independent Drive re-download/hash, real Gochang input inference and product callback before TESTED_PASS → DELIVERED. No paid resources, arbitrary remote code, permission expansion or destructive operation.
 
 Decision: scheduler operational; acquisition/registry integrity and real-request throughput need correction. No new acquisition or delivery proven by run #467.
+
+## Correction and post-merge operational verification — 2026-09-26 15:42 KST
+
+- PR #85 merged to main as `e7fd98b234dae4c58819f92ce845077a14fe521c`.
+- Runtime registration now requires selected exact 40-hex revision, nonempty model weight and card within that model's pinned Hub snapshot; component fallback cannot register ACQUIRED_VERIFIED. Legacy unsupported rows are demoted with Evidence retained.
+- Local full suite: 155 passed. PR checks: tests #36223856929, hf-e2e #36223856932, cli-smoke #36223856928 all SUCCESS. Post-main tests #36223992581 SUCCESS.
+- Autonomous run #469 (`36224458749`) used exact merge commit `e7fd98b` and completed SUCCESS. Downloaded Evidence artifact `10900376153` and live registry artifact `10900196508`.
+- In the actual uploaded registry, `pyannote/wespeaker-voxceleb-resnet34-LM` changed from ACQUIRED_VERIFIED to VERIFY_REQUIRED with reason `missing pinned model bytes or model-card evidence`. The other three legacy entries remain ACQUIRED_VERIFIED/PENDING. No prior Evidence was deleted.
+- The same cycle still has `results: []`, `watchdog_requeued: []`, queue FAILED_TERMINAL 20 / DELIVERED 14. New acquisitions 0, new TESTED_PASS 0, new DELIVERED 0. This fix closes the **false acquisition classification**, not the **zero-throughput** issue.
+
+Decision: acquisition classification fix DEPLOYED_AND_RUNTIME_VERIFIED; new-request throughput and AURA product delivery remain OPEN.
