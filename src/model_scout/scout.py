@@ -171,6 +171,18 @@ def _capability_queries(raw: str) -> list[str]:
     return []
 
 
+def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
+    """Exclude visibly wrong modalities before an open-ended request reaches acquisition."""
+    queries = _capability_queries(raw)
+    if not queries:
+        return True
+    model_id = str(model.get("model_id") or "").casefold()
+    pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
+    if queries[0] == "document visual question answering":
+        return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
+    return ("controlnet" in model_id or "inpaint" in model_id) and pipeline_tag in {"image-to-image", "text-to-image"}
+
+
 def _query_plan(profile: dict[str, Any]) -> list[str]:
     raw = str(profile.get("raw") or "")
     explicit_model_ids = _explicit_model_ids(raw)
@@ -198,7 +210,10 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
 
     deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
     models = list(deduped.values())
-    filtered_models = filter_candidates(models, profile)
+    filtered_models = [
+        model for model in filter_candidates(models, profile)
+        if _capability_compatible(model, str(profile.get("raw") or ""))
+    ]
 
     candidates = []
     for model in filtered_models:
