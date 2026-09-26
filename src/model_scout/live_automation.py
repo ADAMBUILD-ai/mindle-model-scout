@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, Iterable
 
 from .automation_cycle import DurableEvidenceStore, run_runtime_cycle, run_scout_cycle
 from .delivery_ledger import DeliveryLedger, DeliveryState
 from .github_callback_transport import GitHubIssueCommentWriter
 from .github_issue_source import GitHubIssueSource
-from .github_request_discovery import request_discovery_repositories
+from .github_request_discovery import (
+    is_model_scout_request,
+    normalize_github_issue_request,
+    parse_issue_form,
+    request_discovery_repositories,
+)
 from .persistent_queue import PersistentRequestQueue
 from .scout import scout as run_scout_core
 
@@ -27,6 +32,7 @@ def run_live_cycle(
     preferred_source: tuple[str, int] | None = None,
     max_requests: int = 4,
     scoped_requests: Iterable[Mapping[str, str]] = (),
+    discovery_diagnostics: MutableMapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
@@ -45,6 +51,67 @@ def run_live_cycle(
     source = issue_source or GitHubIssueSource()
     writer = callback_writer or GitHubIssueCommentWriter()
     issues = source.list_open_issues(discovery_repos)
+    if discovery_diagnostics is not None:
+        repository_rows = []
+        source_rows = {
+            str(row.get("repository_full_name", "")).casefold(): dict(row)
+            for row in getattr(source, "repository_diagnostics", ())
+        }
+        for repo in discovery_repos:
+            key = repo.casefold()
+            repo_issues = [
+                issue for issue in issues
+                if str(issue.get("repository_full_name", "")).casefold() == key
+            ]
+            matching = [
+                issue for issue in repo_issues
+                if is_model_scout_request(str(issue.get("title") or ""), str(issue.get("body") or ""))
+            ]
+            normalized = [
+                envelope for issue in matching
+                if (envelope := normalize_github_issue_request(issue, configured_repos=discovery_repos)) is not None
+            ]
+            row = source_rows.get(key, {
+                "repository_full_name": repo,
+                "requested": True,
+                "status_code": None,
+                "open_issue_count": len(repo_issues),
+                "error_type": None,
+            })
+            row.update({
+                "matching_request_count": len(matching),
+                "normalized_request_count": len(normalized),
+                "request_fingerprints": [item.fingerprint for item in normalized],
+            })
+            repository_rows.append(row)
+        canonical = []
+        for issue_number in (35, 36):
+            issue = next((
+                item for item in issues
+                if str(item.get("repository_full_name", "")).casefold() == "adambuild-ai/aura-engine"
+                and int(item.get("number") or 0) == issue_number
+            ), None)
+            normalized = (
+                normalize_github_issue_request(issue, configured_repos=discovery_repos)
+                if issue is not None else None
+            )
+            canonical.append({
+                "repository_full_name": "ADAMBUILD-ai/aura-engine",
+                "issue_number": issue_number,
+                "present_in_raw_list": issue is not None,
+                "state": str(issue.get("state")) if issue is not None else None,
+                "title": str(issue.get("title")) if issue is not None else None,
+                "marker_match": bool(issue and is_model_scout_request(str(issue.get("title") or ""), str(issue.get("body") or ""))),
+                "parsed_form_fields": parse_issue_form(str(issue.get("body") or "")) if issue else {},
+                "normalized": normalized is not None,
+                "request_fingerprint": normalized.fingerprint if normalized else None,
+            })
+        discovery_diagnostics.update({
+            "requested_repositories": list(discovery_repos),
+            "repository_discovery": repository_rows,
+            "repository_failures": list(getattr(source, "repository_failures", ())),
+            "canonical_aura_requests": canonical,
+        })
     issue_index = {
         (str(issue.get("repository_full_name", "")).casefold(), int(issue.get("number") or 0)): issue
         for issue in issues
