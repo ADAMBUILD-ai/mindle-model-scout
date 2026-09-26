@@ -60,6 +60,13 @@ def run_autonomous_cycle(
     requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries)
     requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
     executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
+    scoped_config = os.environ.get("MODEL_SCOUT_SCOPED_REQUESTS_CONFIG", "")
+    scoped_requests = ()
+    if scoped_config:
+        scopes = json.loads(Path(scoped_config).read_text(encoding="utf-8"))
+        if not isinstance(scopes, list) or any(not isinstance(item, dict) for item in scopes):
+            raise ValueError("scoped requests config must be a list of mappings")
+        scoped_requests = tuple(scopes)
     runtime_runner = load_runtime_executor_registry(
         executor_config,
         work_root=root / "runtime-work",
@@ -80,11 +87,16 @@ def run_autonomous_cycle(
         runtime_runner=runtime_runner,
         preferred_source=preferred_source,
         max_requests=max_requests,
+        scoped_requests=scoped_requests,
     )
+    queue_snapshot = queue.snapshot()
+    eligible = sum(item["state"] in {"QUEUED", "EVIDENCE_READY"} for item in queue_snapshot)
     return {
         "watchdog_requeued": requeued,
         "results": results,
-        "queue": queue.snapshot(),
+        "queue": queue_snapshot,
+        "idle_reason": "NO_ELIGIBLE_REQUESTS" if not results and not eligible else None,
+        "eligible_request_count": eligible,
         "model_registry": str(root / "model-registry.json"),
         "intake_coverage": intake_coverage,
     }
