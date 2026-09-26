@@ -7,6 +7,7 @@ scout_module = importlib.import_module("src.model_scout.scout")
 HuggingFaceSearchError = scout_module.HuggingFaceSearchError
 scout = scout_module.scout
 search_huggingface = scout_module.search_huggingface
+search_huggingface_task = scout_module.search_huggingface_task
 query_plan = scout_module._query_plan
 
 
@@ -66,9 +67,9 @@ def test_query_plan_maps_architectural_visual_understanding_capability():
     }
 
     assert query_plan(profile) == [
-        "document visual question answering",
-        "vision language model",
-        "image-to-text",
+        "task:document-question-answering",
+        "task:visual-question-answering",
+        "task:image-to-text",
     ]
 
 
@@ -87,7 +88,7 @@ def test_query_plan_maps_geometry_preserving_visual_edit_capability():
 
 
 @pytest.mark.parametrize("capability,expected", [
-    ("ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT", "document visual question answering"),
+    ("ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT", "task:document-question-answering"),
     ("GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT", "controlnet inpainting"),
 ])
 def test_issue_form_paths_and_owner_do_not_displace_capability(capability, expected):
@@ -186,6 +187,30 @@ def test_search_retries_retryable_5xx_then_succeeds(monkeypatch):
 
     assert search_huggingface("tts") == []
     assert calls == 3
+
+
+def test_task_search_uses_pipeline_filter_instead_of_text_search(monkeypatch):
+    seen = {}
+
+    def response(request, timeout):
+        seen["url"] = request.full_url
+        return _DummyResponse()
+
+    monkeypatch.setattr(scout_module.urllib.request, "urlopen", response)
+    monkeypatch.setattr(scout_module.json, "load", lambda response: [])
+    assert search_huggingface_task("image-to-text", limit=25) == []
+    assert "pipeline_tag=image-to-text" in seen["url"]
+    assert "sort=downloads" in seen["url"]
+    assert "search=" not in seen["url"]
+
+
+def test_scout_routes_capability_task_queries_to_task_search(monkeypatch):
+    task_calls = []
+    monkeypatch.setattr(scout_module, "search_huggingface_task",
+                        lambda task, limit: task_calls.append(task) or [])
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda query, limit: [])
+    scout("ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT floor plan proposal page", limit=10)
+    assert task_calls == ["document-question-answering", "visual-question-answering", "image-to-text"]
 
 
 def test_search_does_not_retry_client_error(monkeypatch):
