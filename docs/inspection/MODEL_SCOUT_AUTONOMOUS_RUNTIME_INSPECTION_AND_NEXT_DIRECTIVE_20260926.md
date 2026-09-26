@@ -29,3 +29,16 @@ Decision: scheduler operational; acquisition/registry integrity and real-request
 - The same cycle still has `results: []`, `watchdog_requeued: []`, queue FAILED_TERMINAL 20 / DELIVERED 14. New acquisitions 0, new TESTED_PASS 0, new DELIVERED 0. This fix closes the **false acquisition classification**, not the **zero-throughput** issue.
 
 Decision: acquisition classification fix DEPLOYED_AND_RUNTIME_VERIFIED; new-request throughput and AURA product delivery remain OPEN.
+
+## Additional throughput inspection — 2026-09-26
+
+- Read all first-page open Issues (`per_page=100`) from the central repository and eight configured team repositories. Central repo had 35 open issue/PR API entries; 24 open non-PR items contained MODEL SCOUT/Hugging Face markers. ADAM had four matching open issues; AURA two; AGRI, MEDIA, KIMSERV, ARCOS one each. Thus there is existing open demand, not an empty request universe.
+- The actual run #469 durable queue contains 34 records: FAILED_TERMINAL 20, DELIVERED 14, QUEUED 0, EVIDENCE_READY 0. Its results are empty. Several terminal rows have historical retry_count >200 and last_error `retry limit reached (3)`; the new bounded-retry fix stops unbounded retry but does not automatically revive them.
+- Previously recorded DELIVERED is queue state only; this run's Evidence does not independently prove new exact-revision download, CPU product output, TESTED_PASS or consuming-team receipt. Do not count those 14 as newly validated model deliveries.
+- Root of current inactivity: discovery sees many already-known open requests, but enqueue deduplicates by fingerprint and the queue only executes QUEUED/EVIDENCE_READY. All current records are terminal or delivered. Success means the cycle completed, not that it processed a model.
+
+### Next bounded execution test
+
+Select one real still-open model request whose acceptance input and candidate are executable; inspect its historical terminal cause in durable evidence and correct that cause before one explicitly scoped retry. Do not blanket reset 20 terminal records. Require one cycle on exact main head with request ID, selected official model/revision, license snapshot, actual weight bytes and SHA-256, CPU output, then product decision and callback. If no request passes the legal/runtime gate, record the specific blocker and alternate candidate without marking DELIVERED. Expose an `idle_reason`/eligible count and per-request terminal cause in the cycle summary so a green workflow with zero results cannot be mistaken for throughput.
+
+Decision: no broad PASS for MODEL SCOUT productivity; registry classification fix is verified, backlog recovery and product acceptance remain OPEN.
