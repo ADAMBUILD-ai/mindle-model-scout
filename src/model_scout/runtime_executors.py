@@ -97,6 +97,20 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _candidate_has_pinned_weights(model_id: str, revision: str) -> bool:
+    """Check official Hub metadata before spending CPU time on a model loader."""
+    from huggingface_hub import HfApi
+    from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
+
+    try:
+        info = HfApi().model_info(model_id, revision=revision)
+    except (RepositoryNotFoundError, RevisionNotFoundError):
+        return False
+    if str(info.sha or "").casefold() != revision.casefold():
+        return False
+    return any(str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS) for sibling in (info.siblings or []))
+
+
 @dataclass(frozen=True)
 class LocalCommandAdapter:
     kind: str
@@ -107,6 +121,7 @@ class LocalCommandAdapter:
     command: tuple[str, ...]
     downloaded_files: tuple[Path, ...]
     timeout_seconds: float = 900.0
+    preflight_weights: bool = False
 
     def __post_init__(self) -> None:
         if self.kind not in EXECUTOR_KINDS:
@@ -139,11 +154,30 @@ class LocalCommandAdapter:
         requested_model_id = envelope.requested_model_id
         if requested_model_id in {"UNKNOWN", "SCOUT_SELECTION_REQUIRED"}:
             requested_model_id = ""
-        selected = select_executable_candidate(scout_result, requested_model_id)
+        selected = None
         raw_candidates = scout_result.get("candidates")
+        selection_diagnostics: list[dict[str, str]] = []
+        candidates = raw_candidates if isinstance(raw_candidates, list) else []
+        for index in range(len(candidates)):
+            candidate = select_executable_candidate({"candidates": [candidates[index]]}, requested_model_id)
+            if candidate is None:
+                continue
+            candidate_id = str(candidate.get("model_id") or candidate.get("id"))
+            candidate_revision = str(candidate.get("revision"))
+            if self.kind == "ocr-vision" and "trocr" not in candidate_id.casefold() and str(candidate.get("pipeline_tag") or "") not in {
+                "image-to-text", "visual-question-answering", "document-question-answering"
+            }:
+                selection_diagnostics.append({"model_id": candidate_id, "reason": "unsupported_safe_vision_pipeline"})
+                continue
+            if self.preflight_weights and not _candidate_has_pinned_weights(candidate_id, candidate_revision):
+                selection_diagnostics.append({"model_id": candidate_id, "reason": "no_weights_at_exact_revision"})
+                continue
+            selected = candidate
+            break
         if isinstance(raw_candidates, list) and raw_candidates and selected is None:
             raise RuntimeExecutorUnavailable(
-                "scout returned candidates but none had an allowed license and immutable revision"
+                "scout returned no runnable candidate with allowed license, immutable revision, supported adapter, "
+                f"and pinned weights; skipped={selection_diagnostics[:10]}"
             )
         selected_model_id = str(selected.get("model_id") or selected.get("id")) if selected else self.model_id
         selected_revision = str(selected.get("revision")) if selected else self.model_revision
@@ -214,6 +248,7 @@ class LocalCommandAdapter:
             "acceptance_checks": dict(output_payload.get("acceptance_checks") or {}),
             "license": selected_license,
             "selected_candidate": selected is not None,
+            "selection_diagnostics": selection_diagnostics,
             "input": str(input_path),
             "output_path": str(output_path),
             "output_size": output_path.stat().st_size,
@@ -339,6 +374,7 @@ def load_runtime_executor_registry(
             command=tuple(str(value) for value in raw.get("command", ())),
             downloaded_files=downloads,
             timeout_seconds=float(raw.get("timeout_seconds", 900)),
+            preflight_weights=bool(raw.get("preflight_weights", False)),
         )
     registry = ModelRegistry(model_registry_path) if model_registry_path else None
     return RuntimeExecutorRegistry(adapters, work_root=work_root, model_registry=registry)
