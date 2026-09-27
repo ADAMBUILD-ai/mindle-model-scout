@@ -13,11 +13,9 @@ ScoutRunner = Callable[[str, int, str], Mapping[str, Any]]
 def _core_resource(resource: str) -> str:
     """Map request-envelope resources onto the currently supported scout core contract."""
     normalized = (resource or "all").strip().casefold()
-    if normalized in {"model", "dataset", "space", "all"}:
+    if normalized in {"model", "dataset", "space", "tool", "all"}:
         return normalized
-    # The request envelope may contain `tool`; the current core does not expose a
-    # dedicated tool resource. Preserve execution by widening discovery to `all`
-    # and expose the originally requested resource in dispatch evidence.
+    # Unknown resource contracts remain broad for legacy callers.
     return "all"
 
 

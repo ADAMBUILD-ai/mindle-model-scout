@@ -62,7 +62,7 @@ def test_dispatch_one_rejects_non_queued_request():
         raise AssertionError("dispatch_one must reject non-QUEUED requests")
 
 
-def test_dispatch_one_widens_tool_request_to_current_core_all_resource():
+def test_dispatch_one_preserves_tool_resource_for_dedicated_search():
     queue, queued = _queued_request(resource="tool")
     calls = []
 
@@ -72,7 +72,7 @@ def test_dispatch_one_widens_tool_request_to_current_core_all_resource():
 
     evidence = dispatch_one(queue, queued.fingerprint, scout_runner=fake_scout)
 
-    assert calls[0][2] == "all"
+    assert calls[0][2] == "tool"
     assert evidence["requested_resource"] == "tool"
-    assert evidence["dispatched_resource"] == "all"
+    assert evidence["dispatched_resource"] == "tool"
     assert evidence["state"] == QueueState.EVIDENCE_READY.value
