@@ -193,7 +193,9 @@ def _capability_queries(raw: str) -> list[str]:
     """Map open-ended capability requests to short, deterministic Hub queries."""
     text = " ".join(raw.casefold().replace("_", " ").split())
     if ("embedding" in text or "임베딩" in text) and ("korean" in text or "한국어" in text):
-        return ["multilingual", "task:feature-extraction"]
+        # Broad Hub task top hits skew English; search the multilingual embedding
+        # family as well, then apply metadata, license and runtime preflight.
+        return ["multilingual-e5", "multilingual", "task:feature-extraction"]
     if any(term in text for term in (
         "geometry preserving", "controlled visual", "protected pixel",
         "outside mask delta", "controlnet", "inpainting",
@@ -216,7 +218,7 @@ def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
     pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
     if queries[0] == "task:document-question-answering":
         return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
-    if queries[0] == "multilingual":
+    if queries[0] in {"multilingual", "multilingual-e5"}:
         return pipeline_tag in {"feature-extraction", "sentence-similarity"}
     return ("controlnet" in model_id or "inpaint" in model_id) and pipeline_tag in {"image-to-image", "text-to-image"}
 
