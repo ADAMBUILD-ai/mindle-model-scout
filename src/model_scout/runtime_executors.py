@@ -140,8 +140,12 @@ def _candidate_weight_bytes(model_id: str, revision: str) -> int | None:
             time.sleep(2 ** attempt)
     if str(info.sha or "").casefold() != revision.casefold():
         return None
-    weights = [sibling for sibling in (info.siblings or [])
-               if str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS)]
+    # Transformers loads one weight format. Counting both safetensors and legacy
+    # PyTorch copies rejects otherwise viable CPU candidates before download.
+    siblings = info.siblings or []
+    weights = [item for item in siblings if str(item.rfilename).casefold().endswith(".safetensors")]
+    if not weights:
+        weights = [item for item in siblings if str(item.rfilename).casefold().endswith(".bin")]
     sizes = [getattr(sibling, "size", None) for sibling in weights]
     if not sizes or any(not isinstance(size, int) or size <= 0 for size in sizes):
         return None
@@ -379,6 +383,17 @@ class RuntimeExecutorRegistry:
             payload = self.model_registry._read()
             changed = False
             for row in payload["models"]:
+                # Run #593 acquired valid bytes, but the English-only model card
+                # cannot satisfy AGRI #33's Korean embedding requirement. Preserve
+                # acquisition proof while correcting the product suitability claim.
+                if (row.get("model_id") == "BAAI/bge-small-en-v1.5"
+                    and row.get("revision") == "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
+                    and "ADAMBUILD-ai/mindle-model-scout#33" in (row.get("originating_requests") or [])):
+                    if row.get("validation_status") != "REJECT_QUALITY":
+                        row["validation_status"] = "REJECT_QUALITY"
+                        row["product_review_reason"] = "English-only model card is incompatible with AGRI #33 Korean embedding requirement; autonomous run #593"
+                        row["consuming_teams"] = [team for team in (row.get("consuming_teams") or []) if team != "AGRI"]
+                        changed = True
                 if row.get("acquisition_runner") != "candidate-aware-runtime-v2" or row.get("acquisition_status") != "ACQUIRED_VERIFIED":
                     continue
                 try:

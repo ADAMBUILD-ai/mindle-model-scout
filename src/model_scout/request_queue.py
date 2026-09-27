@@ -15,6 +15,7 @@ class QueueState(str, Enum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
     EVIDENCE_READY = "EVIDENCE_READY"
+    ACQUIRED_VERIFIED = "ACQUIRED_VERIFIED"
     DELIVERED = "DELIVERED"
     BLOCKED_APPROVAL = "BLOCKED_APPROVAL"
     BLOCKED_INPUT = "BLOCKED_INPUT"
@@ -41,8 +42,9 @@ _ALLOWED_TRANSITIONS: dict[QueueState, set[QueueState]] = {
         QueueState.BLOCKED_INPUT,
         QueueState.FAILED_RETRYABLE,
     },
-    QueueState.EVIDENCE_READY: {QueueState.DELIVERED},
-    QueueState.DELIVERED: set(),
+    QueueState.EVIDENCE_READY: {QueueState.DELIVERED, QueueState.ACQUIRED_VERIFIED},
+    QueueState.DELIVERED: {QueueState.ACQUIRED_VERIFIED},  # audited legacy component correction
+    QueueState.ACQUIRED_VERIFIED: set(),
     QueueState.BLOCKED_APPROVAL: {QueueState.QUEUED},
     QueueState.BLOCKED_INPUT: {QueueState.QUEUED, QueueState.SUPERSEDED, QueueState.MISROUTED},
     QueueState.FAILED_RETRYABLE: {QueueState.QUEUED, QueueState.FAILED_TERMINAL, QueueState.SUPERSEDED, QueueState.MISROUTED},

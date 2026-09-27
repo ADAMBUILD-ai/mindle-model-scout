@@ -47,6 +47,15 @@ def test_render_callback_labels_component_acquisition_without_product_pass():
     assert "product TESTED_PASS remains pending" in body
 
 
+def test_component_callback_keeps_acquired_state_without_product_delivery():
+    queue, ready, evidence = _ready_queue()
+    evidence["status"] = "ACQUIRED_VERIFIED"
+    result = deliver_evidence(queue, ready.fingerprint, evidence, writer=lambda *_: {"id": 42})
+    assert result["delivered"] is True  # callback receipt only
+    assert result["state"] == "ACQUIRED_VERIFIED"
+    assert queue.get(ready.fingerprint).state == QueueState.ACQUIRED_VERIFIED
+
+
 def test_deliver_evidence_writes_source_callback_and_marks_delivered():
     queue, ready, evidence = _ready_queue()
     calls = []

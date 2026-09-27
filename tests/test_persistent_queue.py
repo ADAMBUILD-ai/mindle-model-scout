@@ -77,6 +77,22 @@ def test_misrouted_team_input_issue_is_quarantined_with_prior_failure(tmp_path):
         ).fetchone() == ("FAILED_TERMINAL", "old search error")
 
 
+def test_legacy_component_callback_is_reclassified_from_delivered(tmp_path):
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    acquired, _ = queue.enqueue(normalize_request(project="AGRI", request_text="component acquisition"))
+    tested, _ = queue.enqueue(normalize_request(project="AGRI", request_text="request complete"))
+    for item in (acquired, tested):
+        queue.set_state(item.fingerprint, QueueState.RUNNING)
+        queue.set_state(item.fingerprint, QueueState.EVIDENCE_READY)
+        queue.set_state(item.fingerprint, QueueState.DELIVERED)
+    evidence = {acquired.fingerprint: {"status": "ACQUIRED_VERIFIED"},
+                tested.fingerprint: {"status": "TESTED_PASS"}}
+    assert queue.reclassify_component_deliveries(evidence.get) == [acquired.fingerprint]
+    assert queue.reclassify_component_deliveries(evidence.get) == []
+    assert queue.get(acquired.fingerprint).state == QueueState.ACQUIRED_VERIFIED
+    assert queue.get(tested.fingerprint).state == QueueState.DELIVERED
+
+
 def test_exact_terminal_recovery_runs_once_and_preserves_prior_failure(tmp_path):
     import sqlite3
 

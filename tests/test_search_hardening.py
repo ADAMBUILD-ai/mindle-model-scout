@@ -88,6 +88,21 @@ def test_query_plan_maps_geometry_preserving_visual_edit_capability():
     ]
 
 
+def test_korean_embedding_filters_english_only_metadata_before_acquisition(monkeypatch):
+    raw = [
+        {"modelId": "BAAI/bge-small-en-v1.5", "sha": "a" * 40,
+         "pipeline_tag": "feature-extraction", "tags": ["license:mit", "language:en"]},
+        {"modelId": "example/multilingual-embedding", "sha": "b" * 40,
+         "pipeline_tag": "feature-extraction", "tags": ["license:mit", "language:ko"]},
+    ]
+    candidates = [scout_module.normalize_model(item) for item in raw]
+    monkeypatch.setattr(scout_module, "search_huggingface", lambda *_: candidates)
+    monkeypatch.setattr(scout_module, "search_huggingface_task", lambda *_: candidates)
+    result = scout("Korean agricultural supplier embedding license", limit=10)
+    assert result["query_plan"][0] == "multilingual"
+    assert [item["model_id"] for item in result["candidates"]] == ["example/multilingual-embedding"]
+
+
 @pytest.mark.parametrize("capability,expected", [
     ("ARCHITECTURAL_VISUAL_UNDERSTANDING_REPLACEMENT", "task:document-question-answering"),
     ("GEOMETRY_PRESERVING_CONTROLLED_VISUAL_GENERATION_EDIT", "controlnet inpainting"),

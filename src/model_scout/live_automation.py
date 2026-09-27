@@ -175,6 +175,9 @@ def run_live_cycle(
     if before_dispatch is not None:
         before_dispatch()  # Watchdog sees canonical reconciliation first.
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
+    corrected_components = queue.reclassify_component_deliveries(evidence_store.get)
+    if discovery_diagnostics is not None:
+        discovery_diagnostics["corrected_component_delivery_fingerprints"] = corrected_components
     ledger = DeliveryLedger(root / "model_delivery.sqlite3")
     cycle = run_runtime_cycle if runtime_runner is not None else run_scout_cycle
     cycle_args: dict[str, Any] = {

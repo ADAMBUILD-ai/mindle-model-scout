@@ -46,6 +46,13 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
     tags = raw.get("tags") or []
     if not isinstance(tags, list):
         tags = []
+    card = raw.get("cardData") if isinstance(raw.get("cardData"), dict) else {}
+    card_languages = card.get("language") or card.get("languages") or []
+    if isinstance(card_languages, str):
+        card_languages = [card_languages]
+    languages = [str(value).casefold() for value in card_languages if isinstance(value, str)]
+    languages.extend(tag.split(":", 1)[1].casefold() for tag in tags
+                     if isinstance(tag, str) and tag.startswith("language:"))
     return {
         "model_id": raw.get("modelId") or raw.get("id") or "",
         "source_url": f"https://huggingface.co/{raw.get('modelId') or raw.get('id')}" if raw.get("modelId") or raw.get("id") else None,
@@ -55,6 +62,7 @@ def normalize_model(raw: dict[str, Any]) -> dict[str, Any]:
         "library_name": raw.get("library_name"),
         "license": _license_from_tags(tags),
         "tags": tags,
+        "languages": list(dict.fromkeys(languages)),
         "revision": raw.get("sha"),
         "model_files": [str(item.get("rfilename")) for item in raw.get("siblings", [])
                         if isinstance(item, dict) and item.get("rfilename")]
@@ -184,6 +192,8 @@ def _explicit_model_ids(raw: str) -> list[str]:
 def _capability_queries(raw: str) -> list[str]:
     """Map open-ended capability requests to short, deterministic Hub queries."""
     text = " ".join(raw.casefold().replace("_", " ").split())
+    if ("embedding" in text or "임베딩" in text) and ("korean" in text or "한국어" in text):
+        return ["multilingual", "task:feature-extraction"]
     if any(term in text for term in (
         "geometry preserving", "controlled visual", "protected pixel",
         "outside mask delta", "controlnet", "inpainting",
@@ -206,6 +216,8 @@ def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
     pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
     if queries[0] == "task:document-question-answering":
         return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
+    if queries[0] == "multilingual":
+        return pipeline_tag in {"feature-extraction", "sentence-similarity"}
     return ("controlnet" in model_id or "inpaint" in model_id) and pipeline_tag in {"image-to-image", "text-to-image"}
 
 
