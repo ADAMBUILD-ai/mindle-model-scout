@@ -6,7 +6,7 @@ from typing import Any
 
 from .filters import filter_candidates
 from .requirements import parse_requirement
-from .resources import SUPPORTED_RESOURCE_TYPES, search_resource
+from .resources import SUPPORTED_RESOURCE_TYPES, search_resource, search_render_tools
 
 HF_API = "https://huggingface.co/api/models"
 
@@ -31,6 +31,8 @@ class Candidate:
     last_modified: str | None = None
     revision: str | None = None
     model_files: list[str] | None = None
+    distributions: list[dict[str, Any]] | None = None
+    reported_license_classifier: str | None = None
 
 
 def _license_from_tags(tags: list[str]) -> str | None:
@@ -216,8 +218,8 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
 
 
 def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str, Any]:
-    if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "all"):
-        raise ValueError("resource_type must be model, dataset, space, or all")
+    if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "tool", "all"):
+        raise ValueError("resource_type must be model, dataset, space, tool, or all")
     profile = parse_requirement(query)
     profile["explicit_model_ids"] = _explicit_model_ids(str(profile.get("raw") or ""))
     query_plan = _query_plan(profile)
@@ -226,6 +228,11 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     models: list[dict[str, Any]] = []
 
     for kind in types:
+        if kind == "tool":
+            if not any(word in query.casefold() for word in ("render", "mapping", "pbr", "texture", "glb")):
+                raise ValueError("tool scouting requires an explicit render or mapping capability")
+            models.extend(search_render_tools())
+            continue
         for planned_query in query_plan:
             if kind == "model":
                 if planned_query.startswith("task:"):
@@ -241,6 +248,8 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
         model for model in filter_candidates(models, profile)
         if _capability_compatible(model, str(profile.get("raw") or ""))
     ]
+    if resource_type == "tool":
+        filtered_models = models  # PyPI package metadata has no Hub task/language tags.
 
     candidates = []
     for model in filtered_models:
@@ -261,6 +270,8 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
                 model.get("last_modified"),
                 model.get("revision"),
                 model.get("model_files"),
+                model.get("distributions"),
+                model.get("reported_license_classifier"),
             )
         )
     candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))

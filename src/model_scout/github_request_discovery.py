@@ -61,6 +61,12 @@ def infer_priority(title: str, body: str) -> str:
 
 def infer_resource(title: str, body: str) -> str:
     haystack = f"{title}\n{body}".casefold()
+    # A render program request often mentions old model work as negative context.
+    # Its requested deliverable is an executable tool, not a Hub model.
+    if re.search(r"\b(mapping|render|renderer|pbr|texture)\b", title, re.I) and re.search(
+        r"\b(blender|pyrender|open3d|trimesh|program|engine)\b|프로그램|렌더", body, re.I
+    ):
+        return "tool"
     if re.search(r"\ball\b", haystack) and any(word in haystack for word in _RESOURCE_WORDS):
         return "all"
     found = [word for word in _RESOURCE_WORDS if re.search(rf"\b{word}s?\b", haystack)]
@@ -155,10 +161,13 @@ def normalize_github_issue_request(
 
     request_text = body or title
     form = parse_issue_form(body)
-    product = form.get("product", "UNKNOWN")
+    project = infer_project(repo, title, body)
+    product = form.get("product", project if project != "MINDLE_MODEL_SCOUT" else "UNKNOWN")
     requested_model_id = form.get("requested_model_id", "UNKNOWN")
     requested_model_family = form.get("requested_model_family", "UNKNOWN")
     requested_capability = form.get("requested_capability", "UNKNOWN")
+    if requested_capability == "UNKNOWN" and infer_resource(title, body) == "tool":
+        requested_capability = "GLB_PBR_MAPPING_RENDER"
     callback_repo = form.get("callback_repo", repo)
     callback_issue_raw = form.get("callback_issue", "SAME_AS_SOURCE")
     callback_issue = issue_number
@@ -166,7 +175,7 @@ def normalize_github_issue_request(
         match = re.search(r"\d+", callback_issue_raw)
         callback_issue = int(match.group()) if match else issue_number
     return normalize_request(
-        project=product if product != "UNKNOWN" else infer_project(repo, title, body),
+        project=product if product != "UNKNOWN" else project,
         request_text=request_text,
         resource=form.get("resource", infer_resource(title, body)),
         priority=form.get("priority", infer_priority(title, body)),
@@ -174,7 +183,7 @@ def normalize_github_issue_request(
         source_issue=issue_number,
         callback_repo=callback_repo,
         callback_issue=callback_issue,
-        requesting_team=form.get("requesting_team", "UNKNOWN"),
+        requesting_team=form.get("requesting_team", project if project != "MINDLE_MODEL_SCOUT" else "UNKNOWN"),
         product=product,
         request_owner=form.get("request_owner", "UNKNOWN"),
         requested_capability=requested_capability,

@@ -34,6 +34,19 @@ def test_executor_kind_routing(text, expected):
     assert classify_executor_kind(_envelope(text)) == expected
 
 
+def test_render_tool_request_ignores_historical_ocr_reference(tmp_path):
+    from dataclasses import replace
+    request = replace(_envelope("AVORA Mapping / PBR / Render; earlier OCR model is unrelated"),
+                      resource="tool", requested_capability="GLB_PBR_MAPPING_RENDER")
+    assert classify_executor_kind(request) == "geometry-tool"
+    adapter = LocalCommandAdapter(
+        kind="geometry-tool", model_id="trimesh/trimesh", model_revision="fallback", source="pypi:trimesh",
+        license="mit", command=(sys.executable, "-c", "pass"), downloaded_files=(),
+    )
+    with pytest.raises(RuntimeExecutorUnavailable, match="metadata-only"):
+        adapter.run(request, {"candidates": [{"resource_type": "tool", "model_id": "pypi/trimesh"}]}, work_root=tmp_path)
+
+
 def test_local_command_executor_captures_real_artifact_and_output(tmp_path):
     artifact = tmp_path / "weights.bin"
     artifact.write_bytes(b"real-downloaded-artifact")

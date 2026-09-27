@@ -132,3 +132,17 @@ def test_central_execution_and_binary_handoff_use_dedicated_workers():
              "state": "open", "title": title, "body": "Model Scout actual binary package required"},
             configured_repos=["ADAMBUILD-ai/mindle-model-scout"],
         ) is None
+
+
+def test_central_avora_render_request_is_a_tool_with_team_and_capability():
+    issue = {
+        "repository_full_name": "ADAMBUILD-ai/mindle-model-scout", "number": 115,
+        "state": "open", "title": "[P0][AVORA] Mapping / PBR / Texture / Final Render 모델·프로그램 검증 요청",
+        "body": "## MODEL SCOUT 즉시 실행 요청 — AVORA Mapping / Render\n\n"
+                "Blender Headless / pyrender / trimesh. Earlier OCR models are unrelated.",
+    }
+    request = normalize_github_issue_request(issue, configured_repos=["ADAMBUILD-ai/mindle-model-scout"])
+    assert request is not None
+    assert (request.project, request.product, request.requesting_team) == ("AVORA", "AVORA", "AVORA")
+    assert request.resource == "tool"
+    assert request.requested_capability == "GLB_PBR_MAPPING_RENDER"

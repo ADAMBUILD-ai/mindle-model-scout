@@ -1,0 +1,8 @@
+# MODEL SCOUT AVORA render next Work directive — 2026-09-27 KST
+
+1. Inspect the paired routing inspection, the latest main, and post-merge autonomous Evidence. Confirm central #115 normalizes to AVORA / tool / GLB_PBR_MAPPING_RENDER and PyPI candidate discovery names exact releases and distribution hashes. Preserve the earlier failed row and ordinary backoff.
+2. Locate the actual AVORA GLB artifact through the existing authorized AVORA handoff, verify its SHA-256 equals `a9d40b35953b4d0d3e3c7ffcc19850f067945a45647f5ebf8c3cf490f6f4a171`, then save its artifact ID and independent download receipt. A filename alone is insufficient.
+3. Add a bounded tool acquisition adapter for at least two curated executable render families. Download exact official distributions, verify bytes/SHA-256 and package license copy, inspect persistent use rights, pin installed version, and never run arbitrary remote code. Reject uncertain licenses.
+4. On the exact GLB, compare real mapped/site-ground renders with PBR/UV/texture and 22 BLEND glass preservation, full 309/4300/7392 scene coverage, Pair B and grounded placement. Save raw outputs, hashes, command, runtime and memory. Keep unsupported or invented site details out.
+5. Apply PASS/SUPPORT_ONLY/REJECT independently. Only an accepted real-input result advances TESTED_PASS and AVORA Issue #8 callback/DELIVERED. If fixture or license is absent, record the precise blocker and keep product status pending.
+6. Submit code, tests, Evidence, CI and updated inspection through PR; merge after all checks pass and verify the exact main execution. No paid hardware, permission expansion, blanket terminal reset, zero backoff or force push.

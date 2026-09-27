@@ -78,7 +78,9 @@ def select_executable_candidate(scout_result: Mapping[str, Any], requested_model
 
 
 def classify_executor_kind(envelope: RequestEnvelope) -> str:
-    text = f"{envelope.project} {envelope.request_text}".casefold()
+    text = f"{envelope.project} {envelope.requested_capability} {envelope.request_text}".casefold()
+    if envelope.resource == "tool" and any(value in text for value in ("mapping", "render", "pbr", "texture")):
+        return "geometry-tool"
     if any(value in text for value in ("embedding", "rerank", "임베딩", "리랭")):
         return "embedding-reranker"
     if any(value in text for value in ("ocr", "vision", "visual", "image", "이미지", "도면", "비전")):
@@ -167,6 +169,11 @@ class LocalCommandAdapter:
     ) -> dict[str, Any]:
         workspace = work_root / envelope.fingerprint
         workspace.mkdir(parents=True, exist_ok=True)
+        if envelope.resource == "tool":
+            raise RuntimeExecutorUnavailable(
+                "render tool discovery is metadata-only; exact AVORA GLB and a verified program package/runtime "
+                "are required before CPU execution or ACQUIRED_VERIFIED"
+            )
         input_path = workspace / "input.json"
         output_path = workspace / "output.json"
         input_payload = {
