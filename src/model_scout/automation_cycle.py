@@ -12,7 +12,7 @@ from .dispatcher import ScoutRunner, dispatch_one
 from .delivery_ledger import DeliveryLedger, DeliveryState
 from .github_request_discovery import discover_github_issue_requests
 from .request_queue import QueueState, RequestEnvelope
-from .runtime_validation import run_runtime_validation
+from .runtime_validation import RuntimeInputUnavailable, run_runtime_validation
 
 
 CallbackWriter = Callable[[str, int, str], Any]
@@ -219,6 +219,22 @@ def run_runtime_cycle(
 
         if envelope.state == QueueState.QUEUED:
             owner = str(envelope.callback_repo or envelope.source_repo or "MODEL_SCOUT_AUTOMATION")
+            if envelope.requested_capability == "PINNED_CROSS_PRODUCT_REUSE":
+                # Reuse means validating the named existing packages against the
+                # product fixture. A generic Hub search could select a different
+                # model and incorrectly count that as product acceptance.
+                def require_product_fixture(_current: RequestEnvelope) -> Mapping[str, Any]:
+                    raise RuntimeInputUnavailable(
+                        "pinned cross-product reuse requires accessible exact AVORA render/GLB "
+                        "and Blender-authoritative masks or approved reference; no rescout or TESTED_PASS"
+                    )
+
+                blocked = run_runtime_validation(queue, fingerprint, runner=require_product_fixture)
+                record_failure = getattr(queue, "record_failure", None)
+                if callable(record_failure):
+                    record_failure(fingerprint, f"input:{blocked['error']}")
+                acquired.append(dict(blocked))
+                return acquired
             try:
                 scout_result = scout_runner(envelope.request_text, limit, envelope.resource)
                 if not isinstance(scout_result, Mapping):

@@ -122,6 +122,22 @@ def test_central_request_repository_is_always_discovered():
         "ADAMBUILD-ai/adam-build",
         "ADAMBUILD-ai/mindle-model-scout",
     )
+    assert request_discovery_repositories(["adambuild-ai/mindle-model-scout"]) == (
+        "adambuild-ai/mindle-model-scout",
+    )
+
+
+def test_pinned_central_reuse_issue_is_ingested_without_generic_scout_marker():
+    request = normalize_github_issue_request(
+        {"repository_full_name": "ADAMBUILD-ai/mindle-model-scout", "number": 118,
+         "state": "open", "title": "[P1][AVORA][REUSE] AURA SAM2.1 and SigLIP validation",
+         "body": "Reuse existing SAM2.1 revision de431c4043854a71d8101e17995dfe596bf101a5 "
+                 "and SigLIP binary SHA256 2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8."},
+        configured_repos=["ADAMBUILD-ai/mindle-model-scout"],
+    )
+    assert request is not None
+    assert request.project == "AVORA"
+    assert request.requested_capability == "PINNED_CROSS_PRODUCT_REUSE"
 
 
 def test_central_execution_and_binary_handoff_use_dedicated_workers():

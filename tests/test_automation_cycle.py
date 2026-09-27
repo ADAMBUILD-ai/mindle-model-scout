@@ -21,6 +21,36 @@ def _issue() -> dict[str, object]:
     }
 
 
+def test_pinned_reuse_waits_for_exact_product_inputs_without_reshopping(tmp_path: Path) -> None:
+    issue = {
+        "repository_full_name": "ADAMBUILD-ai/mindle-model-scout", "number": 118,
+        "state": "open", "title": "[P1][AVORA][REUSE] existing SAM and SigLIP validation",
+        "body": "Reuse pinned revision de431c4043854a71d8101e17995dfe596bf101a5 "
+                "on exact AVORA render and Blender masks.",
+    }
+    queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
+    store = DurableEvidenceStore(tmp_path / "evidence.sqlite3")
+    ledger = DeliveryLedger(tmp_path / "ledger.sqlite3")
+
+    def unexpected(*_args):
+        raise AssertionError("generic scout, runtime, or callback must not run")
+
+    first = run_runtime_cycle(
+        issues=[issue], configured_repos=["ADAMBUILD-ai/mindle-model-scout"],
+        queue=queue, evidence_store=store, delivery_ledger=ledger,
+        scout_runner=unexpected, runtime_runner=unexpected, callback_writer=unexpected,
+    )
+    assert len(first) == 1
+    assert first[0]["status"] == "BLOCKED_INPUT"
+    assert "exact AVORA render/GLB" in first[0]["error"]
+    assert queue.snapshot()[0]["retry_count"] == 0
+    assert run_runtime_cycle(
+        issues=[issue], configured_repos=["ADAMBUILD-ai/mindle-model-scout"],
+        queue=queue, evidence_store=store, delivery_ledger=ledger,
+        scout_runner=unexpected, runtime_runner=unexpected, callback_writer=unexpected,
+    ) == []
+
+
 def test_cross_repo_cycle_delivers_once_and_dedupes(tmp_path: Path) -> None:
     queue = PersistentRequestQueue(tmp_path / "queue.sqlite3")
     store = DurableEvidenceStore(tmp_path / "evidence.sqlite3")

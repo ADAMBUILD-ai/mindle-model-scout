@@ -35,7 +35,11 @@ def request_discovery_repositories(configured_repos: Iterable[str]) -> tuple[str
 
     repos = [str(repo or "").strip() for repo in configured_repos]
     repos.append(CENTRAL_REQUEST_REPOSITORY)
-    return tuple(dict.fromkeys(repo for repo in repos if repo))
+    unique: dict[str, str] = {}
+    for repo in repos:
+        if repo:
+            unique.setdefault(repo.casefold(), repo)
+    return tuple(unique.values())
 
 
 def _text(value: object) -> str:
@@ -148,7 +152,15 @@ def normalize_github_issue_request(
         or "binary handoff" in title.casefold()
     ):
         return None
-    if not is_model_scout_request(title, body):
+    # A central cross-product reuse request names pinned packages rather than
+    # asking for another Hub search. Keep it visible to the queue even when its
+    # author omits the literal "MODEL SCOUT" marker.
+    reuse_request = (
+        repo.casefold() == CENTRAL_REQUEST_REPOSITORY.casefold()
+        and "[reuse]" in title.casefold()
+        and bool(re.search(r"\b(revision|sha256|binary sha)\b", body, re.I))
+    )
+    if not (is_model_scout_request(title, body) or reuse_request):
         return None
 
     raw_number = issue.get("number") or issue.get("issue_number")
@@ -166,6 +178,8 @@ def normalize_github_issue_request(
     requested_model_id = form.get("requested_model_id", "UNKNOWN")
     requested_model_family = form.get("requested_model_family", "UNKNOWN")
     requested_capability = form.get("requested_capability", "UNKNOWN")
+    if requested_capability == "UNKNOWN" and reuse_request:
+        requested_capability = "PINNED_CROSS_PRODUCT_REUSE"
     if requested_capability == "UNKNOWN" and infer_resource(title, body) == "tool":
         requested_capability = "GLB_PBR_MAPPING_RENDER"
     callback_repo = form.get("callback_repo", repo)
