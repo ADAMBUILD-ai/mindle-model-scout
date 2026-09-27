@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 
 from .request_queue import QueueState, RequestEnvelope, transition
@@ -88,6 +88,54 @@ class PersistentRequestQueue:
                     replayed_at REAL NOT NULL
                 )"""
             )
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS superseded_requests (
+                    fingerprint TEXT PRIMARY KEY,
+                    replacement_fingerprint TEXT NOT NULL,
+                    previous_state TEXT NOT NULL,
+                    previous_error TEXT,
+                    superseded_at REAL NOT NULL
+                )"""
+            )
+
+    def supersede_obsolete(self, canonical: Iterable[RequestEnvelope]) -> list[str]:
+        """Retire actionable old normalizations of the same fetched open Issue.
+
+        The current Issue is authoritative. Keep successful delivery, ready evidence,
+        in-flight work, scoped subrequests and historical failure records intact.
+        """
+        current = {
+            (str(item.source_repo).casefold(), item.source_issue): item.fingerprint
+            for item in canonical if item.source_repo and item.source_issue
+        }
+        retired: list[str] = []
+        now = float(self._clock())
+        with self._connect() as connection:
+            for (repo, issue), replacement in current.items():
+                rows = connection.execute(
+                    """SELECT * FROM request_queue
+                       WHERE lower(source_repo) = ? AND source_issue = ?
+                         AND fingerprint != ? AND state IN (?, ?, ?)
+                         AND request_text NOT LIKE 'MODEL SCOUT scoped subrequest%'""",
+                    (repo, issue, replacement, QueueState.QUEUED.value,
+                     QueueState.FAILED_RETRYABLE.value, QueueState.BLOCKED_INPUT.value),
+                ).fetchall()
+                for row in rows:
+                    old = self._row_to_envelope(row)
+                    retired_state = transition(old, QueueState.SUPERSEDED)
+                    connection.execute(
+                        """INSERT OR IGNORE INTO superseded_requests
+                           (fingerprint, replacement_fingerprint, previous_state, previous_error, superseded_at)
+                           VALUES (?, ?, ?, ?, ?)""",
+                        (old.fingerprint, replacement, old.state.value, row["last_error"], now),
+                    )
+                    connection.execute(
+                        "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                        (retired_state.state.value, f"superseded by canonical fingerprint {replacement}",
+                         now, old.fingerprint),
+                    )
+                    retired.append(old.fingerprint)
+        return retired
 
     def replay_failed_once(
         self, *, replay_id: str, source_repo: str, source_issue: int, error_contains: str

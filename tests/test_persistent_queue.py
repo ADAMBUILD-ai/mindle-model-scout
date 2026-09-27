@@ -26,6 +26,36 @@ def test_persistent_queue_survives_reopen(tmp_path):
     assert restored.callback_issue == 33
 
 
+def test_obsolete_normalization_is_audited_without_resetting_history(tmp_path):
+    import sqlite3
+
+    db = tmp_path / "queue.sqlite3"
+    queue = PersistentRequestQueue(db)
+    source = {"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 115}
+    old, _ = queue.enqueue(normalize_request(project="AVORA", request_text="old model request", **source))
+    current = normalize_request(project="AVORA", request_text="render tool request", resource="tool", **source)
+    scoped, _ = queue.enqueue(normalize_request(
+        project="AVORA", request_text="MODEL SCOUT scoped subrequest from real Issue #115. model test", **source))
+    delivered, _ = queue.enqueue(normalize_request(project="AVORA", request_text="prior delivered work", **source))
+    queue.set_state(delivered.fingerprint, QueueState.RUNNING)
+    queue.set_state(delivered.fingerprint, QueueState.EVIDENCE_READY)
+    queue.set_state(delivered.fingerprint, QueueState.DELIVERED)
+    queue.record_failure(old.fingerprint, "previous failed runtime")
+
+    assert queue.supersede_obsolete([current]) == [old.fingerprint]
+    assert queue.supersede_obsolete([current]) == []
+    rows = {row["fingerprint"]: row for row in queue.snapshot()}
+    assert rows[old.fingerprint]["state"] == "SUPERSEDED"
+    assert rows[old.fingerprint]["retry_count"] == 0
+    assert rows[scoped.fingerprint]["state"] == "QUEUED"
+    assert rows[delivered.fingerprint]["state"] == "DELIVERED"
+    with sqlite3.connect(db) as connection:
+        assert connection.execute(
+            "SELECT replacement_fingerprint, previous_error FROM superseded_requests WHERE fingerprint = ?",
+            (old.fingerprint,),
+        ).fetchone() == (current.fingerprint, "previous failed runtime")
+
+
 def test_exact_terminal_recovery_runs_once_and_preserves_prior_failure(tmp_path):
     import sqlite3
 

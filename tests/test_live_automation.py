@@ -6,6 +6,8 @@ import pytest
 
 from src.model_scout.github_issue_source import GitHubIssueSource
 from src.model_scout.live_automation import run_live_cycle
+from src.model_scout.persistent_queue import PersistentRequestQueue
+from src.model_scout.request_queue import normalize_request
 
 
 class FakeIssueSource(GitHubIssueSource):
@@ -62,6 +64,33 @@ def test_live_cycle_reports_pinned_reuse_in_discovery_and_blocks_without_search(
     assert diagnostics["repository_discovery"][0]["normalized_request_count"] == 1
     assert diagnostics["repository_discovery"][0]["matching_request_count"] == 1
     assert results[0]["status"] == "BLOCKED_INPUT"
+
+
+def test_live_cycle_retires_old_normalization_of_current_issue(tmp_path, monkeypatch):
+    repo = "ADAMBUILD-ai/mindle-model-scout"
+    queue = PersistentRequestQueue(tmp_path / "request_queue.sqlite3")
+    old, _ = queue.enqueue(normalize_request(
+        project="AVORA", resource="model", request_text="old model normalization",
+        source_repo=repo, source_issue=115,
+    ))
+    source = FakeIssueSource([{
+        "repository_full_name": repo, "number": 115, "state": "open",
+        "title": "[P0][AVORA] MODEL SCOUT Mapping Render",
+        "body": "MODEL SCOUT Blender render tool request with exact GLB.",
+    }])
+    diagnostics = {}
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda *_: {
+        "candidates": [{"model_id": "pypi/trimesh", "revision": "4.12.2"}],
+        "resource_type": "tool",
+    })
+    run_live_cycle(
+        configured_repos=[repo], state_dir=tmp_path, issue_source=source,
+        callback_writer=lambda *_: None,
+        runtime_runner=lambda *_: (_ for _ in ()).throw(RuntimeError("missing input")),
+        discovery_diagnostics=diagnostics,
+    )
+    assert diagnostics["superseded_obsolete_fingerprints"] == [old.fingerprint]
+    assert queue.get(old.fingerprint).state.value == "SUPERSEDED"
 
 
 def test_live_cycle_discovers_dedupes_delivers_and_survives_restart(tmp_path, monkeypatch):
