@@ -5,6 +5,7 @@ from src.model_scout.github_request_discovery import (
     infer_resource,
     is_model_scout_request,
     normalize_github_issue_request,
+    is_non_scout_operational_issue,
     request_discovery_repositories,
 )
 
@@ -32,6 +33,25 @@ def test_team_input_routes_and_direct_acquisition_are_not_new_scout_requests():
         "Direct model acquisition execution STEP 0 baseline",
         "MODEL SCOUT mentioned for coordination",
     )
+
+
+def test_central_execution_proofs_are_not_model_shopping():
+    central = "ADAMBUILD-ai/mindle-model-scout"
+    for number, title in (
+        (39, "[P0 E2E] Cross-repo live lifecycle proof — AGRI #33 + ADAM #38"),
+        (36, "[P0 RECOVERY] Request ingestion + execution dispatcher + TESTED_PASS runner"),
+        (63, "[P0-IMMEDIATE] Post-merge main E2E closeout — real request to DELIVERED"),
+        (75, "[P0][STANDARD] MODEL SCOUT request contract + legacy request backfill"),
+        (72, "[P0][MODEL SCOUT][V8 LIVE PROOF] event priority callback"),
+    ):
+        assert is_non_scout_operational_issue(title, central)
+        assert normalize_github_issue_request(
+            {"repository_full_name": central, "number": number, "state": "open",
+             "title": title, "body": "MODEL SCOUT execution and tests"},
+            configured_repos=[central],
+        ) is None
+    assert not is_non_scout_operational_issue(
+        "[P0][AGRI] Model/Dataset/Space/Tool Scout 요청", central)
 
 
 def test_detects_huggingface_with_request_intent():

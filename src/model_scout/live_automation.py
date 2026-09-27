@@ -157,7 +157,9 @@ def run_live_cycle(
     misrouted = queue.quarantine_misrouted(
         (str(item.get("repository_full_name") or ""), int(item.get("number") or 0))
         for item in issues
-        if is_non_scout_operational_issue(str(item.get("title") or ""))
+        if is_non_scout_operational_issue(
+            str(item.get("title") or ""), str(item.get("repository_full_name") or "")
+        )
         and item.get("repository_full_name") and item.get("number")
     )
     canonical_issues = [
