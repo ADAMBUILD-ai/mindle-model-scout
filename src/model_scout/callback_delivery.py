@@ -133,7 +133,9 @@ def deliver_evidence(
             "error": str(exc),
         }
 
-    delivered = queue.set_state(fingerprint, QueueState.DELIVERED)
+    target = (QueueState.ACQUIRED_VERIFIED if evidence.get("status") == "ACQUIRED_VERIFIED"
+              else QueueState.DELIVERED)
+    delivered = queue.set_state(fingerprint, target)
     callback = {
         "repo": delivered.callback_repo,
         "issue": delivered.callback_issue,

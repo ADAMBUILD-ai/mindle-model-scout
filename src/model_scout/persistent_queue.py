@@ -106,6 +106,38 @@ class PersistentRequestQueue:
                     isolated_at REAL NOT NULL
                 )"""
             )
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS component_delivery_corrections (
+                    fingerprint TEXT PRIMARY KEY,
+                    evidence_status TEXT NOT NULL,
+                    corrected_at REAL NOT NULL
+                )"""
+            )
+
+    def reclassify_component_deliveries(self, evidence_lookup: Callable[[str], Mapping | None]) -> list[str]:
+        """Correct legacy callback receipts mistaken for product delivery."""
+        corrected: list[str] = []
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM request_queue WHERE state = ?", (QueueState.DELIVERED.value,)
+            ).fetchall()
+            for row in rows:
+                evidence = evidence_lookup(str(row["fingerprint"]))
+                if not isinstance(evidence, Mapping) or evidence.get("status") != "ACQUIRED_VERIFIED":
+                    continue
+                current = self._row_to_envelope(row)
+                transition(current, QueueState.ACQUIRED_VERIFIED)
+                connection.execute(
+                    """INSERT OR IGNORE INTO component_delivery_corrections
+                       (fingerprint, evidence_status, corrected_at) VALUES (?, ?, ?)""",
+                    (current.fingerprint, "ACQUIRED_VERIFIED", float(self._clock())),
+                )
+                connection.execute(
+                    "UPDATE request_queue SET state = ?, updated_at = ? WHERE fingerprint = ?",
+                    (QueueState.ACQUIRED_VERIFIED.value, float(self._clock()), current.fingerprint),
+                )
+                corrected.append(current.fingerprint)
+        return corrected
 
     def quarantine_misrouted(self, sources: Iterable[tuple[str, int]]) -> list[str]:
         """Isolate exactly fetched team routes/direct tracks, preserving prior failures."""

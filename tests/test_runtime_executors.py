@@ -320,3 +320,22 @@ def test_legacy_pyannote_false_positive_is_demoted_without_deleting_evidence(tmp
     row = model_registry.snapshot()["models"][0]
     assert row["acquisition_status"] == "VERIFY_REQUIRED"
     assert row["runtime_evidence"] == "evidence/output.json"
+
+
+def test_reconcile_english_component_preserves_acquisition_but_rejects_agri_product(tmp_path):
+    from src.model_scout.acquisition import ModelRegistry
+    registry = ModelRegistry(tmp_path / "registry.json")
+    registry.upsert({
+        "model_id": "BAAI/bge-small-en-v1.5",
+        "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "originating_requests": ["ADAMBUILD-ai/mindle-model-scout#33"],
+        "consuming_teams": ["AGRI"],
+        "acquisition_status": "ACQUIRED_VERIFIED", "validation_status": "PENDING",
+        "acquisition_runner": "safe-http-v1", "files": [{"sha256": "verified"}],
+    })
+    RuntimeExecutorRegistry({}, work_root=tmp_path, model_registry=registry)
+    row = registry.snapshot()["models"][0]
+    assert row["acquisition_status"] == "ACQUIRED_VERIFIED"
+    assert row["validation_status"] == "REJECT_QUALITY"
+    assert row["consuming_teams"] == []
+    assert row["files"] == [{"sha256": "verified"}]

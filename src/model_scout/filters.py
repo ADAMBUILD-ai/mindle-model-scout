@@ -21,5 +21,10 @@ def filter_candidates(candidates: list[dict[str, Any]], profile: dict[str, Any])
             continue
         if profile.get("library_hint") and not explicitly_requested and candidate.get("library_name") != profile["library_hint"]:
             continue
+        requested_languages = {str(value).casefold() for value in profile.get("languages") or ()}
+        if requested_languages & {"korean", "한국어"} and not explicitly_requested:
+            documented = {str(value).casefold() for value in candidate.get("languages") or ()}
+            if not documented & {"ko", "kor", "korean", "한국어", "multilingual", "multi"}:
+                continue
         result.append(candidate)
     return result
