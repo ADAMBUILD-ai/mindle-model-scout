@@ -8,7 +8,9 @@ Main `9edbd3bfb5d00c4b50336b72d9e5ccb45e5c8024`, autonomous run [#576](https://g
 
 The request parser now treats titled mapping/render/PBR program requests as `tool`, derives AVORA product/team and `GLB_PBR_MAPPING_RENDER` when the form is absent, and the executor routes by primary capability before historical OCR text. Tool requests no longer widen to HF `all`. Dedicated discovery reads only a fixed pyrender/trimesh/open3d allowlist from official PyPI JSON and exposes exact release version and distribution SHA-256. PyPI self-reported license classifiers remain `LICENSE_REVIEW_REQUIRED`; no wheel is executed or recorded as ACQUIRED_VERIFIED solely from metadata. The runtime reports that an exact fixture and verified program package/runtime are required.
 
-Focused tests: 61 passed locally. CI and actual post-merge run remain to be recorded on the PR.
+Focused tests: 61 passed locally; PR #116 CI tests, cli-smoke and hf-e2e all PASS. Main merge `6aca02ac61bd47975a07a3c7b8b5a91de451cc73`. [Autonomous run #579](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36293570033), Evidence artifact `10922683342`, applied this exact main. #115 was correctly normalized to AVORA / tool / GLB_PBR_MAPPING_RENDER. Official tool discovery reached the runtime, which reported metadata-only because no exact GLB and verified program package/runtime were present. #47, another genuine ADAM render-program request, reached the same blocker. No new registry model or product PASS; registry artifact `10922827973` digest remained `sha256:1863ba1ad5ffb26f4d4724454206f15d381da3ee31c77a5dcb2c2e3ece96996a`.
+
+Follow-up code adds `BLOCKED_INPUT` so this missing fixture/program dependency does not consume retries every 15 minutes. Targeted one-time replay for only #115 and #47 preserves their prior failure records and confirms the new state on main after CI.
 
 ## Unfinished gate
 

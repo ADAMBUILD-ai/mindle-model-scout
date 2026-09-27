@@ -43,7 +43,8 @@ def test_render_tool_request_ignores_historical_ocr_reference(tmp_path):
         kind="geometry-tool", model_id="trimesh/trimesh", model_revision="fallback", source="pypi:trimesh",
         license="mit", command=(sys.executable, "-c", "pass"), downloaded_files=(),
     )
-    with pytest.raises(RuntimeExecutorUnavailable, match="metadata-only"):
+    from src.model_scout.runtime_validation import RuntimeInputUnavailable
+    with pytest.raises(RuntimeInputUnavailable, match="exact request GLB"):
         adapter.run(request, {"candidates": [{"resource_type": "tool", "model_id": "pypi/trimesh"}]}, work_root=tmp_path)
 
 
