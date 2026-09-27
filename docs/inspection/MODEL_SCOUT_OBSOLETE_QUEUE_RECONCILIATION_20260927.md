@@ -18,3 +18,7 @@ Local targeted tests: 46 PASS, including exact Issue #115 duplicate normalizatio
 Remaining product work: central #118 requires accessible exact AVORA assets, verified pre-existing SAM/SigLIP package bytes and a dedicated AVORA QA adapter. The accepted Blender renderer should not be reacquired. Historical FAILED_TERMINAL records are retained for case-specific audit, not globally reset.
 
 Sources: [run #586](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36297157319), [AVORA #115](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/115), [reuse #118](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/118).
+
+## Immediate execution trigger gap found after PR #121
+
+PR #121 merged as `b8715603e208de4eb22b32e2efa104c767f824f4`, with exact-head tests #348, cli-smoke #224 and hf-e2e #229 SUCCESS. Its push ran the tests workflow but did **not** start the autonomous workflow, because the latter's push path filter omitted `persistent_queue.py`, `live_automation.py` and `request_queue.py`. This can make a corrected main appear operational while the worker waits for the next schedule. Follow-up fixes the filter to `src/model_scout/**`. A new autonomous run on the follow-up merge is required for post-merge queue proof; PR #121's CI alone is insufficient.
