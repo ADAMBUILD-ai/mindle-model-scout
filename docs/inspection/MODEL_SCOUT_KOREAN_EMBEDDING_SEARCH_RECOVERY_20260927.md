@@ -1,0 +1,7 @@
+# Korean embedding search recovery — 2026-09-27
+
+Post-merge [autonomous run #595](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36300050113), on main `7fa976149eefe49f6757d9e55aa966a67aa39157`, completed successfully as a workflow but the AGRI scoped request entered `FAILED_RETRYABLE` at search with `search produced no executable candidates`. New ACQUIRED_VERIFIED: zero. Evidence artifact 10925326359 and live registry artifact 10925630160 confirm the correction of the earlier BAAI English component: binary acquisition remains verified, AGRI consumer removed, `validation_status=REJECT_QUALITY`, and prior component callbacks are ACQUIRED_VERIFIED rather than product DELIVERED.
+
+Root cause: Korean embedding requirements were mapped to `feature-extraction`, but multilingual embedding model Hub listings such as `intfloat/multilingual-e5-small` use `sentence-similarity`. The generic top task results also skew English. Search now includes the multilingual-e5 embedding family and accepts sentence-similarity as a valid embedding task, while retaining documented Korean/multilingual metadata, exact revision, license and bounded CPU runtime gates. A distinct scoped task fingerprint retries through normal queue reconciliation; the prior failure audit remains intact.
+
+Focused local tests: 87 passed. CI and next post-merge autonomous artifact are required to establish real acquisition. Even a successful component does not establish AGRI product TESTED_PASS/DELIVERED; Korean agricultural inputs and product acceptance remain outstanding.

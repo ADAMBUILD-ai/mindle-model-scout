@@ -11,8 +11,14 @@ def filter_candidates(candidates: list[dict[str, Any]], profile: dict[str, Any])
     }
     for candidate in candidates:
         explicitly_requested = str(candidate.get("model_id") or "").casefold() in explicit_model_ids
-        if profile.get("task_hint") and not explicitly_requested and candidate.get("resource_type", "model") == "model" and candidate.get("pipeline_tag") != profile["task_hint"]:
-            continue
+        if profile.get("task_hint") and not explicitly_requested and candidate.get("resource_type", "model") == "model":
+            allowed_tasks = {profile["task_hint"]}
+            if profile["task_hint"] == "feature-extraction" and any(
+                word in str(profile.get("raw") or "").casefold() for word in ("embedding", "임베딩")
+            ):
+                allowed_tasks.add("sentence-similarity")
+            if candidate.get("pipeline_tag") not in allowed_tasks:
+                continue
         if profile.get("license_required") and not candidate.get("license"):
             continue
         if int(candidate.get("downloads") or 0) < int(profile.get("min_downloads") or 0):

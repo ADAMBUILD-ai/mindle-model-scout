@@ -93,13 +93,13 @@ def test_korean_embedding_filters_english_only_metadata_before_acquisition(monke
         {"modelId": "BAAI/bge-small-en-v1.5", "sha": "a" * 40,
          "pipeline_tag": "feature-extraction", "tags": ["license:mit", "language:en"]},
         {"modelId": "example/multilingual-embedding", "sha": "b" * 40,
-         "pipeline_tag": "feature-extraction", "tags": ["license:mit", "language:ko"]},
+         "pipeline_tag": "sentence-similarity", "tags": ["license:mit", "language:ko"]},
     ]
     candidates = [scout_module.normalize_model(item) for item in raw]
     monkeypatch.setattr(scout_module, "search_huggingface", lambda *_: candidates)
     monkeypatch.setattr(scout_module, "search_huggingface_task", lambda *_: candidates)
     result = scout("Korean agricultural supplier embedding license", limit=10)
-    assert result["query_plan"][0] == "multilingual"
+    assert result["query_plan"][0] == "multilingual-e5"
     assert [item["model_id"] for item in result["candidates"]] == ["example/multilingual-embedding"]
 
 

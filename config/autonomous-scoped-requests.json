@@ -4,7 +4,7 @@
     "source_issue": 33,
     "model_id": "SCOUT_SELECTION_REQUIRED",
     "capability": "임베딩",
-    "task_query": "Korean multilingual agricultural supplier semantic retrieval embedding",
+    "task_query": "Korean multilingual-e5 agricultural supplier semantic retrieval embedding",
     "requesting_team": "AGRI",
     "product": "AGRI"
   },
