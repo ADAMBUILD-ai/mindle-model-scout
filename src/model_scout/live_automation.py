@@ -64,12 +64,8 @@ def run_live_cycle(
                 issue for issue in issues
                 if str(issue.get("repository_full_name", "")).casefold() == key
             ]
-            matching = [
-                issue for issue in repo_issues
-                if is_model_scout_request(str(issue.get("title") or ""), str(issue.get("body") or ""))
-            ]
             normalized = [
-                envelope for issue in matching
+                envelope for issue in repo_issues
                 if (envelope := normalize_github_issue_request(issue, configured_repos=discovery_repos)) is not None
             ]
             row = source_rows.get(key, {
@@ -80,7 +76,7 @@ def run_live_cycle(
                 "error_type": None,
             })
             row.update({
-                "matching_request_count": len(matching),
+                "matching_request_count": len(normalized),
                 "normalized_request_count": len(normalized),
                 "request_fingerprints": [item.fingerprint for item in normalized],
             })

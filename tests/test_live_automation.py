@@ -39,6 +39,31 @@ def _issue(repo: str, number: int, project: str):
     }
 
 
+def test_live_cycle_reports_pinned_reuse_in_discovery_and_blocks_without_search(tmp_path, monkeypatch):
+    issue = {
+        "repository_full_name": "ADAMBUILD-ai/mindle-model-scout", "number": 118,
+        "title": "[P1][AVORA][REUSE] existing SAM and SigLIP validation",
+        "body": "Reuse revision de431c4043854a71d8101e17995dfe596bf101a5 on exact AVORA GLB.",
+        "state": "open",
+    }
+    source = FakeIssueSource([issue])
+    diagnostics = {}
+
+    def unexpected(*_args):
+        raise AssertionError("generic scout or runtime should not run")
+
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", unexpected)
+    results = run_live_cycle(
+        configured_repos=("adambuild-ai/mindle-model-scout",), state_dir=tmp_path,
+        issue_source=source, callback_writer=unexpected, runtime_runner=unexpected,
+        discovery_diagnostics=diagnostics,
+    )
+    assert len(source.requested_repos) == 1
+    assert diagnostics["repository_discovery"][0]["normalized_request_count"] == 1
+    assert diagnostics["repository_discovery"][0]["matching_request_count"] == 1
+    assert results[0]["status"] == "BLOCKED_INPUT"
+
+
 def test_live_cycle_discovers_dedupes_delivers_and_survives_restart(tmp_path, monkeypatch):
     issues = [
         _issue("ADAMBUILD-ai/agri-ai-business-platform", 33, "AGRI"),
