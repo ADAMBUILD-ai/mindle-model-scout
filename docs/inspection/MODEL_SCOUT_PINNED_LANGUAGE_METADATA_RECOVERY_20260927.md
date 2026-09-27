@@ -1,0 +1,7 @@
+# Pinned language metadata recovery — 2026-09-27
+
+Autonomous [#596](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36300466730) ran on merged `3bf88c158803b3c59bacccc2b29067d5dabb1557` and uploaded evidence artifact 10925064668 plus live registry artifact 10925059840. The new AGRI fingerprint `24a191ae693a473c810ffa0020c44aa39598eb34fd68badd553b8f7b1429a415` failed search with no executable candidates; no new acquisition or product pass was recorded. The registry digest stayed unchanged (`sha256:eb8304c73c3d0009c6109a85e3db0e1eeef1e1246fd6a1b11060e6dfca68f52f`).
+
+The Hub search listing can omit language metadata even when the exact revision model card documents it. For Korean requests, the Scout now hydrates language metadata from official pinned model information for a bounded set of relevant licensed embedding candidates; the revision SHA must match. Undocumented languages remain excluded. Search failures now record query plan and candidate counts to support diagnosis. A refined scoped request fingerprint runs immediately through normal reconciliation while retaining previous failure history. The language gate and license gate remain active.
+
+Focused local tests verify pinned-card hydration, exclusion of English-only metadata, task compatibility, runtime and queue behavior. Full CI and post-merge acquisition evidence are required before calling this recovered. Product TESTED_PASS and DELIVERED are not inferred from component acquisition.

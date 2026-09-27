@@ -243,3 +243,27 @@ def test_search_does_not_retry_client_error(monkeypatch):
     with pytest.raises(HuggingFaceSearchError, match="after 1 attempt"):
         search_huggingface("tts")
     assert calls == 1
+
+
+def test_korean_embedding_hydrates_missing_language_from_pinned_model_card(monkeypatch):
+    import sys
+    import types
+    from src.model_scout.requirements import parse_requirement
+
+    calls = []
+    class Info:
+        sha = "a" * 40
+        tags = ["license:mit"]
+        card_data = {"language": ["ko", "en"]}
+    class Api:
+        def model_info(self, model_id, revision):
+            calls.append((model_id, revision))
+            return Info()
+    monkeypatch.setitem(sys.modules, "huggingface_hub", types.SimpleNamespace(HfApi=Api))
+    model = scout_module.normalize_model({
+        "modelId": "example/multilingual-embedding", "sha": "a" * 40,
+        "pipeline_tag": "sentence-similarity", "tags": ["license:mit"],
+    })
+    scout_module._hydrate_pinned_languages([model], parse_requirement("Korean embedding"))
+    assert model["languages"] == ["ko", "en"]
+    assert calls == [("example/multilingual-embedding", "a" * 40)]
