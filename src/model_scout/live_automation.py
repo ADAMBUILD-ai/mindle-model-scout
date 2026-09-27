@@ -169,8 +169,15 @@ def run_live_cycle(
     superseded = queue.supersede_obsolete(
         discover_github_issue_requests(canonical_issues, configured_repos=discovery_repos)
     )
+    scoped_superseded = queue.supersede_scoped_revisions(
+        discover_github_issue_requests(
+            [item for item in issues if "MODEL SCOUT scoped subrequest" in str(item.get("body") or "")],
+            configured_repos=discovery_repos,
+        )
+    )
     if discovery_diagnostics is not None:
         discovery_diagnostics["superseded_obsolete_fingerprints"] = superseded
+        discovery_diagnostics["superseded_scoped_fingerprints"] = scoped_superseded
         discovery_diagnostics["quarantined_misrouted_fingerprints"] = misrouted
     if before_dispatch is not None:
         before_dispatch()  # Watchdog sees canonical reconciliation first.

@@ -260,3 +260,32 @@ def test_retryable_uses_backoff_and_moves_to_terminal_after_limit(tmp_path):
     assert queue.requeue_retryable(max_retries=1, backoff_seconds=0, now=1061) == []
     assert queue.get(queued.fingerprint).state == QueueState.FAILED_TERMINAL
     assert "pinned download unavailable" in queue.snapshot()[0]["last_error"]
+
+
+def test_scoped_revision_supersession_keeps_acquisition_and_other_role(tmp_path):
+    import sqlite3
+    db = tmp_path / "queue.sqlite3"
+    queue = PersistentRequestQueue(db)
+    base = dict(project="AGRI", resource="model", source_repo="ADAMBUILD-ai/mindle-model-scout",
+                source_issue=33, requested_model_id="SCOUT_SELECTION_REQUIRED")
+    def scope(text, capability="임베딩"):
+        return normalize_request(request_text="MODEL SCOUT scoped subrequest from real Issue #33. " + text,
+                                 requested_capability=capability + " " + text, **base)
+    old, _ = queue.enqueue(scope("old search"))
+    current, _ = queue.enqueue(scope("pinned card search"))
+    other, _ = queue.enqueue(scope("vision model", "비전"))
+    acquired, _ = queue.enqueue(scope("previous component"))
+    queue.set_state(old.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.record_failure(old.fingerprint, "search failed")
+    queue.set_state(acquired.fingerprint, QueueState.RUNNING)
+    queue.set_state(acquired.fingerprint, QueueState.EVIDENCE_READY)
+    queue.set_state(acquired.fingerprint, QueueState.ACQUIRED_VERIFIED)
+    assert queue.supersede_scoped_revisions([current]) == [old.fingerprint]
+    assert queue.supersede_scoped_revisions([current]) == []
+    assert queue.get(acquired.fingerprint).state == QueueState.ACQUIRED_VERIFIED
+    assert queue.get(other.fingerprint).state == QueueState.QUEUED
+    with sqlite3.connect(db) as connection:
+        assert connection.execute(
+            "SELECT replacement_fingerprint, previous_error FROM superseded_requests WHERE fingerprint = ?",
+            (old.fingerprint,),
+        ).fetchone() == (current.fingerprint, "search failed")

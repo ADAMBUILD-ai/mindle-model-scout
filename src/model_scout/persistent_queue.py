@@ -207,6 +207,42 @@ class PersistentRequestQueue:
                     retired.append(old.fingerprint)
         return retired
 
+    def supersede_scoped_revisions(self, scoped: Iterable[RequestEnvelope]) -> list[str]:
+        """Retire stale queued/retryable versions of the same scoped capability."""
+        current = {
+            (str(item.source_repo).casefold(), item.source_issue, item.resource,
+             item.requested_capability.split()[0].casefold(), item.requested_model_id.casefold()): item.fingerprint
+            for item in scoped if item.source_repo and item.source_issue
+        }
+        retired: list[str] = []
+        now = float(self._clock())
+        with self._connect() as connection:
+            for (repo, issue, resource, capability, model_id), replacement in current.items():
+                rows = connection.execute(
+                    """SELECT * FROM request_queue WHERE lower(source_repo) = ? AND source_issue = ?
+                       AND resource = ? AND fingerprint != ? AND state IN (?, ?)
+                       AND request_text LIKE 'MODEL SCOUT scoped subrequest%'""",
+                    (repo, issue, resource, replacement, QueueState.QUEUED.value,
+                     QueueState.FAILED_RETRYABLE.value),
+                ).fetchall()
+                for row in rows:
+                    old = self._row_to_envelope(row)
+                    if (old.requested_capability.split()[0].casefold(), old.requested_model_id.casefold()) != (capability, model_id):
+                        continue
+                    retired_state = transition(old, QueueState.SUPERSEDED)
+                    connection.execute(
+                        """INSERT OR IGNORE INTO superseded_requests
+                           (fingerprint, replacement_fingerprint, previous_state, previous_error, superseded_at)
+                           VALUES (?, ?, ?, ?, ?)""",
+                        (old.fingerprint, replacement, old.state.value, row["last_error"], now),
+                    )
+                    connection.execute(
+                        "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                        (retired_state.state.value, f"superseded by scoped fingerprint {replacement}", now, old.fingerprint),
+                    )
+                    retired.append(old.fingerprint)
+        return retired
+
     def replay_failed_once(
         self, *, replay_id: str, source_repo: str, source_issue: int, error_contains: str
     ) -> str | None:
