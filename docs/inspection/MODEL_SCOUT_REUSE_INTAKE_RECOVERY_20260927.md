@@ -20,3 +20,11 @@
 - Historical queue entries and stale Issue #115 status are preserved; no terminal reset or invented delivery.
 
 Sources: [run #584](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36296358052), [Issue #118](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/118), [Issue #115 review](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/115#issuecomment-5852720404).
+
+## Post-merge operational verification
+
+- PR #119 merged to main `747bc28181e0b0a65b4b6d1d5b8af32d94b666f6`. Exact PR head `f6fa7c3066df2a8a60c83a412c25d70ef6394957`: tests #344, cli-smoke #222, hf-e2e #227 all SUCCESS.
+- Post-merge autonomous run #585 (`36297045667`) completed SUCCESS on that main SHA. Evidence artifact `10924071505`, digest `sha256:5e7b7dedb432c36f25fc74faba6e0174c48c129f7c3e37c0d31f0de9c1055a60`, independently inspected.
+- Issue #118 fingerprint `c8e0fa020f33e218e41d9b07b21b6f44888409d58b10c69249d562f4e4f7bd49` entered queue as AVORA pinned reuse; result `BLOCKED_INPUT`, retry_count=0, with exact input/mask/reference reason. No generic Hub rescout, product output, TESTED_PASS or DELIVERED.
+- Live registry artifact `10924785525` retained digest `sha256:1863ba1ad5ffb26f4d4724454206f15d381da3ee31c77a5dcb2c2e3ece96996a`; no new acquired model. Queue now contains 47 entries: 24 FAILED_TERMINAL, 19 DELIVERED, 3 BLOCKED_INPUT, 1 historical QUEUED. Historical #115 model fingerprint remains queued with retry_count=2; accepted AVORA Blender outcome is not yet reconciled into the old queue state.
+- This confirms intake recovery only. The dedicated product reuse runtime and exact input transfer remain open work; run success must not be read as product delivery.
