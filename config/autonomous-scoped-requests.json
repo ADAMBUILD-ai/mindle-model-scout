@@ -40,5 +40,14 @@
     "task_query": "speech recognition",
     "requesting_team": "MINDLE MEDIA AI",
     "product": "MINDLE_MEDIA_AI"
+  },
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 55,
+    "model_id": "SCOUT_SELECTION_REQUIRED",
+    "capability": "suitability",
+    "task_query": "Korean geospatial land suitability document semantic retrieval embedding",
+    "requesting_team": "ARCOS",
+    "product": "ARCOS"
   }
 ]

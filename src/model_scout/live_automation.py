@@ -133,7 +133,7 @@ def run_live_cycle(
             "repository_full_name": repo,
             "number": number,
             "state": "open",
-            "title": f"[P0] MODEL SCOUT scoped {capability}",
+            "title": f"[{str(scope.get('priority') or ('P0' if '[P0]' in str(original.get('title') or '').upper() else 'P1')).upper()}] MODEL SCOUT scoped {capability}",
             "body": (
                 f"MODEL SCOUT scoped subrequest from real Issue #{number}.\n"
                 f"### 요청 개발팀\n{str(scope.get('requesting_team') or 'UNKNOWN')}\n"
