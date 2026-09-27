@@ -1,0 +1,7 @@
+# ARCOS scoped autonomous intake — 2026-09-27
+
+[Autonomous run #612](https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/36310125559) on main `b46bad323cfece5806bbde1cf4a7f118da5a4bd0` completed with discovery access PASS, `NO_ELIGIBLE_REQUESTS`, no new acquisition and the unchanged nine-model registry (evidence artifact 10928368742; live registry 10929345570). The queue held 11 ACQUIRED_VERIFIED, 10 DELIVERED, nine historical FAILED_TERMINAL and three BLOCKED_INPUT. Success of this idle workflow is not product delivery.
+
+Open [ARCOS Issue #55](https://github.com/ADAMBUILD-ai/mindle-model-scout/issues/55) expressly requests a BGE-M3-family land-condition/document semantic retrieval and suitability explanation component. Its historical all-roles fingerprint is terminal. Add a separate, Issue-grounded `SCOUT_SELECTION_REQUIRED` suitability/embedding subrequest so MODEL SCOUT itself discovers and verifies a safe CPU candidate. Preserve source P1 priority (the prior scope builder forced P0), immutable revision, license gate, actual pinned bytes, SHA-256 and CPU evidence. Keep the parent terminal audit intact. Component acquisition is ACQUIRED_VERIFIED only; actual ARCOS map/document product input, scoring and TESTED_PASS→DELIVERED remain separate.
+
+Focused local verification: 55 tests passed across scoped intake, autonomous recovery, search and persistent queue. CI and the post-merge run must prove whether this request selects and acquires a candidate. Do not count a reused registry model as a new unique model.

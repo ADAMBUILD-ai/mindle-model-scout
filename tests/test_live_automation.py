@@ -417,3 +417,26 @@ def test_agri_open_request_can_launch_unpinned_embedding_scout_scope(tmp_path, m
     )
     assert any("SCOUT_SELECTION_REQUIRED" in query and "agricultural supplier" in query
                and resource == "model" for query, resource in calls)
+
+
+def test_p1_arcos_scope_preserves_source_priority_and_suitability_role(tmp_path, monkeypatch):
+    issue = _issue("ADAMBUILD-ai/mindle-model-scout", 55, "ARCOS")
+    issue["title"] = "[P1][ARCOS] Geospatial suitability MODEL SCOUT request"
+    issue["body"] += "\nBGE-M3 suitability document semantic search requested"
+    calls = []
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda query, limit, resource:
+                        calls.append(query) or {"query": query, "candidates": []})
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
+        issue_source=FakeIssueSource([issue]), callback_writer=RecordingWriter(),
+        scoped_requests=[{"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 55,
+                          "model_id": "SCOUT_SELECTION_REQUIRED", "capability": "suitability",
+                          "task_query": "Korean geospatial land suitability document semantic retrieval embedding",
+                          "requesting_team": "ARCOS", "product": "ARCOS"}],
+    )
+    rows = PersistentRequestQueue(tmp_path / "request_queue.sqlite3").snapshot()
+    scoped = [row for row in rows if row["source_issue"] == 55 and row["request_text"].startswith("MODEL SCOUT scoped")]
+    assert len(scoped) == 1
+    assert scoped[0]["priority"] == "P1"
+    assert scoped[0]["requesting_team"] == "ARCOS"
+    assert any("geospatial land suitability" in query and "SCOUT_SELECTION_REQUIRED" in query for query in calls)
