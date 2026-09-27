@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.model_scout.request_profiles import run_request_profile
+from src.model_scout.runtime_samples import _embedding_sample_sentences
 
 
 def _model_files(model) -> list[str]:
@@ -42,18 +43,13 @@ def _license_snapshot_files(model_id: str, revision: str | None) -> list[str]:
     return sorted(dict.fromkeys(files))
 
 
-def _embedding_reranker(model_id: str, revision: str | None = None) -> dict:
+def _embedding_reranker(model_id: str, revision: str | None = None, *, request: dict | None = None) -> dict:
     import torch
     from transformers import AutoModel, AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=False)
     model = AutoModel.from_pretrained(model_id, revision=revision, trust_remote_code=False)
-    sentences = [
-        "한국어 문서 의미 검색",
-        "다국어 임베딩 모델",
-        "건축 도면 OCR",
-        "financial filing evidence retrieval",
-    ]
+    sentences = _embedding_sample_sentences(request or {})
     encoded = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt")
     started = time.perf_counter()
     with torch.no_grad():
@@ -65,6 +61,7 @@ def _embedding_reranker(model_id: str, revision: str | None = None) -> dict:
     return {
         "task": "embedding-reranker",
         "sentences": sentences,
+        "sample_provenance": "deterministic_generated_component_probe_not_actual_product_input",
         "dimension": int(vectors.shape[1]),
         "ranked": sorted(
             ({"text": text, "score": float(score)} for text, score in zip(sentences[1:], scores)),
@@ -215,7 +212,8 @@ def main() -> int:
     elif args.kind == "huggingface-model":
         result = _huggingface_model(args.model_id or "distilbert/distilbert-base-uncased-finetuned-sst-2-english", args.revision)
     elif args.kind == "embedding-reranker":
-        result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", args.revision)
+        result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", args.revision,
+                                     request=input_payload.get("request") if isinstance(input_payload.get("request"), dict) else {})
     elif args.kind == "ocr-vision":
         if "trocr" in (args.model_id or "microsoft/trocr-small-printed").casefold():
             result = _ocr_vision(args.model_id or "microsoft/trocr-small-printed", workspace, args.revision)
