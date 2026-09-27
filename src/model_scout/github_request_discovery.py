@@ -47,12 +47,22 @@ def _text(value: object) -> str:
 
 
 def is_model_scout_request(title: str, body: str) -> bool:
+    if is_non_scout_operational_issue(title):
+        return False
     haystack = f"{title}\n{body}".casefold()
     if any(marker in haystack for marker in _REQUEST_MARKERS):
         return True
     has_hf = any(marker in haystack for marker in _HF_MARKERS)
     has_intent = any(intent in haystack for intent in _REQUEST_INTENTS)
     return has_hf and has_intent
+
+
+def is_non_scout_operational_issue(title: str) -> bool:
+    """Recognize team input routes and independent acquisition work by title."""
+    normalized = title.strip().casefold()
+    return normalized.startswith("[model scout route]") or bool(re.search(
+        r"\bdirect (?:official )?model acquisition\b", normalized
+    ))
 
 
 def infer_priority(title: str, body: str) -> str:

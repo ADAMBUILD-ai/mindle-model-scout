@@ -97,6 +97,44 @@ class PersistentRequestQueue:
                     superseded_at REAL NOT NULL
                 )"""
             )
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS misrouted_requests (
+                    fingerprint TEXT PRIMARY KEY,
+                    previous_state TEXT NOT NULL,
+                    previous_error TEXT,
+                    reason TEXT NOT NULL,
+                    isolated_at REAL NOT NULL
+                )"""
+            )
+
+    def quarantine_misrouted(self, sources: Iterable[tuple[str, int]]) -> list[str]:
+        """Isolate exactly fetched team routes/direct tracks, preserving prior failures."""
+        isolated: list[str] = []
+        now = float(self._clock())
+        with self._connect() as connection:
+            for repo, issue in set((str(repo).casefold(), int(issue)) for repo, issue in sources):
+                rows = connection.execute(
+                    """SELECT * FROM request_queue WHERE lower(source_repo) = ? AND source_issue = ?
+                       AND state IN (?, ?, ?, ?)""",
+                    (repo, issue, QueueState.QUEUED.value, QueueState.FAILED_RETRYABLE.value,
+                     QueueState.FAILED_TERMINAL.value, QueueState.BLOCKED_INPUT.value),
+                ).fetchall()
+                for row in rows:
+                    old = self._row_to_envelope(row)
+                    transition(old, QueueState.MISROUTED)
+                    reason = "fetched Issue is a team input route or independent direct acquisition track"
+                    connection.execute(
+                        """INSERT OR IGNORE INTO misrouted_requests
+                           (fingerprint, previous_state, previous_error, reason, isolated_at)
+                           VALUES (?, ?, ?, ?, ?)""",
+                        (old.fingerprint, old.state.value, row["last_error"], reason, now),
+                    )
+                    connection.execute(
+                        "UPDATE request_queue SET state = ?, last_error = ?, updated_at = ? WHERE fingerprint = ?",
+                        (QueueState.MISROUTED.value, f"misrouted: {reason}", now, old.fingerprint),
+                    )
+                    isolated.append(old.fingerprint)
+        return isolated
 
     def supersede_obsolete(self, canonical: Iterable[RequestEnvelope]) -> list[str]:
         """Retire actionable old normalizations of the same fetched open Issue.

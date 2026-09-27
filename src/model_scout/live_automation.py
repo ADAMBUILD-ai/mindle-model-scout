@@ -11,6 +11,7 @@ from .github_issue_source import GitHubIssueSource
 from .github_request_discovery import (
     discover_github_issue_requests,
     is_model_scout_request,
+    is_non_scout_operational_issue,
     normalize_github_issue_request,
     parse_issue_form,
     request_discovery_repositories,
@@ -153,6 +154,12 @@ def run_live_cycle(
             issues.insert(0, source.get_issue(preferred_repo, preferred_issue))
 
     queue = PersistentRequestQueue(root / "request_queue.sqlite3")
+    misrouted = queue.quarantine_misrouted(
+        (str(item.get("repository_full_name") or ""), int(item.get("number") or 0))
+        for item in issues
+        if is_non_scout_operational_issue(str(item.get("title") or ""))
+        and item.get("repository_full_name") and item.get("number")
+    )
     canonical_issues = [
         item for item in issues
         if "MODEL SCOUT scoped subrequest" not in str(item.get("body") or "")
@@ -162,6 +169,7 @@ def run_live_cycle(
     )
     if discovery_diagnostics is not None:
         discovery_diagnostics["superseded_obsolete_fingerprints"] = superseded
+        discovery_diagnostics["quarantined_misrouted_fingerprints"] = misrouted
     if before_dispatch is not None:
         before_dispatch()  # Watchdog sees canonical reconciliation first.
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
