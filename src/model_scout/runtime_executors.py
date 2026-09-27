@@ -123,6 +123,31 @@ def _candidate_has_pinned_weights(model_id: str, revision: str) -> bool:
     return any(str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS) for sibling in (info.siblings or []))
 
 
+def _candidate_weight_bytes(model_id: str, revision: str) -> int | None:
+    """Bound CPU acquisition using pinned official Hub file sizes before download."""
+    from huggingface_hub import HfApi
+    from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError, RevisionNotFoundError
+
+    for attempt in range(3):
+        try:
+            info = HfApi().model_info(model_id, revision=revision, files_metadata=True)
+            break
+        except (RepositoryNotFoundError, RevisionNotFoundError):
+            return None
+        except HfHubHTTPError as exc:
+            if getattr(getattr(exc, "response", None), "status_code", None) != 429 or attempt == 2:
+                raise
+            time.sleep(2 ** attempt)
+    if str(info.sha or "").casefold() != revision.casefold():
+        return None
+    weights = [sibling for sibling in (info.siblings or [])
+               if str(sibling.rfilename).casefold().endswith(_MODEL_WEIGHTS)]
+    sizes = [getattr(sibling, "size", None) for sibling in weights]
+    if not sizes or any(not isinstance(size, int) or size <= 0 for size in sizes):
+        return None
+    return sum(sizes)
+
+
 def _candidate_has_safe_builtin_config(model_id: str, revision: str) -> tuple[bool, str]:
     """Reject candidates that require unsupported or repository-supplied Python code.
 
@@ -152,6 +177,7 @@ class LocalCommandAdapter:
     timeout_seconds: float = 900.0
     preflight_weights: bool = False
     preflight_builtin_transformers: bool = False
+    max_weight_bytes: int | None = None
 
     def __post_init__(self) -> None:
         if self.kind not in EXECUTOR_KINDS:
@@ -160,6 +186,8 @@ class LocalCommandAdapter:
             raise ValueError("executor command is required")
         if self.timeout_seconds <= 0:
             raise ValueError("executor timeout must be positive")
+        if self.max_weight_bytes is not None and self.max_weight_bytes <= 0:
+            raise ValueError("max_weight_bytes must be positive")
 
     def run(
         self,
@@ -218,6 +246,14 @@ class LocalCommandAdapter:
                 compatible, reason = _candidate_has_safe_builtin_config(candidate_id, candidate_revision)
                 if not compatible:
                     selection_diagnostics.append({"model_id": candidate_id, "reason": reason})
+                    continue
+            if self.max_weight_bytes is not None:
+                weight_bytes = _candidate_weight_bytes(candidate_id, candidate_revision)
+                if weight_bytes is None or weight_bytes > self.max_weight_bytes:
+                    selection_diagnostics.append({
+                        "model_id": candidate_id,
+                        "reason": f"unknown_or_oversize_pinned_weights:{weight_bytes}:limit={self.max_weight_bytes}",
+                    })
                     continue
             selected = candidate
             break
@@ -427,6 +463,7 @@ def load_runtime_executor_registry(
             timeout_seconds=float(raw.get("timeout_seconds", 900)),
             preflight_weights=bool(raw.get("preflight_weights", False)),
             preflight_builtin_transformers=bool(raw.get("preflight_builtin_transformers", False)),
+            max_weight_bytes=int(raw["max_weight_bytes"]) if raw.get("max_weight_bytes") is not None else None,
         )
     registry = ModelRegistry(model_registry_path) if model_registry_path else None
     return RuntimeExecutorRegistry(adapters, work_root=work_root, model_registry=registry)

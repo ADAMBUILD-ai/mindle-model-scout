@@ -213,7 +213,8 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
     raw = str(profile.get("raw") or "")
     explicit_model_ids = _explicit_model_ids(raw)
     capability_queries = _capability_queries(raw)
-    values = [*explicit_model_ids, *capability_queries, profile.get("query"), profile.get("task_hint")]
+    task_query = f"task:{profile['task_hint']}" if profile.get("task_hint") else None
+    values = [*explicit_model_ids, *capability_queries, profile.get("query"), task_query]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
 
 

@@ -25,6 +25,7 @@ def test_scout_applies_requirement_profile_before_scoring(monkeypatch):
         _model("low-likes", "text-to-speech", "apache-2.0", 5000, 10),
     ]
     monkeypatch.setattr(scout_module, "search_huggingface", lambda query, limit: models)
+    monkeypatch.setattr(scout_module, "search_huggingface_task", lambda task, limit: [])
 
     result = scout_module.scout("tts license downloads at least 1000 likes at least 20")
 
@@ -40,6 +41,7 @@ def test_scout_applies_requirement_profile_before_scoring(monkeypatch):
 def test_scout_zero_match_is_valid_result(monkeypatch):
     models = [_model("small", "text-to-speech", "apache-2.0", 10, 1)]
     monkeypatch.setattr(scout_module, "search_huggingface", lambda query, limit: models)
+    monkeypatch.setattr(scout_module, "search_huggingface_task", lambda task, limit: [])
 
     result = scout_module.scout("tts license downloads 99999 likes 99999")
 
