@@ -57,11 +57,23 @@ def is_model_scout_request(title: str, body: str) -> bool:
     return has_hf and has_intent
 
 
-def is_non_scout_operational_issue(title: str) -> bool:
+def is_non_scout_operational_issue(title: str, repo: str = "") -> bool:
     """Recognize team input routes and independent acquisition work by title."""
     normalized = title.strip().casefold()
-    return normalized.startswith("[model scout route]") or bool(re.search(
+    if normalized.startswith("[model scout route]") or bool(re.search(
         r"\bdirect (?:official )?model acquisition\b", normalized
+    )):
+        return True
+    if repo.casefold() != CENTRAL_REQUEST_REPOSITORY.casefold():
+        return False
+    return any(marker in normalized for marker in (
+        "[p0 e2e] cross-repo live lifecycle proof",
+        "[p0 recovery] request ingestion + execution dispatcher",
+        "[p0-immediate] post-merge main e2e closeout",
+        "[p0][standard] model scout request contract",
+        "[p0][execution]",
+        "[p0][model scout][v8 live proof]",
+        "binary handoff required before model benchmark",
     ))
 
 
@@ -161,6 +173,8 @@ def normalize_github_issue_request(
         "[execution]" in title.casefold()
         or "binary handoff" in title.casefold()
     ):
+        return None
+    if is_non_scout_operational_issue(title, repo):
         return None
     # A central cross-product reuse request names pinned packages rather than
     # asking for another Hub search. Keep it visible to the queue even when its
