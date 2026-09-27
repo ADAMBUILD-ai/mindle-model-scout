@@ -35,6 +35,7 @@ def run_live_cycle(
     acquisition_concurrency: int = 1,
     scoped_requests: Iterable[Mapping[str, str]] = (),
     discovery_diagnostics: MutableMapping[str, Any] | None = None,
+    before_dispatch: Callable[[], None] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one live request-ingestion -> scout -> callback cycle.
 
@@ -161,6 +162,8 @@ def run_live_cycle(
     )
     if discovery_diagnostics is not None:
         discovery_diagnostics["superseded_obsolete_fingerprints"] = superseded
+    if before_dispatch is not None:
+        before_dispatch()  # Watchdog sees canonical reconciliation first.
     evidence_store = DurableEvidenceStore(root / "request_evidence.sqlite3")
     ledger = DeliveryLedger(root / "model_delivery.sqlite3")
     cycle = run_runtime_cycle if runtime_runner is not None else run_scout_cycle

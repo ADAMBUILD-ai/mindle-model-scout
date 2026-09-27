@@ -90,8 +90,13 @@ def run_autonomous_cycle(
             )
             if fingerprint:
                 replayed.append(fingerprint)
-    requeued = queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries)
-    requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
+    requeued: list[str] = []
+
+    def recover_due_after_reconciliation() -> None:
+        # The current fetched Issue must supersede old fingerprints before the
+        # watchdog can spend another retry on a request that is no longer current.
+        requeued.extend(queue.requeue_stale(stale_after_seconds=stale_after_seconds, max_retries=max_retries))
+        requeued.extend(queue.requeue_retryable(max_retries=max_retries, backoff_seconds=retry_backoff_seconds))
     executor_config = os.environ.get("MODEL_SCOUT_EXECUTOR_CONFIG")
     scoped_config = os.environ.get("MODEL_SCOUT_SCOPED_REQUESTS_CONFIG", "")
     scoped_requests = ()
@@ -124,6 +129,7 @@ def run_autonomous_cycle(
         acquisition_concurrency=acquisition_concurrency,
         scoped_requests=scoped_requests,
         discovery_diagnostics=discovery_diagnostics,
+        before_dispatch=recover_due_after_reconciliation,
     )
     queue_snapshot = queue.snapshot()
     eligible = sum(item["state"] in {"QUEUED", "EVIDENCE_READY"} for item in queue_snapshot)

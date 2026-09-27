@@ -19,6 +19,34 @@ def test_autonomous_cycle_requeues_stale_work_before_processing(tmp_path, monkey
     assert result["discovery_diagnostics"] == {}
 
 
+def test_autonomous_watchdog_runs_after_live_issue_reconciliation(tmp_path, monkeypatch):
+    import src.model_scout.autonomous_runner as runner
+    from src.model_scout.persistent_queue import PersistentRequestQueue
+    from src.model_scout.request_queue import normalize_request
+
+    root = tmp_path / "durable"
+    queue = PersistentRequestQueue(root / "request_queue.sqlite3", clock=lambda: 1.0)
+    old, _ = queue.enqueue(normalize_request(
+        project="AVORA", request_text="old model request", source_repo="owner/repo", source_issue=115))
+    observed = []
+
+    def fake_cycle(**kwargs):
+        current = PersistentRequestQueue(root / "request_queue.sqlite3")
+        canonical = normalize_request(
+            project="AVORA", resource="tool", request_text="new render request",
+            source_repo="owner/repo", source_issue=115)
+        current.supersede_obsolete([canonical])
+        kwargs["before_dispatch"]()
+        observed.append(current.get(old.fingerprint).state.value)
+        return []
+
+    monkeypatch.setattr(runner, "run_live_cycle", fake_cycle)
+    result = run_autonomous_cycle(configured_repos=["owner/repo"], state_dir=root)
+    assert observed == ["SUPERSEDED"]
+    assert result["watchdog_requeued"] == []
+    assert result["eligible_request_count"] == 0
+
+
 def test_intake_coverage_auto_completes_when_team_repository_is_missing(tmp_path):
     registry = tmp_path / "teams.json"
     registry.write_text('{"teams":[{"repository_full_name":"owner/team-a"}]}', encoding="utf-8")

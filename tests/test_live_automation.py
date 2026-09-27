@@ -83,13 +83,21 @@ def test_live_cycle_retires_old_normalization_of_current_issue(tmp_path, monkeyp
         "candidates": [{"model_id": "pypi/trimesh", "revision": "4.12.2"}],
         "resource_type": "tool",
     })
+    observed = []
+
+    def watchdog():
+        observed.append((queue.get(old.fingerprint).state.value,
+                         queue.requeue_stale(stale_after_seconds=1, now=10**11)))
+
     run_live_cycle(
         configured_repos=[repo], state_dir=tmp_path, issue_source=source,
         callback_writer=lambda *_: None,
         runtime_runner=lambda *_: (_ for _ in ()).throw(RuntimeError("missing input")),
         discovery_diagnostics=diagnostics,
+        before_dispatch=watchdog,
     )
     assert diagnostics["superseded_obsolete_fingerprints"] == [old.fingerprint]
+    assert observed == [("SUPERSEDED", [])]
     assert queue.get(old.fingerprint).state.value == "SUPERSEDED"
 
 
