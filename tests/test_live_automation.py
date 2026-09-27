@@ -7,7 +7,7 @@ import pytest
 from src.model_scout.github_issue_source import GitHubIssueSource
 from src.model_scout.live_automation import run_live_cycle
 from src.model_scout.persistent_queue import PersistentRequestQueue
-from src.model_scout.request_queue import normalize_request
+from src.model_scout.request_queue import QueueState, normalize_request
 
 
 class FakeIssueSource(GitHubIssueSource):
@@ -99,6 +99,27 @@ def test_live_cycle_retires_old_normalization_of_current_issue(tmp_path, monkeyp
     assert diagnostics["superseded_obsolete_fingerprints"] == [old.fingerprint]
     assert observed == [("SUPERSEDED", [])]
     assert queue.get(old.fingerprint).state.value == "SUPERSEDED"
+
+
+def test_live_cycle_quarantines_old_failed_team_input_route(tmp_path, monkeypatch):
+    repo = "ADAMBUILD-ai/arcos-engine"
+    queue = PersistentRequestQueue(tmp_path / "request_queue.sqlite3")
+    old, _ = queue.enqueue(normalize_request(
+        project="ARCOS", request_text="historical route mistakenly scouted", source_repo=repo, source_issue=1))
+    queue.set_state(old.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.set_state(old.fingerprint, QueueState.FAILED_TERMINAL)
+    diagnostics = {}
+    source = FakeIssueSource([{
+        "repository_full_name": repo, "number": 1, "state": "open",
+        "title": "[MODEL SCOUT ROUTE] Central Issue #55 input request",
+        "body": "MODEL SCOUT team input request for GeoTIFF.",
+    }])
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda *_: (_ for _ in ()).throw(AssertionError("no scout")))
+    assert run_live_cycle(configured_repos=[repo], state_dir=tmp_path, issue_source=source,
+                          callback_writer=lambda *_: None, runtime_runner=lambda *_: None,
+                          discovery_diagnostics=diagnostics) == []
+    assert diagnostics["quarantined_misrouted_fingerprints"] == [old.fingerprint]
+    assert queue.get(old.fingerprint).state.value == "MISROUTED"
 
 
 def test_live_cycle_discovers_dedupes_delivers_and_survives_restart(tmp_path, monkeypatch):

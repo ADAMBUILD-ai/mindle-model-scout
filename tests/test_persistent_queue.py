@@ -56,6 +56,27 @@ def test_obsolete_normalization_is_audited_without_resetting_history(tmp_path):
         ).fetchone() == (current.fingerprint, "previous failed runtime")
 
 
+def test_misrouted_team_input_issue_is_quarantined_with_prior_failure(tmp_path):
+    import sqlite3
+
+    db = tmp_path / "queue.sqlite3"
+    queue = PersistentRequestQueue(db)
+    routed, _ = queue.enqueue(normalize_request(
+        project="ARCOS", request_text="team input route", source_repo="ADAMBUILD-ai/arcos-engine",
+        source_issue=1))
+    queue.set_state(routed.fingerprint, QueueState.FAILED_RETRYABLE)
+    queue.record_failure(routed.fingerprint, "old search error")
+    queue.set_state(routed.fingerprint, QueueState.FAILED_TERMINAL)
+    assert queue.quarantine_misrouted([("adambuild-ai/arcos-engine", 1)]) == [routed.fingerprint]
+    assert queue.quarantine_misrouted([("adambuild-ai/arcos-engine", 1)]) == []
+    assert queue.get(routed.fingerprint).state == QueueState.MISROUTED
+    with sqlite3.connect(db) as connection:
+        assert connection.execute(
+            "SELECT previous_state, previous_error FROM misrouted_requests WHERE fingerprint = ?",
+            (routed.fingerprint,),
+        ).fetchone() == ("FAILED_TERMINAL", "old search error")
+
+
 def test_exact_terminal_recovery_runs_once_and_preserves_prior_failure(tmp_path):
     import sqlite3
 

@@ -19,6 +19,7 @@ class QueueState(str, Enum):
     BLOCKED_APPROVAL = "BLOCKED_APPROVAL"
     BLOCKED_INPUT = "BLOCKED_INPUT"
     SUPERSEDED = "SUPERSEDED"
+    MISROUTED = "MISROUTED"
     FAILED_RETRYABLE = "FAILED_RETRYABLE"
     FAILED_TERMINAL = "FAILED_TERMINAL"
 
@@ -31,6 +32,7 @@ _ALLOWED_TRANSITIONS: dict[QueueState, set[QueueState]] = {
         QueueState.BLOCKED_APPROVAL,
         QueueState.BLOCKED_INPUT,
         QueueState.SUPERSEDED,
+        QueueState.MISROUTED,
         QueueState.FAILED_RETRYABLE,
     },
     QueueState.RUNNING: {
@@ -42,10 +44,11 @@ _ALLOWED_TRANSITIONS: dict[QueueState, set[QueueState]] = {
     QueueState.EVIDENCE_READY: {QueueState.DELIVERED},
     QueueState.DELIVERED: set(),
     QueueState.BLOCKED_APPROVAL: {QueueState.QUEUED},
-    QueueState.BLOCKED_INPUT: {QueueState.QUEUED, QueueState.SUPERSEDED},
-    QueueState.FAILED_RETRYABLE: {QueueState.QUEUED, QueueState.FAILED_TERMINAL, QueueState.SUPERSEDED},
-    QueueState.FAILED_TERMINAL: set(),
+    QueueState.BLOCKED_INPUT: {QueueState.QUEUED, QueueState.SUPERSEDED, QueueState.MISROUTED},
+    QueueState.FAILED_RETRYABLE: {QueueState.QUEUED, QueueState.FAILED_TERMINAL, QueueState.SUPERSEDED, QueueState.MISROUTED},
+    QueueState.FAILED_TERMINAL: {QueueState.MISROUTED},
     QueueState.SUPERSEDED: set(),
+    QueueState.MISROUTED: set(),
 }
 
 

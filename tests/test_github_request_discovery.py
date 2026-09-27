@@ -19,6 +19,21 @@ def test_detects_explicit_model_scout_marker():
     assert is_model_scout_request("[MODEL SCOUT 요청] P0", "농산물 모델 검색") is True
 
 
+def test_team_input_routes_and_direct_acquisition_are_not_new_scout_requests():
+    assert not is_model_scout_request(
+        "[MODEL SCOUT ROUTE] Central Issue #55 input request",
+        "MODEL SCOUT team input request for GeoTIFF files",
+    )
+    assert not is_model_scout_request(
+        "[P0][AURA] Direct Official Model Acquisition — Qwen",
+        "AURA developers proceed without waiting on MODEL SCOUT",
+    )
+    assert not is_model_scout_request(
+        "Direct model acquisition execution STEP 0 baseline",
+        "MODEL SCOUT mentioned for coordination",
+    )
+
+
 def test_detects_huggingface_with_request_intent():
     assert is_model_scout_request("Stage 4", "Find Hugging Face model alternatives") is True
     assert is_model_scout_request("Stage 4", "Hugging Face notes only") is False
