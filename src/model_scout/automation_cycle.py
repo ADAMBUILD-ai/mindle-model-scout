@@ -241,7 +241,12 @@ def run_runtime_cycle(
                     raise TypeError("scout runner must return a mapping")
                 candidates = scout_result.get("candidates")
                 if not isinstance(candidates, list) or not candidates:
-                    raise ValueError("search produced no executable candidates")
+                    raise ValueError(
+                        "search produced no executable candidates; "
+                        f"query_plan={scout_result.get('query_plan')}; "
+                        f"searched={scout_result.get('searched_candidate_count')}; "
+                        f"candidate_count={scout_result.get('candidate_count')}"
+                    )
             except Exception as exc:
                 failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
                 record_failure = getattr(queue, "record_failure", None)

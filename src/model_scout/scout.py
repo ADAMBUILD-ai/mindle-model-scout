@@ -232,6 +232,37 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
 
 
+def _hydrate_pinned_languages(models: list[dict[str, Any]], profile: dict[str, Any]) -> None:
+    """Use official exact-revision card metadata when Hub list omits languages."""
+    if not ({str(x).casefold() for x in profile.get("languages") or []} & {"korean", "한국어"}):
+        return
+    api = None
+    checked = 0
+    for model in models:
+        if model.get("languages") or not model.get("revision"):
+            continue
+        if model.get("pipeline_tag") not in {"feature-extraction", "sentence-similarity"}:
+            continue
+        if not model.get("license"):
+            continue
+        if checked >= 12:
+            break
+        checked += 1
+        if api is None:
+            from huggingface_hub import HfApi
+            api = HfApi()
+        info = api.model_info(str(model["model_id"]), revision=str(model["revision"]))
+        if str(getattr(info, "sha", "")).casefold() != str(model["revision"]).casefold():
+            continue
+        card = getattr(info, "card_data", None)
+        if hasattr(card, "to_dict"):
+            card = card.to_dict()
+        if not isinstance(card, dict):
+            card = {}
+        documented = normalize_model({"id": model["model_id"], "tags": list(getattr(info, "tags", None) or []), "cardData": card})
+        model["languages"] = documented["languages"]
+
+
 def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str, Any]:
     if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "tool", "all"):
         raise ValueError("resource_type must be model, dataset, space, tool, or all")
@@ -259,6 +290,8 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
 
     deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
     models = list(deduped.values())
+    if resource_type == "model":
+        _hydrate_pinned_languages(models, profile)
     filtered_models = [
         model for model in filter_candidates(models, profile)
         if _capability_compatible(model, str(profile.get("raw") or ""))
