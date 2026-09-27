@@ -13,7 +13,10 @@
     "source": "huggingface:sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "license": "apache-2.0",
     "command": ["{python}", "{package_root}/scripts/run_runtime_worker.py", "--kind", "embedding-reranker", "--model-id", "{model_id}", "--revision", "{revision}", "--input", "{input}", "--output", "{output}"],
-    "timeout_seconds": 1800
+    "timeout_seconds": 900,
+    "preflight_weights": true,
+    "preflight_builtin_transformers": true,
+    "max_weight_bytes": 650000000
   },
   "ocr-vision": {
     "model_id": "microsoft/trocr-small-printed",

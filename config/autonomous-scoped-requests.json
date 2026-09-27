@@ -1,6 +1,15 @@
 [
   {
     "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 33,
+    "model_id": "SCOUT_SELECTION_REQUIRED",
+    "capability": "임베딩",
+    "task_query": "Korean agricultural supplier semantic retrieval embedding",
+    "requesting_team": "AGRI",
+    "product": "AGRI"
+  },
+  {
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
     "source_issue": 51,
     "model_id": "intfloat/multilingual-e5-small",
     "capability": "memory",

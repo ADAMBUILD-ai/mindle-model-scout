@@ -27,9 +27,10 @@ def test_scout_prefers_task_hint_for_upstream_search(monkeypatch):
         return []
 
     monkeypatch.setattr(scout_module, "search_huggingface", fake_search)
+    monkeypatch.setattr(scout_module, "search_huggingface_task", lambda task, limit: seen.update(task=task) or [])
     result = scout("상업용 TTS 라이선스 필요 downloads 1000 이상", limit=10)
 
-    assert seen["query"] == "text-to-speech"
+    assert seen["task"] == "text-to-speech"
     assert result["search_query"] == "text-to-speech"
     assert result["requirement_profile"]["license_required"] is True
     assert result["requirement_profile"]["min_downloads"] == 1000
@@ -56,7 +57,7 @@ def test_query_plan_ignores_generic_slash_terms():
         "task_hint": "feature-extraction",
     }
 
-    assert query_plan(profile) == ["BAAI/bge-m3", "full issue body", "feature-extraction"]
+    assert query_plan(profile) == ["BAAI/bge-m3", "full issue body", "task:feature-extraction"]
 
 
 def test_query_plan_maps_architectural_visual_understanding_capability():

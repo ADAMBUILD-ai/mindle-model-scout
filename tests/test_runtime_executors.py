@@ -48,6 +48,22 @@ def test_render_tool_request_ignores_historical_ocr_reference(tmp_path):
         adapter.run(request, {"candidates": [{"resource_type": "tool", "model_id": "pypi/trimesh"}]}, work_root=tmp_path)
 
 
+def test_unpinned_embedding_selection_rejects_oversize_weights_before_download(tmp_path, monkeypatch):
+    import src.model_scout.runtime_executors as executors
+
+    monkeypatch.setattr(executors, "_candidate_weight_bytes", lambda *_: 700_000_000)
+    adapter = LocalCommandAdapter(
+        kind="embedding-reranker", model_id="fallback/model", model_revision="fallback",
+        source="huggingface:fallback/model", license="apache-2.0",
+        command=(sys.executable, "-c", "raise AssertionError('must not execute')"),
+        downloaded_files=(), max_weight_bytes=650_000_000,
+    )
+    candidate = {"model_id": "example/large-embedding", "revision": "a" * 40,
+                 "license": "apache-2.0", "status": "APPROVED", "resource_type": "model"}
+    with pytest.raises(RuntimeExecutorUnavailable, match="unknown_or_oversize_pinned_weights"):
+        adapter.run(_envelope("Korean embedding"), {"candidates": [candidate]}, work_root=tmp_path)
+
+
 def test_local_command_executor_captures_real_artifact_and_output(tmp_path):
     artifact = tmp_path / "weights.bin"
     artifact.write_bytes(b"real-downloaded-artifact")

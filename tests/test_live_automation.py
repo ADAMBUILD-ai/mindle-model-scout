@@ -399,3 +399,21 @@ def test_stt_scope_uses_speech_query_and_real_issue_capability(tmp_path, monkeyp
     run_live_cycle(configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
                    issue_source=source, callback_writer=RecordingWriter(), scoped_requests=[scope])
     assert any("openai/whisper-tiny" in query and "speech recognition" in query for query in queries)
+
+
+def test_agri_open_request_can_launch_unpinned_embedding_scout_scope(tmp_path, monkeypatch):
+    issue = _issue("ADAMBUILD-ai/mindle-model-scout", 33, "AGRI")
+    issue["body"] += "\n한국어 농산물 자료 임베딩/RAG 요청"
+    source = FakeIssueSource([issue])
+    calls = []
+    monkeypatch.setattr("src.model_scout.live_automation.run_scout_core", lambda query, limit, resource:
+                        calls.append((query, resource)) or {"query": query, "candidates": []})
+    run_live_cycle(
+        configured_repos=("ADAMBUILD-ai/mindle-model-scout",), state_dir=tmp_path,
+        issue_source=source, callback_writer=RecordingWriter(),
+        scoped_requests=[{"source_repo": "ADAMBUILD-ai/mindle-model-scout", "source_issue": 33,
+                          "model_id": "SCOUT_SELECTION_REQUIRED", "capability": "임베딩",
+                          "task_query": "Korean agricultural supplier semantic retrieval embedding"}],
+    )
+    assert any("SCOUT_SELECTION_REQUIRED" in query and "agricultural supplier" in query
+               and resource == "model" for query, resource in calls)
