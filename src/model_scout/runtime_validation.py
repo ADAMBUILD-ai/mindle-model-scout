@@ -12,6 +12,10 @@ from .request_queue import QueueState, RequestEnvelope
 RuntimeRunner = Callable[[RequestEnvelope], Mapping[str, Any]]
 
 
+class RuntimeInputUnavailable(RuntimeError):
+    """Required immutable product fixture or audited executable is absent."""
+
+
 class RuntimeQueue(Protocol):
     def get(self, fingerprint: str) -> RequestEnvelope | None: ...
 
@@ -182,6 +186,16 @@ def run_runtime_validation(
     running = queue.set_state(fingerprint, QueueState.RUNNING)
     try:
         runtime_evidence = dict(runner(running))
+    except RuntimeInputUnavailable as exc:
+        blocked = queue.set_state(fingerprint, QueueState.BLOCKED_INPUT)
+        return {
+            "fingerprint": blocked.fingerprint,
+            "state": blocked.state.value,
+            "status": QueueState.BLOCKED_INPUT.value,
+            "runner_invoked": True,
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+        }
     except Exception as exc:
         failed = queue.set_state(fingerprint, QueueState.FAILED_RETRYABLE)
         return {

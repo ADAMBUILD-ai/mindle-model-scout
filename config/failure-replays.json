@@ -10,5 +10,17 @@
     "source_repo": "ADAMBUILD-ai/aura-engine",
     "source_issue": 35,
     "error_contains": "glm_ocr"
+  },
+  {
+    "replay_id": "avora-115-render-input-block-v1-20260927",
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 115,
+    "error_contains": "render tool discovery is metadata-only"
+  },
+  {
+    "replay_id": "adam-47-render-input-block-v1-20260927",
+    "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+    "source_issue": 47,
+    "error_contains": "render tool discovery is metadata-only"
   }
 ]

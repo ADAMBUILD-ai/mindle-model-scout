@@ -14,6 +14,7 @@ from typing import Any, Mapping
 
 from .acquisition import ALLOWED_LICENSES, ModelRegistry
 from .request_queue import RequestEnvelope
+from .runtime_validation import RuntimeInputUnavailable
 
 
 EXECUTOR_KINDS = (
@@ -170,9 +171,12 @@ class LocalCommandAdapter:
         workspace = work_root / envelope.fingerprint
         workspace.mkdir(parents=True, exist_ok=True)
         if envelope.resource == "tool":
-            raise RuntimeExecutorUnavailable(
-                "render tool discovery is metadata-only; exact AVORA GLB and a verified program package/runtime "
-                "are required before CPU execution or ACQUIRED_VERIFIED"
+            candidates = scout_result.get("candidates")
+            names = [f"{item.get('model_id')}@{item.get('revision')}" for item in candidates[:5]
+                     if isinstance(item, Mapping)] if isinstance(candidates, list) else []
+            raise RuntimeInputUnavailable(
+                f"render tool discovery candidates={names}; exact request GLB and a verified program "
+                "package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED"
             )
         input_path = workspace / "input.json"
         output_path = workspace / "output.json"

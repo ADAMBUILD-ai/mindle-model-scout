@@ -3,6 +3,7 @@ import hashlib
 from src.model_scout.request_queue import QueueState, RequestQueue, normalize_request
 from src.model_scout.runtime_validation import (
     ExecutionRequirements,
+    RuntimeInputUnavailable,
     run_runtime_validation,
     validate_runtime_evidence,
 )
@@ -173,6 +174,18 @@ def test_runner_exception_is_retryable():
     assert result["error_type"] == "RuntimeError"
     assert "temporary runtime failure" in result["error"]
     assert queue.get(queued.fingerprint).state == QueueState.FAILED_RETRYABLE
+
+
+def test_missing_exact_product_input_blocks_without_exhausting_retries():
+    queue, queued = _queued_request()
+
+    def runner(_envelope):
+        raise RuntimeInputUnavailable("exact GLB and audited package are unavailable")
+
+    result = run_runtime_validation(queue, queued.fingerprint, runner=runner)
+    assert result["status"] == "BLOCKED_INPUT"
+    assert result["error_type"] == "RuntimeInputUnavailable"
+    assert queue.get(queued.fingerprint).state == QueueState.BLOCKED_INPUT
 
 
 def test_validator_rejects_missing_runtime_metadata(tmp_path):
