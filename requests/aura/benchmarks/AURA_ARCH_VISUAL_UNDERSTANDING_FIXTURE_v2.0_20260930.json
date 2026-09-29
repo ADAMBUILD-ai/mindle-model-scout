@@ -1,0 +1,45 @@
+{
+  "version": "2.0",
+  "source": "AURA authoritative research branch historical Gochang fixture",
+  "sourcePackageId": "AURA_V73_2_CORRECTED_CONTROL_PAGE_BUNDLE",
+  "classes": [
+    {
+      "class": "site_plan",
+      "artifactId": "P04",
+      "sha256": "028d6db8f939b4cf82e2b99814949ab2760b59122d157acaeca7334069d38e82"
+    },
+    {
+      "class": "floor_plan",
+      "artifactId": "P03",
+      "sha256": "7cd78fd90e88f730a4259cedea0b33cb69ed89062597aa9768f71a0041a2f37f"
+    },
+    {
+      "class": "section",
+      "artifactId": "P10",
+      "sha256": "9d149d745df459744c558e30030cc22284fa269ee830da10af394b39b5022d79"
+    },
+    {
+      "class": "elevation",
+      "artifactId": "P11",
+      "sha256": "b079a4cad4c2ee9badf2bc788b8bc574b32db04a44b0a255965024aa2429fcae"
+    },
+    {
+      "class": "aerial_perspective",
+      "artifactId": "P07",
+      "sha256": "d87362f5c8221d143bab54840bcc227975cf5c25e36934bea87d9f25d7905a53"
+    },
+    {
+      "class": "proposal_page",
+      "artifactId": "P12",
+      "sha256": "b75e5126efefe269e6159733bc6f67ac348c6cc321c61a7b05b802149388dbc7"
+    }
+  ],
+  "scoring": {
+    "groundedFactAccuracy": 0.4,
+    "relationshipReasoning": 0.25,
+    "crossViewConsistency": 0.2,
+    "hallucinationPenalty": 0.15
+  },
+  "negativeBaseline": "Florence-2 REJECT_QUALITY",
+  "sourceReference": "ADAMBUILD-ai/aura-engine@research/aura-reference-warehouse-20260923:docs/model-scout/benchmarks/AURA_ARCH_VISUAL_UNDERSTANDING_FIXTURE_v1.0_20260926.json"
+}
