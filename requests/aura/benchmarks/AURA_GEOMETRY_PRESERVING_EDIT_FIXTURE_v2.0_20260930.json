@@ -1,0 +1,44 @@
+{
+  "version": "2.0",
+  "authority": "P04_FINAL_PASS_v56.1",
+  "sourceArtifact": {
+    "id": "P04_VISUAL_MASTER",
+    "sha256": "028d6db8f939b4cf82e2b99814949ab2760b59122d157acaeca7334069d38e82",
+    "dimensions": [
+      1491,
+      1055
+    ]
+  },
+  "editMask": {
+    "sha256": "f11727e71d7322144cc9ccd73c9ef0c5c9af7f5f87b3e1a30e841e12f0d0563b",
+    "regionCount": 3
+  },
+  "protectedMask": {
+    "sha256": "0b53a0d9432f48bce86e33f425d783fd035c1c35078ced0415fcfc143d1ef96a",
+    "safetyDilationPx": 5
+  },
+  "geometry": {
+    "buildingCount": 7,
+    "centralCommon": 1,
+    "centroidTolerancePx": 0,
+    "requiredProtectedPixelDelta": 0,
+    "requiredBBoxEqual": true
+  },
+  "expectedDiff": {
+    "outsideMaskChangedPixels": 0,
+    "editMaskProtectedIntersectionPixels": 0,
+    "buildingCountStable": true,
+    "footprintTopologyConsistency": true,
+    "protectedRegionPixelDeltaZero": true,
+    "protectedRegionCentroidDeltaZero": true,
+    "visualABRequired": true
+  },
+  "forbidden": [
+    "whole-page generation",
+    "dropped v55 fourth patch",
+    "building/layout/footprint change",
+    "protected edge/pixel drift",
+    "text/title/page-frame change"
+  ],
+  "sourceReference": "ADAMBUILD-ai/aura-engine@research/aura-reference-warehouse-20260923:docs/model-scout/benchmarks/AURA_GEOMETRY_PRESERVING_EDIT_FIXTURE_v1.0_20260926.json"
+}
