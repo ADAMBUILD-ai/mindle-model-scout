@@ -79,18 +79,40 @@ def select_executable_candidate(scout_result: Mapping[str, Any], requested_model
 
 
 def classify_executor_kind(envelope: RequestEnvelope) -> str:
-    text = f"{envelope.project} {envelope.requested_capability} {envelope.request_text}".casefold()
-    if envelope.resource == "tool" and any(value in text for value in ("mapping", "render", "pbr", "texture")):
-        return "geometry-tool"
-    if any(value in text for value in ("embedding", "rerank", "임베딩", "리랭")):
-        return "embedding-reranker"
-    if any(value in text for value in ("ocr", "vision", "visual", "image", "이미지", "도면", "비전")):
-        return "ocr-vision"
-    if any(value in text for value in ("stt", "tts", "speech", "whisper", "음성")):
-        return "stt-tts"
-    if any(value in text for value in ("geometry", "cad", "mesh", "glb", "gltf", "dxf", "svg", "3d", "2d")):
-        return "geometry-tool"
-    return "huggingface-model"
+    # Structured request identity outranks incidental benchmark/license prose.
+    capability = envelope.requested_capability.casefold()
+    family = envelope.requested_model_family.casefold()
+    if capability == "aura_generative_architectural_corpus_analysis_model":
+        return "huggingface-model"
+    structured = f"{capability} {family}".replace("_", " ")
+    task = re.search(r"(?im)^\s*(?:task|modality|requested modality)\s*:\s*([^\n;]+)", envelope.acceptance_criteria)
+    if task:
+        structured += " " + task.group(1).casefold()
+
+    def route(text: str) -> str | None:
+        # Token boundaries prevent revision/preview from matching vision/view.
+        def has(values):
+            return any(re.search(r"(?<![a-z0-9])" + re.escape(value) + r"(?![a-z0-9])", text)
+                       for value in values)
+        if envelope.resource == "tool" and has(("mapping", "render", "pbr", "texture")):
+            return "geometry-tool"
+        if has(("generative text reasoning", "text generation", "text-generation", "causal llm", "causal_llm")):
+            return "huggingface-model"
+        if has(("embedding", "reranker", "rerank", "임베딩", "리랭")):
+            return "embedding-reranker"
+        if has(("ocr", "vision", "visual", "image", "이미지", "도면", "비전")):
+            return "ocr-vision"
+        if has(("stt", "tts", "speech", "whisper", "음성")):
+            return "stt-tts"
+        if has(("geometry", "cad", "mesh", "glb", "gltf", "dxf", "svg", "3d", "2d")):
+            return "geometry-tool"
+        return None
+
+    explicit = route(structured)
+    if explicit is not None:
+        return explicit
+    # Legacy unstructured requests retain modality routing with token boundaries.
+    return route(envelope.request_text.casefold()) or "huggingface-model"
 
 
 def _sha256(path: Path) -> str:
@@ -411,6 +433,13 @@ class RuntimeExecutorRegistry:
         scout_result: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         kind = classify_executor_kind(envelope)
+        # The current generic worker is a sentiment classifier, not a causal LLM.
+        # Never acquire/run it as proof of AURA's generative analysis contract.
+        if envelope.requested_capability.casefold() == "aura_generative_architectural_corpus_analysis_model":
+            raise RuntimeInputUnavailable(
+                "AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; "
+                "the configured generic huggingface-model worker only runs text-classification"
+            )
         adapter = self.adapters.get(kind)
         if adapter is None:
             raise RuntimeExecutorUnavailable(f"no configured local executor for {kind}")
