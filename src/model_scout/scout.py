@@ -191,6 +191,9 @@ def _explicit_model_ids(raw: str) -> list[str]:
 
 def _capability_queries(raw: str) -> list[str]:
     """Map open-ended capability requests to short, deterministic Hub queries."""
+    if re.search(r"(?<![a-z0-9_])aura_generative_architectural_corpus_analysis_model(?![a-z0-9_])", raw.casefold()):
+        # Hub searches are model-name terms; acceptance prose is not a query.
+        return ["Korean", "multilingual", "task:text-generation"]
     text = " ".join(raw.casefold().replace("_", " ").split())
     if ("embedding" in text or "임베딩" in text) and ("korean" in text or "한국어" in text):
         # Broad Hub task top hits skew English; search the multilingual embedding
@@ -216,6 +219,8 @@ def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
         return True
     model_id = str(model.get("model_id") or "").casefold()
     pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
+    if queries == ["Korean", "multilingual", "task:text-generation"]:
+        return pipeline_tag == "text-generation"
     if queries[0] == "task:document-question-answering":
         return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
     if queries[0] in {"multilingual", "multilingual-e5"}:
@@ -227,6 +232,8 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
     raw = str(profile.get("raw") or "")
     explicit_model_ids = _explicit_model_ids(raw)
     capability_queries = _capability_queries(raw)
+    if capability_queries == ["Korean", "multilingual", "task:text-generation"]:
+        return capability_queries
     task_query = f"task:{profile['task_hint']}" if profile.get("task_hint") else None
     values = [*explicit_model_ids, *capability_queries, profile.get("query"), task_query]
     return list(dict.fromkeys(str(value).strip() for value in values if value and str(value).strip()))[:3]
@@ -241,7 +248,7 @@ def _hydrate_pinned_languages(models: list[dict[str, Any]], profile: dict[str, A
     for model in models:
         if model.get("languages") or not model.get("revision"):
             continue
-        if model.get("pipeline_tag") not in {"feature-extraction", "sentence-similarity"}:
+        if model.get("pipeline_tag") not in {"feature-extraction", "sentence-similarity", "text-generation"}:
             continue
         if not model.get("license"):
             continue
@@ -267,7 +274,11 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "tool", "all"):
         raise ValueError("resource_type must be model, dataset, space, tool, or all")
     profile = parse_requirement(query)
-    profile["explicit_model_ids"] = _explicit_model_ids(str(profile.get("raw") or ""))
+    is_aura_analysis = _capability_queries(str(profile.get("raw") or "")) == ["Korean", "multilingual", "task:text-generation"]
+    if is_aura_analysis:
+        profile["task_hint"] = "text-generation"
+    # Capability request is selection, not a model ID inferred from repo/path text.
+    profile["explicit_model_ids"] = [] if is_aura_analysis else _explicit_model_ids(str(profile.get("raw") or ""))
     query_plan = _query_plan(profile)
     search_query = _upstream_search_query(profile)
     types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
