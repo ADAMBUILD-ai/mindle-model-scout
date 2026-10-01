@@ -1,0 +1,142 @@
+{
+  "schema": "model-scout-report/1",
+  "project": "ADRAW",
+  "requestIssue": 34,
+  "executedAt": "2026-09-13T10:07:17Z",
+  "status": "PARTIAL_TESTED_PASS",
+  "authorityBoundary": "ADRAW deterministic geometry, units, axes, floor coverage, identity and lineage remain authoritative",
+  "candidates": [
+    {
+      "role": "3d-object-classification-qa",
+      "id": "guochengqian/PointNeXt",
+      "type": "model-tool",
+      "source": "https://github.com/guochengqian/PointNeXt",
+      "revision": null,
+      "license": "MIT",
+      "status": "VERIFY_REQUIRED",
+      "reason": "exact commit, weights and Windows resource smoke not yet pinned"
+    },
+    {
+      "role": "edge-silhouette-occlusion-qa",
+      "id": "xavysp/DexiNed",
+      "type": "model-tool",
+      "source": "https://github.com/xavysp/DexiNed",
+      "revision": null,
+      "license": "MIT",
+      "status": "VERIFY_REQUIRED",
+      "reason": "exact commit, weights, license hash and actual A/B smoke pending"
+    },
+    {
+      "role": "edge-silhouette-occlusion-qa",
+      "id": "OpenCV Canny",
+      "type": "tool",
+      "source": "https://github.com/opencv/opencv",
+      "revision": null,
+      "license": "Apache-2.0",
+      "status": "VERIFY_REQUIRED",
+      "reason": "not installed in current Work runtime"
+    },
+    {
+      "role": "floorplan-vector-cad-qa",
+      "id": "ezdxf",
+      "type": "tool",
+      "source": "https://github.com/mozman/ezdxf",
+      "revision": "1.4.4",
+      "license": "MIT",
+      "status": "TESTED_PASS",
+      "reason": "five actual AVORA DXFs reopened with zero audit errors and fixes"
+    },
+    {
+      "role": "3d-scene-segmentation",
+      "id": "Pointcept PointTransformerV3",
+      "type": "model-tool",
+      "source": "https://github.com/Pointcept/PointTransformerV3",
+      "revision": "Pointcept submodule df36980",
+      "license": "MIT",
+      "status": "REJECT_P0",
+      "reason": "CUDA and FlashAttention environment unsuitable for Windows MX330 target"
+    },
+    {
+      "role": "floorplan-understanding",
+      "id": "CubiCasa5K",
+      "type": "model-dataset",
+      "source": "https://github.com/CubiCasa/CubiCasa5k",
+      "revision": null,
+      "license": "REVIEW_REQUIRED",
+      "status": "RESEARCH_ONLY",
+      "reason": "old runtime, large data footprint and commercial-license review required"
+    },
+    {
+      "role": "cad-understanding",
+      "id": "FloorPlanCAD",
+      "type": "dataset",
+      "source": "https://floorplancad.github.io/",
+      "revision": null,
+      "license": "CC-BY-NC-4.0",
+      "status": "REJECT_PRODUCTION",
+      "reason": "noncommercial restriction and source drawing rights limits"
+    },
+    {
+      "role": "topology-qa",
+      "id": "IntelLabs/FloorSet",
+      "type": "dataset-tool",
+      "source": "https://github.com/IntelLabs/FloorSet",
+      "revision": null,
+      "license": "Apache-2.0 code; CC-BY-4.0 data",
+      "status": "P1",
+      "reason": "license-compatible synthetic topology data but limited real CAD symbol coverage"
+    }
+  ],
+  "testedEvidence": {
+    "tool": "ezdxf",
+    "version": "1.4.4",
+    "offline": true,
+    "python": "3.12.14",
+    "platform": "Linux x86_64",
+    "sourceGlbSha256": "0be848494463478e4694428ec3949af45960272ce7c0a881a2d7c4a57d72c9b9",
+    "files": [
+      {
+        "floor": "1F",
+        "entities": 620,
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "sha256": "4a8c29c285a20a69f35edb521f885e715f05b870101e65e2c5ebde4387bbf735"
+      },
+      {
+        "floor": "2F",
+        "entities": 98,
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "sha256": "7bd35406544be5a29f9ff2f831500c05195ba76e32a7fd2f8ad01e647cc50df8"
+      },
+      {
+        "floor": "3F",
+        "entities": 553,
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "sha256": "513e0a07501482e4febc2f2b572b8efd799e1eeb2af7df8c60415c619d8c8461"
+      },
+      {
+        "floor": "4F",
+        "entities": 232,
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "sha256": "4b308b9678f743baf1bc188438c07aecd9e5d9f5a549c8e55b5de5c2ab1a8702"
+      },
+      {
+        "floor": "ROOF",
+        "entities": 44,
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "sha256": "483169b1af55da3d40c1629e907c465266e7610ae086eeb5ca347a6d3d5ec4b4"
+      }
+    ]
+  },
+  "nextActions": [
+    "pin exact candidate commits and license hashes",
+    "run Windows CPU resource smoke",
+    "add OpenCV edge baseline",
+    "run PointNeXt embedding smoke",
+    "run DexiNed baseline A/B after weight evidence"
+  ]
+}
