@@ -61,3 +61,19 @@ def test_network_failure_not_accepted(tmp_path):
 def test_noncommercial_license_never_accepted(tmp_path):
     r=hydrate_candidates([base()],info_fetcher=lambda *_:info(license='cc-by-nc-4.0'),evidence_root=tmp_path)[0]
     assert 'LICENSE_NOT_IN_APPROVED_COMMERCIAL_ALLOWLIST' in rejection_reasons(r)
+
+
+def test_official_body_language_claim_hydrated_when_frontmatter_empty(tmp_path):
+    obj=info();obj.card_data['language']=[]
+    r=hydrate_candidates([base()],info_fetcher=lambda *_:obj,
+                         card_fetcher=lambda *_:b'- Support of 119 languages and dialects with strong capabilities.',
+                         evidence_root=tmp_path)[0]
+    assert r['languages']==['multilingual']
+    assert rejection_reasons(r)==[]
+    assert r['metadata_evidence']['language_document']['sha256']
+
+
+def test_negative_multilingual_claim_not_accepted():
+    from src.model_scout.candidate_metadata import documented_languages
+    languages,lines=documented_languages('Does not support multilingual languages.\nUnsupported languages: Korean, English.')
+    assert languages==[]

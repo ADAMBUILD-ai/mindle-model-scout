@@ -5,12 +5,44 @@ import hashlib
 import json
 import os
 import re
+import urllib.request
 from .acquisition import ALLOWED_LICENSES
 
 AURA_QUERIES = ['Korean', 'multilingual Instruct', 'long-context', 'Instruct', 'Qwen3']
 
 
-def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None):
+def documented_languages(model_card):
+    evidence = []
+    languages = set()
+    for line in model_card.splitlines():
+        lowered = line.casefold()
+        if any(word in lowered for word in ('not support', 'unsupported', 'does not', 'no support')):
+            continue
+        if 'language' not in lowered:
+            continue
+        if re.search(r'multilingual support|support (?:of |for |over |more than )*\d+ languages', lowered):
+            languages.add('multilingual')
+            evidence.append(line[:256])
+        if 'including' in lowered or 'supported languages' in lowered:
+            if 'korean' in lowered:
+                languages.add('ko')
+            if 'english' in lowered:
+                languages.add('en')
+            if 'ko' in languages or 'en' in languages:
+                evidence.append(line[:256])
+    return sorted(languages), evidence
+
+
+def _fetch_card(mid, revision):
+    url = f'https://huggingface.co/{mid}/resolve/{revision}/README.md'
+    with urllib.request.urlopen(url, timeout=12) as response:
+        data = response.read(1048577)
+    if len(data) > 1048576:
+        raise ValueError('MODEL_CARD_OVERSIZE')
+    return data
+
+
+def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None, card_fetcher=None):
     if info_fetcher is None:
         from huggingface_hub import HfApi
         api = HfApi(token=False)
@@ -19,6 +51,7 @@ def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None):
                 (Path(os.environ['MODEL_SCOUT_STATE_DIR']) / 'metadata-evidence'
                  if os.environ.get('MODEL_SCOUT_STATE_DIR') else Path('.model-scout-evidence/metadata')))
     root.mkdir(parents=True, exist_ok=True)
+    card_fetcher = card_fetcher or _fetch_card
 
     def hydrate(model):
         result = dict(model)
@@ -45,13 +78,24 @@ def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None):
             languages = [languages] if isinstance(languages, str) else languages
             languages = [str(x).casefold() for x in languages] if isinstance(languages, list) else []
             languages.extend(t.split(':', 1)[1].casefold() for t in tags if t.startswith('language:'))
+            language_document = None
+            if not languages and license_name and license_name.casefold() in ALLOWED_LICENSES:
+                card_bytes = card_fetcher(mid, revision)
+                card_hash = hashlib.sha256(card_bytes).hexdigest()
+                card_path = root / (card_hash + '.md')
+                card_path.write_bytes(card_bytes)
+                if hashlib.sha256(card_path.read_bytes()).hexdigest() != card_hash:
+                    raise ValueError('MODEL_CARD_READBACK_FAILED')
+                documented, lines = documented_languages(card_bytes.decode('utf-8'))
+                languages.extend(documented)
+                language_document = {'sha256': card_hash, 'artifact_ref': str(card_path), 'evidence_lines': lines}
             files = [str(x.rfilename) for x in (getattr(info, 'siblings', None) or [])]
             evidence = {'model_id': mid, 'revision': revision, 'official_info_url':
                         f'https://huggingface.co/api/models/{mid}/revision/{revision}',
                         'model_card_url': f'https://huggingface.co/{mid}/blob/{revision}/README.md',
                         'license_urls': [f'https://huggingface.co/{mid}/blob/{revision}/{name}'
                                          for name in files if 'license' in name.casefold()],
-                        'tags': tags, 'card': card, 'files': files,
+                        'tags': tags, 'card': card, 'language_document': language_document, 'files': files,
                         'pipeline_tag': getattr(info, 'pipeline_tag', None),
                         'library_name': getattr(info, 'library_name', None) or card.get('library_name')}
             data = json.dumps(evidence, sort_keys=True, ensure_ascii=False).encode()
@@ -65,7 +109,7 @@ def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None):
                           pipeline_tag=evidence['pipeline_tag'], library_name=evidence['library_name'],
                           hydration_status='EXACT_REVISION_VERIFIED',
                           metadata_evidence={'sha256': digest, 'artifact_ref': str(path),
-                                             'model_card_url': evidence['model_card_url'],
+                                             'model_card_url': evidence['model_card_url'], 'language_document': language_document,
                                              'license_urls': evidence['license_urls']})
         except Exception as error:
             result['hydration_status'] = 'METADATA_FETCH_FAILED'
