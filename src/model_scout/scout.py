@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass, asdict
 from typing import Any
 
+from .candidate_metadata import AURA_QUERIES, hydrate_candidates, rejection_reasons
 from .filters import filter_candidates
 from .requirements import parse_requirement
 from .resources import SUPPORTED_RESOURCE_TYPES, search_resource, search_render_tools
@@ -33,6 +34,7 @@ class Candidate:
     model_files: list[str] | None = None
     distributions: list[dict[str, Any]] | None = None
     reported_license_classifier: str | None = None
+    metadata_evidence: dict[str, Any] | None = None
 
 
 def _license_from_tags(tags: list[str]) -> str | None:
@@ -150,6 +152,12 @@ def search_huggingface(query: str, limit: int = 10, timeout: int = 20, max_attem
     )
 
 
+def search_huggingface_generation(query: str, limit: int = 10) -> list[dict[str, Any]]:
+    return _fetch_huggingface_models(
+        {"search": query, "pipeline_tag": "text-generation", "sort": "downloads",
+         "direction": "-1", "limit": limit, "full": "true"}, timeout=15, max_attempts=2)
+
+
 def search_huggingface_task(task: str, limit: int = 10, timeout: int = 20, max_attempts: int = 3) -> list[dict[str, Any]]:
     if not task or not task.strip():
         raise ValueError("task must not be empty")
@@ -193,7 +201,7 @@ def _capability_queries(raw: str) -> list[str]:
     """Map open-ended capability requests to short, deterministic Hub queries."""
     if re.search(r"(?<![a-z0-9_])aura_generative_architectural_corpus_analysis_model(?![a-z0-9_])", raw.casefold()):
         # Hub searches are model-name terms; acceptance prose is not a query.
-        return ["Korean", "multilingual", "task:text-generation"]
+        return AURA_QUERIES
     text = " ".join(raw.casefold().replace("_", " ").split())
     if ("embedding" in text or "임베딩" in text) and ("korean" in text or "한국어" in text):
         # Broad Hub task top hits skew English; search the multilingual embedding
@@ -219,7 +227,7 @@ def _capability_compatible(model: dict[str, Any], raw: str) -> bool:
         return True
     model_id = str(model.get("model_id") or "").casefold()
     pipeline_tag = str(model.get("pipeline_tag") or "").casefold()
-    if queries == ["Korean", "multilingual", "task:text-generation"]:
+    if queries == AURA_QUERIES:
         return pipeline_tag == "text-generation"
     if queries[0] == "task:document-question-answering":
         return pipeline_tag in {"image-to-text", "image-text-to-text", "visual-question-answering", "document-question-answering"}
@@ -232,7 +240,7 @@ def _query_plan(profile: dict[str, Any]) -> list[str]:
     raw = str(profile.get("raw") or "")
     explicit_model_ids = _explicit_model_ids(raw)
     capability_queries = _capability_queries(raw)
-    if capability_queries == ["Korean", "multilingual", "task:text-generation"]:
+    if capability_queries == AURA_QUERIES:
         return capability_queries
     task_query = f"task:{profile['task_hint']}" if profile.get("task_hint") else None
     values = [*explicit_model_ids, *capability_queries, profile.get("query"), task_query]
@@ -274,7 +282,7 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     if resource_type not in (*SUPPORTED_RESOURCE_TYPES, "tool", "all"):
         raise ValueError("resource_type must be model, dataset, space, tool, or all")
     profile = parse_requirement(query)
-    is_aura_analysis = _capability_queries(str(profile.get("raw") or "")) == ["Korean", "multilingual", "task:text-generation"]
+    is_aura_analysis = _capability_queries(str(profile.get("raw") or "")) == AURA_QUERIES
     if is_aura_analysis:
         profile["task_hint"] = "text-generation"
     # Capability request is selection, not a model ID inferred from repo/path text.
@@ -283,6 +291,7 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     search_query = _upstream_search_query(profile)
     types = SUPPORTED_RESOURCE_TYPES if resource_type == "all" else (resource_type,)
     models: list[dict[str, Any]] = []
+    query_receipts = []
 
     for kind in types:
         if kind == "tool":
@@ -292,7 +301,12 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
             continue
         for planned_query in query_plan:
             if kind == "model":
-                if planned_query.startswith("task:"):
+                if is_aura_analysis:
+                    found = search_huggingface_generation(planned_query, limit)
+                    models.extend(found)
+                    query_receipts.append({"query": planned_query, "task": "text-generation", "searched_count": len(found),
+                                           "candidate_identities": [{"model_id": m.get("model_id"), "revision": m.get("revision")} for m in found]})
+                elif planned_query.startswith("task:"):
                     models.extend(search_huggingface_task(planned_query.split(":", 1)[1], limit))
                 else:
                     models.extend(search_huggingface(planned_query, limit))
@@ -302,10 +316,17 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
     deduped = {(item.get("resource_type", "model"), item.get("model_id")): item for item in models if item.get("model_id")}
     models = list(deduped.values())
     if resource_type == "model":
-        _hydrate_pinned_languages(models, profile)
+        if is_aura_analysis:
+            models = hydrate_candidates(models)
+        else:
+            _hydrate_pinned_languages(models, profile)
+    rejection_table = [{"model_id": m.get("model_id"), "revision": m.get("revision"),
+                        "hydration_status": m.get("hydration_status"), "metadata_evidence": m.get("metadata_evidence"),
+                        "reasons": rejection_reasons(m)} for m in models] if is_aura_analysis else []
     filtered_models = [
         model for model in filter_candidates(models, profile)
         if _capability_compatible(model, str(profile.get("raw") or ""))
+        and (not is_aura_analysis or not rejection_reasons(model))
     ]
     if resource_type == "tool":
         filtered_models = models  # PyPI package metadata has no Hub task/language tags.
@@ -331,6 +352,7 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
                 model.get("model_files"),
                 model.get("distributions"),
                 model.get("reported_license_classifier"),
+                model.get("metadata_evidence"),
             )
         )
     candidates.sort(key=lambda x: (x.status in {"LICENSE_REVIEW_REQUIRED", "LICENSE_NOT_PERMITTED", "REJECT"}, -x.score, -x.downloads))
@@ -340,6 +362,9 @@ def scout(query: str, limit: int = 10, resource_type: str = "model") -> dict[str
         "query_plan": query_plan,
         "resource_type": resource_type,
         "requirement_profile": profile,
+        "query_receipts": query_receipts,
+        "candidate_rejection_table": rejection_table,
+        "metadata_hydration_incomplete": any(m.get("hydration_status") == "METADATA_FETCH_FAILED" for m in models) if is_aura_analysis else False,
         "searched_candidate_count": len(models),
         "candidate_count": len(candidates),
         "candidates": [asdict(c) for c in candidates],
