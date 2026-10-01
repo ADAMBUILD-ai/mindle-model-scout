@@ -25,7 +25,7 @@ def test_family_and_explicit_task_override_prose():
 def test_exact_capability_plan_never_contains_body_or_repo_paths():
     raw = f'{CAPABILITY}\nTask: text generation\nCallback ADAMBUILD-ai/aura-engine\n' + 'pin revision; architectural visual understanding. ' * 200
     plan = _query_plan(parse_requirement(raw))
-    assert plan == ['Korean', 'multilingual', 'task:text-generation']
+    assert plan == ['Korean', 'multilingual Instruct', 'long-context', 'Instruct', 'Qwen3']
     assert all(len(query) < 64 for query in plan)
     assert _capability_compatible({'pipeline_tag':'text-generation'}, raw)
     assert not _capability_compatible({'pipeline_tag':'image-to-text'}, raw)
@@ -41,11 +41,12 @@ def test_actual_scout_filters_wrong_modality_without_weakening_contract(monkeypa
     def search(query, limit):
         calls.append(query)
         return models
-    monkeypatch.setattr(module, 'search_huggingface', search)
+    monkeypatch.setattr(module, 'search_huggingface_generation', search)
+    monkeypatch.setattr(module, 'hydrate_candidates', lambda models:[dict(m, hydration_status='EXACT_REVISION_VERIFIED', model_files=['model.safetensors'],metadata_evidence={'license_urls':['UNIT_TEST_ONLY']}) for m in models])
     monkeypatch.setattr(module, 'search_huggingface_task', lambda task,limit:search('task:'+task,limit))
     raw = f'{CAPABILITY} commercial Korean English Transformers; license; revision; OCR historical reference'
     result = scout(raw)
-    assert calls == ['Korean','multilingual','task:text-generation']
+    assert calls == ['Korean','multilingual Instruct','long-context','Instruct','Qwen3']
     assert result['candidate_count'] == 1
     assert result['candidates'][0]['pipeline_tag'] == 'text-generation'
     assert result['requirement_profile']['commercial_use']
