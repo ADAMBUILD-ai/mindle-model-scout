@@ -15,14 +15,15 @@ def documented_languages(model_card):
     evidence = []
     languages = set()
     for line in model_card.splitlines():
-        lowered = line.casefold()
-        if any(word in lowered for word in ('not support', 'unsupported', 'does not', 'no support')):
+        lowered = re.sub(r'[*_`]', '', line.casefold())
+        if any(word in lowered for word in ('not support', 'unsupported', 'does not', 'no support', 'lacks multilingual', 'without multilingual')):
             continue
         if 'language' not in lowered:
             continue
-        if re.search(r'multilingual support|support (?:of |for |over |more than )*\d+ languages', lowered):
+        claim = re.search(r'multilingual support|multilingual instruction|support (?:of |for |over |more than )*\d+\+? languages', lowered)
+        if claim:
             languages.add('multilingual')
-            evidence.append(line[:256])
+            evidence.append(lowered[max(0, claim.start()-30):claim.end()+120])
         if 'including' in lowered or 'supported languages' in lowered:
             if 'korean' in lowered:
                 languages.add('ko')
@@ -79,7 +80,9 @@ def hydrate_candidates(models, *, info_fetcher=None, evidence_root=None, card_fe
             languages = [str(x).casefold() for x in languages] if isinstance(languages, list) else []
             languages.extend(t.split(':', 1)[1].casefold() for t in tags if t.startswith('language:'))
             language_document = None
-            if not languages and license_name and license_name.casefold() in ALLOWED_LICENSES:
+            documented_set = set(languages)
+            bilingual = bool(documented_set & {'multilingual','multi'}) or (bool(documented_set & {'ko','kor','korean'}) and bool(documented_set & {'en','eng','english'}))
+            if not bilingual and license_name and license_name.casefold() in ALLOWED_LICENSES:
                 card_bytes = card_fetcher(mid, revision)
                 card_hash = hashlib.sha256(card_bytes).hexdigest()
                 card_path = root / (card_hash + '.md')

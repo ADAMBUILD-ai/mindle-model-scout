@@ -34,7 +34,7 @@ def test_official_metadata_still_missing_license_rejected(tmp_path):
 
 
 def test_korean_alone_does_not_prove_english(tmp_path):
-    r=hydrate_candidates([base()],info_fetcher=lambda *_:info(langs=['ko']),evidence_root=tmp_path)[0]
+    r=hydrate_candidates([base()],info_fetcher=lambda *_:info(langs=['ko']),card_fetcher=lambda *_:b'No further documented languages.',evidence_root=tmp_path)[0]
     assert 'OFFICIAL_ENGLISH_EVIDENCE_MISSING' in rejection_reasons(r)
 
 
@@ -77,3 +77,19 @@ def test_negative_multilingual_claim_not_accepted():
     from src.model_scout.candidate_metadata import documented_languages
     languages,lines=documented_languages('Does not support multilingual languages.\nUnsupported languages: Korean, English.')
     assert languages==[]
+
+
+def test_partial_frontmatter_is_completed_from_pinned_card(tmp_path):
+    obj=info(langs=['en'])
+    r=hydrate_candidates([base()],info_fetcher=lambda *_:obj,
+                         card_fetcher=lambda *_:b'Multilingual support for 29 languages, including Korean and English.',
+                         evidence_root=tmp_path)[0]
+    assert 'multilingual' in r['languages']
+    assert rejection_reasons(r)==[]
+
+
+def test_markdown_language_count_claim_is_captured():
+    from src.model_scout.candidate_metadata import documented_languages
+    languages,lines=documented_languages('- **Support of 100+ languages and dialects** with multilingual instruction following.')
+    assert languages==['multilingual']
+    assert any('100+' in line for line in lines)
