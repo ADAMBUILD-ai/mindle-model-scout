@@ -1,0 +1,67 @@
+{
+  "status": "BLOCKED_AURA_136_RUNTIME_EXECUTOR_NOT_AVAILABLE",
+  "scope": "Current General Work environment preflight only; not a verdict on all runner resources",
+  "request": 136,
+  "controlOwner": 139,
+  "callback": "ADAMBUILD-ai/aura-engine#37",
+  "mainCommit": "3a7dd50b8834347e3e4fea02cca256282f9e9903",
+  "b01Commit": "defcd851b16c795cc716dd34a562b36cfcbaf9fe",
+  "verifiedFindings": [
+    {
+      "path": "src/model_scout/runtime_executors.py",
+      "finding": "RuntimeExecutorRegistry.__call__ unconditionally rejects AURA generative capability; classifier protection must remain until a real adapter exists"
+    },
+    {
+      "path": "config/runtime-executors.json",
+      "finding": "huggingface-model invokes run_runtime_worker.py --kind huggingface-model; worker invokes pipeline('text-classification')"
+    },
+    {
+      "path": ".github/workflows/autonomous-model-scout.yml",
+      "finding": "issue_comment trigger absent; contents: read; durable self-hosted execution exists but no B01 directive consumer or evidence commit step"
+    }
+  ],
+  "localRuntimePreflight": {
+    "pythonImportSpec": {
+      "torch": false,
+      "transformers": false,
+      "huggingface_hub": false
+    },
+    "modelCacheDirectories": {
+      "/root/.cache/huggingface/hub": false,
+      "/workspace/models": false
+    },
+    "runtimeConfigVariableNames": [],
+    "endpointChecks": [
+      {
+        "url": "http://127.0.0.1:11434/api/tags",
+        "error": "URLError: <urlopen error [Errno 111] Connection refused>"
+      },
+      {
+        "url": "http://127.0.0.1:8000/v1/models",
+        "error": "URLError: <urlopen error [Errno 111] Connection refused>"
+      }
+    ]
+  },
+  "blocker": {
+    "failingStage": "Real generative executor binding and invocation in current General Work environment",
+    "exactPath": "src/model_scout/runtime_executors.py:RuntimeExecutorRegistry.__call__",
+    "exactError": "AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; the configured generic huggingface-model worker only runs text-classification",
+    "why": "Current production guard rejects the request; this environment has no verified local generation dependencies, model bytes or responding conventional local endpoints. Self-hosted runner model availability has NOT been measured in this turn.",
+    "safeNextAction": "Use a branch-bound self-hosted runtime preflight to locate exact existing model snapshots and approved generation runtime; then bind a dedicated generative adapter without changing classifier protections. Do not retry the unchanged generic cycle or claim PASS."
+  },
+  "checks": {
+    "B01ReportedRemotePass": true,
+    "realInferenceRun": false,
+    "modelQualityVerified": false,
+    "callbackWritten": false,
+    "automaticPathRepaired": false,
+    "mainMerged": false,
+    "productionDeployed": false,
+    "Pilot10Run": false,
+    "broadSearchCalls": 0
+  },
+  "limitations": [
+    "Authenticated shell clone unavailable: fatal: could not read Username for 'https://git.chatgpt-team.site': No such device or address; connector read/write works.",
+    "Available GitHub connector tools expose read and rerun operations but no workflow_dispatch operation; no self-hosted runtime execution was claimed."
+  ]
+}
