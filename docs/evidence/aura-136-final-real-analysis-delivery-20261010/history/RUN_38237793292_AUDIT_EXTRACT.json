@@ -1,0 +1,45 @@
+{
+  "runId": 38237793292,
+  "jobId": 114772659674,
+  "runner": "mindle-model-scout",
+  "event": "workflow_dispatch",
+  "completed": "2026-10-12T10:41:55Z",
+  "configuredRepos": [
+    "ADAMBUILD-ai/agri-ai-business-platform",
+    "ADAMBUILD-ai/adam-build"
+  ],
+  "idleReason": "NO_ELIGIBLE_REQUESTS",
+  "eligibleRequestCount": 0,
+  "results": [],
+  "queue136": [
+    {
+      "acceptance_criteria": "Task: text generation / causal LLM for commercial architectural Korean-English corpus reasoning; Transformers or an existing OpenAI-compatible local endpoint. Authoritative directive: ADAMBUILD-ai/aura-engine docs/commander/AURA_LIVE_RUNTIME_SERVICE_RECOVERY_AND_PROVIDER_BINDING_DIRECTIVE_v5.0_20261001.md (98b6de47bc287d3e357709bda7f8e9ad16d94346). Input: project brief, KR/English verified corpus >=20 records, each source_id + verifiedContent + sourceValidation.contentHash + persisted artifactRef; prior analysis and feedback receipts for cumulative 100/150/200 stages. Output must match src/aura-general/agents/corpusAnalysis.js: patternClusters, contradictions, positiveCases, negativeMismatchCases, unresolvedGaps, nextSearchTargets, sourceBoundDesignInference, drawingProofRequirements, coverageMatrix, confidence, applicability. All inferential claims cite actual input source IDs, never invented sources. JSON only via existing OpenAI-compatible createAnalysisModelProvider contract. Minimum context: 20 sources with >=1000 tokens/source plus brief/output budget, >=32768 usable context tokens; demonstrate truncation accounting. Also benchmark cumulative 100/150/200 with explicit context budget/corpus coverage rather than silently truncating. Runtime: prefer existing CPU-capable approved service; no new paid API/GPU purchase or production deployment authorized. GPU acquisition/execution requiring new approval must be reported separately. Pin immutable model commit + weight hashes + runtime/software versions. License snapshot and evidence acquired-version usage rights persist despite future upstream policy changes required; otherwise reject/replace. Benchmark dataset: AURA G4 real KR10 + GLOBAL10 fetched/persisted sources, non-Gochang controlled civic/library brief. Dataset currently blocked by safe outbound source-fetch deployment; callback can deliver candidate runtime first but MUST NOT label AURA product benchmark PASS until actual dataset hashes and inference receipts exist. No synthetic-only benchmark accepted. PASS: actual Korean/English synthesis, architectural vocabulary, structured JSON, >=20 actual context sources, broad source-bound patterns/positive/negative/contradictions/gaps, next queries, competing design hypotheses and drawing proofs; 0 invented citations; source-specific findings and different A1/A2/A3; record provider/model/immutable model commit, invocationId, prompt/output SHA256 and artifactRefs, wait_ms, usage/token accounting and benchmark verdicts. ACQUIRED_VERIFIED alone is insufficient. TESTED_PASS -> CALLBACK_SENT -> DELIVERED with inference receipt required.",
+      "callback_issue": 37,
+      "callback_repo": "ADAMBUILD-ai/aura-engine",
+      "created_at": 1790809309.7498217,
+      "evidence_pointer": null,
+      "fingerprint": "edab72777e0f91533555d936b0542cc2451f64222ecc47174a2ee4f6b254127c",
+      "last_attempt_at": 1790817383.396722,
+      "last_error": "runtime:RuntimeInputUnavailable: AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; the configured generic huggingface-model worker only runs text-classification",
+      "priority": "P0",
+      "product": "AURA",
+      "project": "AURA",
+      "request_id": "MSR::adambuild-ai/mindle-model-scout#136::AURA",
+      "request_owner": "신작가님 / AURA Commander",
+      "request_text": "### 요청 개발팀 AURA ### 제품 / 앱 AURA ### 요청 Owner / 담당자 신작가님 / AURA Commander ### 필요한 기능 / 해결할 문제 AURA_GENERATIVE_ARCHITECTURAL_CORPUS_ANALYSIS_MODEL ### 요청 Model ID SCOUT_SELECTION_REQUIRED ### Model Family / 계열 GENERATIVE_TEXT_REASONING ### PASS 기준 Task: text generation / causal LLM for commercial architectural Korean-English corpus reasoning; Transformers or an existing OpenAI-compatible local endpoint. Authoritative directive: ADAMBUILD-ai/aura-engine docs/commander/AURA_LIVE_RUNTIME_SERVICE_RECOVERY_AND_PROVIDER_BINDING_DIRECTIVE_v5.0_20261001.md (98b6de47bc287d3e357709bda7f8e9ad16d94346). Input: project brief, KR/English verified corpus >=20 records, each source_id + verifiedContent + sourceValidation.contentHash + persisted artifactRef; prior analysis and feedback receipts for cumulative 100/150/200 stages. Output must match src/aura-general/agents/corpusAnalysis.js: patternClusters, contradictions, positiveCases, negativeMismatchCases, unresolvedGaps, nextSearchTargets, sourceBoundDesignInference, drawingProofRequirements, coverageMatrix, confidence, applicability. All inferential claims cite actual input source IDs, never invented sources. JSON only via existing OpenAI-compatible createAnalysisModelProvider contract. Minimum context: 20 sources with >=1000 tokens/source plus brief/output budget, >=32768 usable context tokens; demonstrate truncation accounting. Also benchmark cumulative 100/150/200 with explicit context budget/corpus coverage rather than silently truncating. Runtime: prefer existing CPU-capable approved service; no new paid API/GPU purchase or production deployment authorized. GPU acquisition/execution requiring new approval must be reported separately. Pin immutable model commit + weight hashes + runtime/software versions. License snapshot and evidence acquired-version usage rights persist despite future upstream policy changes required; otherwise reject/replace. Benchmark dataset: AURA G4 real KR10 + GLOBAL10 fetched/persisted sources, non-Gochang controlled civic/library brief. Dataset currently blocked by safe outbound source-fetch deployment; callback can deliver candidate runtime first but MUST NOT label AURA product benchmark PASS until actual dataset hashes and inference receipts exist. No synthetic-only benchmark accepted. PASS: actual Korean/English synthesis, architectural vocabulary, structured JSON, >=20 actual context sources, broad source-bound patterns/positive/negative/contradictions/gaps, next queries, competing design hypotheses and drawing proofs; 0 invented citations; source-specific findings and different A1/A2/A3; record provider/model/immutable model commit, invocationId, prompt/output SHA256 and artifactRefs, wait_ms, usage/token accounting and benchmark verdicts. ACQUIRED_VERIFIED alone is insufficient. TESTED_PASS -> CALLBACK_SENT -> DELIVERED with inference receipt required. ### Callback Repository ADAMBUILD-ai/aura-engine ### Callback Issue 37 ### Resource Type model ### 우선순위 P0 ### Delivery contract Required output includes ALL corpusAnalysis ANALYSIS_FIELDS: patternClusters, positiveCases, negativeMismatchCases, contradictions, constraints, risks, unresolvedGaps, nextSearchTargets, competingDesignHypotheses, rejectedStrategies, sourceBoundDesignInference, drawingProofRequirements; coverageMatrix, confidence, applicability also required. Callback artifact in ADAMBUILD-ai/aura-engine docs/evidence/aura-live-runtime-service-binding-v5-20261001/MODEL_SCOUT_DELIVERY.json on research/aura-reference-warehouse-20260923. Callback issue is AURA #37. Do not interpret numbers in artifact paths as callback issue numbers. ### Recovery evidence Run 818 (36787067679) completed but its downloaded autonomous-cycle-evidence.json has no #136 queue/results entry and idle_reason=NO_ELIGIBLE_REQUESTS. Both ZIP hashes match published Actions digests. Original issue lacked a discovery marker and used ## rather than parser-required ### headings. This edit corrects the request only; no Scout runtime/main source change is authorized or made.",
+      "requested_capability": "AURA_GENERATIVE_ARCHITECTURAL_CORPUS_ANALYSIS_MODEL",
+      "requested_model_family": "GENERATIVE_TEXT_REASONING",
+      "requested_model_id": "SCOUT_SELECTION_REQUIRED",
+      "requesting_team": "AURA",
+      "resource": "model",
+      "retry_count": 3,
+      "selection_mode": "SCOUT_SELECTION_REQUIRED",
+      "source_issue": 136,
+      "source_repo": "adambuild-ai/mindle-model-scout",
+      "state": "BLOCKED_INPUT",
+      "updated_at": 1790817383.430698
+    }
+  ],
+  "diagnostics136": [],
+  "source": "https://github.com/ADAMBUILD-ai/mindle-model-scout/actions/runs/38237793292"
+}

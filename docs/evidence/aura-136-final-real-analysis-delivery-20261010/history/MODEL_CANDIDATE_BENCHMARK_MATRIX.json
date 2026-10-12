@@ -1,0 +1,317 @@
+{
+  "models": [
+    {
+      "modelId": "Qwen/Qwen3-0.6B",
+      "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+      "actualLexicalCalls": 10,
+      "schemaCompletions": 10,
+      "architectureSemanticGate": "FAIL",
+      "productionEligible": false,
+      "audit": [
+        {
+          "caseId": "circulation_original",
+          "invocationId": "e932dcbb-f256-4aae-8dce-5027991e235a",
+          "outputSha256": "93d285ca7da8ac6e99b5bbe6c548745471a384ddec167f39deef26efe333678a",
+          "artifact": "inference/baseline06b/circulation_original.json",
+          "verdict": "FAIL",
+          "reason": "Resolves circulation as distribution of materials, not spatial pedestrian movement."
+        },
+        {
+          "caseId": "core",
+          "invocationId": "e0116f58-b202-40e1-85b9-e13c9a4dc56c",
+          "outputSha256": "663fcd7cc495d6c9187a1127368e63e7e86f1ff1d536e173431d6063d9f7c729",
+          "artifact": "inference/baseline06b/core.json",
+          "verdict": "FAIL",
+          "reason": "Generic library mission, no stairs/lifts/services; Korean field is English."
+        },
+        {
+          "caseId": "section",
+          "invocationId": "fd1d2254-629e-4d19-aee0-b6fb7a3b9d9f",
+          "outputSha256": "dbfcc60cb132f991028512c7d2152f631db43e9a95eb3e8b8762fda65389dc56",
+          "artifact": "inference/baseline06b/section.json",
+          "verdict": "FAIL",
+          "reason": "Generic library mission, no vertical cut/levels; Korean field is English."
+        },
+        {
+          "caseId": "elevation",
+          "invocationId": "063b7e04-58f1-4f33-88f9-2579dad38949",
+          "outputSha256": "a3b13242a52c3a8c17539a1f115cc67731d087c61284b44bfdbddb43950fe22e",
+          "artifact": "inference/baseline06b/elevation.json",
+          "verdict": "FAIL",
+          "reason": "Lists entrance/shelves/facilities rather than orthographic facade; English in Korean field."
+        },
+        {
+          "caseId": "programme",
+          "invocationId": "4d8a1e4b-8f85-4566-8a9d-6317808df7b2",
+          "outputSha256": "0bb2946556d9828fe3caf42b6965f7f3b18026c60783ae3c3fcdf6f0465e23b4",
+          "artifact": "inference/baseline06b/programme.json",
+          "verdict": "FAIL",
+          "reason": "Generic facilities; no functional room/area allocation; English in Korean field."
+        },
+        {
+          "caseId": "envelope",
+          "invocationId": "23169a32-7483-4988-943f-c96597ffd52f",
+          "outputSha256": "105e6b744d917dbeadf1b1bd60c5cd028600c1b0de36122e7c74f6c1e7da5f8e",
+          "artifact": "inference/baseline06b/envelope.json",
+          "verdict": "FAIL",
+          "reason": "Broad enclosure description with floor/ceiling, no roof/facade system; English in Korean field."
+        },
+        {
+          "caseId": "public_private_gradient",
+          "invocationId": "cb255ae3-d2fe-43ce-bd6b-5f17fb697b2d",
+          "outputSha256": "012f7ff5d1df17b49182fe8d6288262c8d8853bdc1dc40cf266fb3b1a062f9ec",
+          "artifact": "inference/baseline06b/public_private_gradient.json",
+          "verdict": "FAIL",
+          "reason": "Number/access of users rather than spatial access gradient; Korean field is English."
+        },
+        {
+          "caseId": "adjacency",
+          "invocationId": "e34a2481-68b3-42fc-8de8-9ecd9efa61d4",
+          "outputSha256": "fe09ad76b280daf5a2739a2ed3e362ad3f6ce827258eb13f19be7c53908553d2",
+          "artifact": "inference/baseline06b/adjacency.json",
+          "verdict": "FAIL",
+          "reason": "Describes all spaces as connected; lacks functional proximity/separation rationale."
+        },
+        {
+          "caseId": "site_access",
+          "invocationId": "25503255-0641-4edc-8191-61d30725d227",
+          "outputSha256": "9b8ae5337178625184f5ea56ba47c9c58b54b4eea7a8875fe65240f69fb295f6",
+          "artifact": "inference/baseline06b/site_access.json",
+          "verdict": "FAIL",
+          "reason": "Library mission/access to books; no site/entrance/arrival geometry; Korean field English."
+        },
+        {
+          "caseId": "drawing_proof",
+          "invocationId": "0c76bf13-56db-401a-ab57-b14a6f25cccd",
+          "outputSha256": "6a6a9e12c3854a1dbba7f9223896c97dc84406ca8f10bba3b2b0bc8e8c510735",
+          "artifact": "inference/baseline06b/drawing_proof.json",
+          "verdict": "FAIL",
+          "reason": "Generic structural/accessibility/environment proof, no drawing classes or geometry consistency."
+        }
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-1.7B",
+      "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "actualLexicalCalls": 10,
+      "schemaCompletions": 10,
+      "architectureSemanticGate": "FAIL",
+      "productionEligible": false,
+      "audit": [
+        {
+          "caseId": "circulation_original",
+          "invocationId": "cbf6dac9-5154-46b8-9249-ec49200d5f2f",
+          "outputSha256": "6bedf47a4206e15e564910bc2ea7f611038de754388e30f03b564fe1cc3fb175",
+          "artifact": "inference/candidate17b/circulation_original.json",
+          "verdict": "FAIL_DOMAIN",
+          "reason": "Borrowing and returning books, not spatial movement. Unframed diagnostic ambiguity noted; explicit architecture follow-up still fails."
+        },
+        {
+          "caseId": "core",
+          "invocationId": "e418b0cf-9530-4862-8719-c70b4b73c050",
+          "outputSha256": "1e152f43effd92cfb8e3a47cc4d6120d8b8e284bc2dd866a4832fdac83a9cfa6",
+          "artifact": "inference/candidate17b/core.json",
+          "verdict": "FAIL_DOMAIN",
+          "reason": "Core becomes mission/design importance; no stair/lift/service organization."
+        },
+        {
+          "caseId": "section",
+          "invocationId": "ce3b94f0-2ede-4fe0-bedf-fefe59b7041b",
+          "outputSha256": "6fdca7ebe0ffb96a5b1102bc0edf47d8814eb8e008dd5b4503065bec2cc09994",
+          "artifact": "inference/candidate17b/section.json",
+          "verdict": "PARTIAL_NOT_ACCEPTED",
+          "reason": "English identifies a cross-section, but Korean fabricates 약정면 and both omit level/height cut relationships."
+        },
+        {
+          "caseId": "elevation",
+          "invocationId": "e6208e55-f85a-4be2-b279-61e6b0fa0e4f",
+          "outputSha256": "a54e1880475f4bae5991522d34f73d7a884019e95be459d87a6ee089eef21366",
+          "artifact": "inference/candidate17b/elevation.json",
+          "verdict": "FAIL_DOMAIN",
+          "reason": "Answers night lighting instead of architectural orthographic facade."
+        },
+        {
+          "caseId": "programme",
+          "invocationId": "18053020-4017-467f-ab89-ec297c9a2c12",
+          "outputSha256": "d8001b36cbd46ad41a9bc64d529da62583b22436850acb579d41bbd68a27205d",
+          "artifact": "inference/candidate17b/programme.json",
+          "verdict": "PASS_BASIC_TERM_ONLY",
+          "reason": "Spatial utilization and functional division recognized; no source-based synthesis or drawing proof certified."
+        },
+        {
+          "caseId": "envelope",
+          "invocationId": "cbf58729-f0b3-44f1-a844-97f1941552a6",
+          "outputSha256": "573b37cd46fa29dddc0354a14b50394250bdfdcaca4b730816d59199da59b78e",
+          "artifact": "inference/candidate17b/envelope.json",
+          "verdict": "PARTIAL_NOT_ACCEPTED",
+          "reason": "Only external wall, omits roof/enclosure and uses inaccurate prevents contact language."
+        },
+        {
+          "caseId": "public_private_gradient",
+          "invocationId": "397b2148-0719-49f6-a9e8-76135521a0a1",
+          "outputSha256": "6658e72c9521c3150f1b99b11c5b7ef37f08874f6f14e37581fae559bf29590e",
+          "artifact": "inference/candidate17b/public_private_gradient.json",
+          "verdict": "FAIL_DOMAIN",
+          "reason": "Invents public/private user floor categories for professionals/external visitors rather than controlled access/privacy gradient."
+        },
+        {
+          "caseId": "adjacency",
+          "invocationId": "484dee74-e60f-4860-bdf3-cc26f6dfddbc",
+          "outputSha256": "328cf60d7948244df8a33d40903c3f97006d006ad1bb71087202cee624ce0019",
+          "artifact": "inference/candidate17b/adjacency.json",
+          "verdict": "PASS_BASIC_TERM_ONLY",
+          "reason": "Physical proximity and functional activities recognized; real20 analysis untested."
+        },
+        {
+          "caseId": "site_access",
+          "invocationId": "3677ac9d-6bcb-4c6f-80f4-e0a65d001ea9",
+          "outputSha256": "81621478cc2b3cd0ecdefc9aa487654b760b3147198bdc52c4151139eae8da2f",
+          "artifact": "inference/candidate17b/site_access.json",
+          "verdict": "FAIL_DOMAIN",
+          "reason": "Includes internet access rather than street/entrance/arrival relation."
+        },
+        {
+          "caseId": "drawing_proof",
+          "invocationId": "fc266b19-ccba-4d77-826a-f4527bb09ae8",
+          "outputSha256": "4c140ba845b2b43628236a20aa30f53a4a84085552d0c35460c24765386430f2",
+          "artifact": "inference/candidate17b/drawing_proof.json",
+          "verdict": "FAIL_INSUFFICIENT_PROOF",
+          "reason": "Generic functionality/user experience; no plan/section/elevation consistency or concrete proof."
+        }
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen2.5-1.5B-Instruct",
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "actualLexicalCalls": 10,
+      "schemaCompletions": 2,
+      "architectureSemanticGate": "FAIL",
+      "productionEligible": false,
+      "audit": [
+        {
+          "caseId": "circulation_original",
+          "invocationId": "8e63c834-0cc1-4e76-beaa-d8dff837b253",
+          "outputSha256": "84c74676d5df89d7b23bb4f13eea42fad6b84bc378b74ade9095c6c0efa57ebd",
+          "artifact": "inference/candidate15b/circulation_original.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "core",
+          "invocationId": "ffecf24c-e333-433c-aa7c-966330afdb01",
+          "outputSha256": "23e341e7d79f8e0ace1fd8f960fc9426291b169dccc874d5c575f97c05837e88",
+          "artifact": "inference/candidate15b/core.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "section",
+          "invocationId": "a38a4bed-5806-4139-9a97-29fc4cac6203",
+          "outputSha256": "77530d09acc240d59c578e887bcbccfc0b6437658dc1a6c2a3652797ce5f3b9b",
+          "artifact": "inference/candidate15b/section.json",
+          "verdict": "FAIL_CONTENT",
+          "reason": "Acknowledges that it will explain section/elevation, without actually defining the architectural concept."
+        },
+        {
+          "caseId": "elevation",
+          "invocationId": "ebee6f7f-efa5-4410-a0f6-12bcf1259899",
+          "outputSha256": "f1561ee5f60ca592c831c6fa9640c87becfc9fdc53115caba78b4a50a85c542f",
+          "artifact": "inference/candidate15b/elevation.json",
+          "verdict": "FAIL_CONTENT",
+          "reason": "Acknowledges that it will explain section/elevation, without actually defining the architectural concept."
+        },
+        {
+          "caseId": "programme",
+          "invocationId": "c73dbeee-fa44-4424-8874-6f5a3ef8cdbe",
+          "outputSha256": "8b51493669b141cdb16640b3c4f65881f8d598ec2d36c305280bbe0dc51a13b3",
+          "artifact": "inference/candidate15b/programme.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "envelope",
+          "invocationId": "0b61381c-4a39-4099-9bc3-27dca1add8d4",
+          "outputSha256": "b86f5d5886a0b3998e6ecdb20bae411e1e970f7c8e51962a284c7804a6fdab54",
+          "artifact": "inference/candidate15b/envelope.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "public_private_gradient",
+          "invocationId": "3576564e-8efc-4e2b-a501-46c6f2a869a3",
+          "outputSha256": "d7399826a21f4a07b21aebd68186f0eae9dc5d393243ea292c11471a6975aed8",
+          "artifact": "inference/candidate15b/public_private_gradient.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "adjacency",
+          "invocationId": "20c5e5e7-cc94-4798-8d1d-399096c75d6b",
+          "outputSha256": "29064cc5422075f2b05f55efe1ba72d4ae6e108fca5ca5020300639004356d56",
+          "artifact": "inference/candidate15b/adjacency.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "site_access",
+          "invocationId": "cf92812d-9aa0-46db-ae68-7ff1deaebaf4",
+          "outputSha256": "29433ea945c44cf6c29314252ee2d628aec825777e99b1448b6791af266858d3",
+          "artifact": "inference/candidate15b/site_access.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        },
+        {
+          "caseId": "drawing_proof",
+          "invocationId": "3e9ab944-bb8d-4153-beb5-a22d579abeda",
+          "outputSha256": "f89e85228c858e88db65ac71ff033c667e42e88f35e551a74c0542d6fc8ef072",
+          "artifact": "inference/candidate15b/drawing_proof.json",
+          "verdict": "FAIL_SCHEMA",
+          "reason": "Emits Korean/English prose outside required JSON. Raw content retained; no extraction or answer rewrite."
+        }
+      ]
+    }
+  ],
+  "contextFollowups": [
+    {
+      "modelId": "Qwen/Qwen3-0.6B",
+      "invocationId": "7ac04e66-e542-4bb7-85a6-2232a99d6c88",
+      "inputExplicitlyArchitectural": true,
+      "artifact": "inference/baseline_context/circulation_original.json",
+      "outputSha256": "cf3526561bffaf60737cbf832651bdfb0a8e0302781a24130f47808eb3837eff",
+      "verdict": "FAIL_SPATIAL_CIRCULATION",
+      "reason": "Still describes movement/management/organization of materials or books rather than people/routes."
+    },
+    {
+      "modelId": "Qwen/Qwen3-1.7B",
+      "invocationId": "35e6c13e-2f31-45cd-8045-7bd132006055",
+      "inputExplicitlyArchitectural": true,
+      "artifact": "inference/candidate17b_context/circulation_original.json",
+      "outputSha256": "33a36f76e22df8112b4f025279c757e28a1f714f65b46a56a0bf44e5760288bb",
+      "verdict": "FAIL_SPATIAL_CIRCULATION",
+      "reason": "Still describes movement/management/organization of materials or books rather than people/routes."
+    },
+    {
+      "modelId": "Qwen/Qwen2.5-1.5B-Instruct",
+      "invocationId": "8ec0ab9c-7ac2-4a2b-8e2c-769b0c06aa3f",
+      "inputExplicitlyArchitectural": true,
+      "artifact": "inference/candidate15b_context/circulation_original.json",
+      "outputSha256": "eced5901097417da4498cd4351763c4a7ee974a2db51e2f762bca921bd39aa59",
+      "verdict": "PARTIAL_SEMANTIC_BUT_FAIL_JSON",
+      "reason": "1.5B mentions corridors and patrons but returns non-JSON, so it remains unacceptable."
+    }
+  ],
+  "fullLexicalCaseCount": 30,
+  "explicitContextProbeCount": 3,
+  "persistedPartialDiskFailureCases": 4,
+  "additionalUnpersistedGenerationDuringDiskFailure": true,
+  "countsReferToRetainedComparisonsNotAllProcessAttempts": true,
+  "sameQuestionsAndRubric": true,
+  "dtypeDifference": "0.6B float32; 1.7B and 1.5B bfloat16. Recorded per actual invocation.",
+  "real20Calls": 0,
+  "productionPassed": 0,
+  "resourceBlockedNativeModels": [
+    "Qwen/Qwen3-4B",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen3-8B"
+  ]
+}
