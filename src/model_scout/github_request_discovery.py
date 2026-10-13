@@ -67,6 +67,7 @@ def is_non_scout_operational_issue(title: str, repo: str = "") -> bool:
     if repo.casefold() != CENTRAL_REQUEST_REPOSITORY.casefold():
         return False
     return any(marker in normalized for marker in (
+        "[control]",
         "[p0 e2e] cross-repo live lifecycle proof",
         "[p0 recovery] request ingestion + execution dispatcher",
         "[p0-immediate] post-merge main e2e closeout",

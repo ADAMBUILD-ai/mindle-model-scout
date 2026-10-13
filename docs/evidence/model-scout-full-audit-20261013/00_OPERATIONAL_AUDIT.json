@@ -1,0 +1,642 @@
+{
+  "observedAtKST": "2026-10-13 23:05 이후",
+  "runId": 38408956950,
+  "jobId": 115335911015,
+  "sourceCommit": "3a7dd50b8834347e3e4fea02cca256282f9e9903",
+  "stateCounts": {
+    "MISROUTED": 15,
+    "FAILED_TERMINAL": 14,
+    "DELIVERED": 10,
+    "SUPERSEDED": 5,
+    "ACQUIRED_VERIFIED": 13,
+    "BLOCKED_INPUT": 4
+  },
+  "queueRecordCount": 61,
+  "results": [],
+  "idleReason": "NO_ELIGIBLE_REQUESTS",
+  "intakeCoverage": {
+    "auto_completed_repositories": [
+      "adambuild-ai/adraw-engine",
+      "adambuild-ai/arcos-engine",
+      "adambuild-ai/aura-engine",
+      "adambuild-ai/avora-engine",
+      "adambuild-ai/axiom-engine",
+      "adambuild-ai/kimserv-core",
+      "adambuild-ai/mindle-media-ai"
+    ],
+    "configured_repositories": [
+      "adambuild-ai/adam-build",
+      "adambuild-ai/agri-ai-business-platform",
+      "adambuild-ai/mindle-model-scout"
+    ],
+    "effective_repositories": [
+      "adambuild-ai/adam-build",
+      "adambuild-ai/adraw-engine",
+      "adambuild-ai/agri-ai-business-platform",
+      "adambuild-ai/arcos-engine",
+      "adambuild-ai/aura-engine",
+      "adambuild-ai/avora-engine",
+      "adambuild-ai/axiom-engine",
+      "adambuild-ai/kimserv-core",
+      "adambuild-ai/mindle-media-ai",
+      "adambuild-ai/mindle-model-scout"
+    ],
+    "missing_repositories": [
+      "adambuild-ai/adraw-engine",
+      "adambuild-ai/arcos-engine",
+      "adambuild-ai/aura-engine",
+      "adambuild-ai/avora-engine",
+      "adambuild-ai/axiom-engine",
+      "adambuild-ai/kimserv-core",
+      "adambuild-ai/mindle-media-ai"
+    ],
+    "required_team_repositories": [
+      "adambuild-ai/adam-build",
+      "adambuild-ai/adraw-engine",
+      "adambuild-ai/agri-ai-business-platform",
+      "adambuild-ai/arcos-engine",
+      "adambuild-ai/aura-engine",
+      "adambuild-ai/avora-engine",
+      "adambuild-ai/axiom-engine",
+      "adambuild-ai/kimserv-core",
+      "adambuild-ai/mindle-media-ai"
+    ],
+    "status": "PASS_AUTO_COMPLETED_FROM_TEAM_REGISTRY"
+  },
+  "discoveryAccess": {
+    "failed_repositories": [],
+    "status": "PASS"
+  },
+  "requests": [
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 39,
+      "fingerprint": "006dc83e59d23681e58321bd994ac2d20d2c57809dce58ea6db5398ec8e645a6",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 33,
+      "fingerprint": "04793d1f69075a2d20adc93f4b1783589ffded41bc95c3913360adf72315fb35",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 36,
+      "fingerprint": "05c3964e20e4bf9f874d2bf485270b1b9fdaa35b576a031a6926664f8b634929",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 63,
+      "fingerprint": "065ee5a3cda9d00470f426636343436e0806a34e2298af2afa740f51ff267371",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 53,
+      "fingerprint": "0724fa7e207cf98ea621a5244f74386574b528a6487256a74e1c449255018817",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 135,
+      "fingerprint": "093bbd78fd07122d444d853d5647bf40d6a85d066e356c45e215abca3dca1825",
+      "state": "FAILED_TERMINAL",
+      "lastError": "search:ValueError: search produced no executable candidates; query_plan=['floorplan/2D', 'PENDING/VERIFY_REQUIRED', 'QA/semantic']; searched=0; candidate_count=0; retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/adam-build",
+      "sourceIssue": 38,
+      "fingerprint": "149cf2be25adf799f7e2bf039b4486d1f5614b8afbcd051c484a1139b261e123",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "sourceIssue": 28,
+      "fingerprint": "249fa326e40182ce0ce6fedffc4e9af64124f436fc049e7bf79f01b175182bd5",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 33,
+      "fingerprint": "24a191ae693a473c810ffa0020c44aa39598eb34fd68badd553b8f7b1429a415",
+      "state": "SUPERSEDED",
+      "lastError": "superseded by scoped fingerprint c89cdc739cb1157d1c225bb0a2df197a26adec8fc65cbc85e44c4ad0ed46b64a",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 50,
+      "fingerprint": "2ac976d61838fc24ade03f0872199047b8719a786d7837b4454cfd567bddc41a",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 115,
+      "fingerprint": "2f6c0eae4fc054da510176eb1c057354af549db092b3cc97d06d562ebc567686",
+      "state": "SUPERSEDED",
+      "lastError": "superseded by canonical fingerprint 8ecfe72289b5b8027e7b6348a4821125a6405eba167843a090b0f559e6ebfd92",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/adam-build",
+      "sourceIssue": 40,
+      "fingerprint": "34e98bbbe5bcf4f36890e5c58fc13ef2411ef571da259a627f47dc018462bf2c",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 54,
+      "fingerprint": "35716d1f9a1a74679f3ce8130ce30362aa7ff08c93e5ea8950999f5195e15650",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 75,
+      "fingerprint": "40c4f9ad7abab0c6102e70e5654088d167d4ff95f89fefb9e1dc9de3a4b97341",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 55,
+      "fingerprint": "42a3ccbf68f2104f96cb040b53f66e3475fec98824b44de1827876e8f67b4e6d",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 57,
+      "fingerprint": "46ecf280e06e4aa1536bc6f63f14747637841738c3e5638457f9893a4a9fc850",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "watchdog stale queued request",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 47,
+      "fingerprint": "49fe7cde12c2a439a8169a4a56c212839e2ffbcf74bc7d8860a70f6599837ab2",
+      "state": "BLOCKED_INPUT",
+      "lastError": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED",
+      "nextAction": "Provide approved exact input/runtime"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 38,
+      "fingerprint": "4d61e51800123a54c5ad84741fbd855eb22ca64461a175a7fc7afd3b4f9ac33e",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "watchdog stale queued request",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 54,
+      "fingerprint": "4df3de031c0318ee023b2120c894361da88cae2ba0df2649277d60462f392406",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 71,
+      "fingerprint": "4f6db200a67433f02a171636ff4d38df52b073b66dbca3a2ab76cb4f7706104c",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "watchdog stale queued request",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 134,
+      "fingerprint": "510b9c31d0eb6358e1b993248f9b80892be91073b2163a8259133d5182f82b5d",
+      "state": "FAILED_TERMINAL",
+      "lastError": "search:ValueError: search produced no executable candidates; query_plan=['segmentation/safe-scope', 'QA/reference', 'generator/editor.']; searched=1; candidate_count=0; retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 51,
+      "fingerprint": "534ceb8f9fbb70c2622d35f2fd41a77da50eec4a8db547710dfea0fe1cb8f00b",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 52,
+      "fingerprint": "55e029cfcbdeb85a0dfdb240b6165ec655e96f2c19bb04e4feb62fcd8ee011f8",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 73,
+      "fingerprint": "57e5012864a79589ffe252808ca730b6d65ea813c489f643b143000a3628c0b0",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "watchdog stale queued request",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/kimserv-core",
+      "sourceIssue": 5,
+      "fingerprint": "590038a35a94ea24efb318cf6e63efaceddbf195628a13dba2dcb3f47d1ad6b1",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "sourceIssue": 29,
+      "fingerprint": "59b7b3c2fcc2a751ed00bb0b60c92c81c6fa6e38169742301052383694da83c8",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "sourceIssue": 36,
+      "fingerprint": "59ced00583198a18a55b59e660048f49a6fcb51da92db4f2b014184d8221c247",
+      "state": "FAILED_TERMINAL",
+      "lastError": "runtime:RuntimeExecutorUnavailable: scout returned candidates but none had an allowed license and immutable revision; retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 133,
+      "fingerprint": "613eec3a3fb82b19bdc1b3b2c94b1f3ff3b6f88aa7de1ce3e0e94c6c46768c7f",
+      "state": "SUPERSEDED",
+      "lastError": "superseded by canonical fingerprint 65b9cfa80dea25faed7cc3ac21537ade9ec0179612d6a8c1511d493a108db4cd",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 133,
+      "fingerprint": "65b9cfa80dea25faed7cc3ac21537ade9ec0179612d6a8c1511d493a108db4cd",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 52,
+      "fingerprint": "6c7ce9cfd9db16d55c832fc93e64704e736c3bc861dae90fabfd9a81dc1a36f3",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 134,
+      "fingerprint": "7073822f60ca23c6c5da4b6a8453cfd24008d1b28b1cb9580617887e88fcec9e",
+      "state": "SUPERSEDED",
+      "lastError": "superseded by canonical fingerprint d64933b94eae4030129906d0dcb66c8434f4619343f6e6916e02bccceb6de4f4",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/arcos-engine",
+      "sourceIssue": 1,
+      "fingerprint": "734ba10c1842c67485fd572f6f4e33bbf6f74c49431c8112c40150d500c59b60",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 33,
+      "fingerprint": "749ebf30463c7f2381d0b26992e1caffbb30a9bd1eecac5ebab61a5b525b4846",
+      "state": "SUPERSEDED",
+      "lastError": "superseded by scoped fingerprint c89cdc739cb1157d1c225bb0a2df197a26adec8fc65cbc85e44c4ad0ed46b64a",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/avora-engine",
+      "sourceIssue": 9,
+      "fingerprint": "757d8c4055b24abf49dfa3f86a98e3d1213eb347e83de7ab1e643598848b2ee9",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 48,
+      "fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 51,
+      "fingerprint": "7af3bc5bdebc6fbd5244cf4dadadc146b35ddd30282acdaa6f297f02a405f026",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 33,
+      "fingerprint": "8e120e7638ab3b2872ed61834b688e1d37598af74acbf6ae05d0be5f2a37b52d",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/agri-ai-business-platform",
+      "sourceIssue": 23,
+      "fingerprint": "8e423e9dd8c71ab358d7c3dd09b922f7560a177025ff58c952af43f43412719e",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 115,
+      "fingerprint": "8ecfe72289b5b8027e7b6348a4821125a6405eba167843a090b0f559e6ebfd92",
+      "state": "BLOCKED_INPUT",
+      "lastError": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED",
+      "nextAction": "Provide approved exact input/runtime"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/adam-build",
+      "sourceIssue": 39,
+      "fingerprint": "8ffa0619007def28a45738696d8d03e2dd4fefaf19fde9888a913f159841b41c",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 32,
+      "fingerprint": "a884008dbedef515df7730f584cbb02cda6776911e85209e4e079cb099b65b14",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 56,
+      "fingerprint": "a9e2356d9bd5423a228b4747d4f47335a9394a202959c009ed612b9eee6c6331",
+      "state": "DELIVERED",
+      "lastError": "watchdog stale running request",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 133,
+      "fingerprint": "ad82e6efa270894a3924826aeae00cec75eed0369aafb7e16382fa4c2e5317a2",
+      "state": "FAILED_TERMINAL",
+      "lastError": "runtime:RuntimeError: executor exited 1 for model=impira/layoutlm-document-qa@beed3c4d02d86017ebca5bd0fdf210046b907aa6 pipeline=document-question-answering: ions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 308, in __call__\n    return super().__call__(inputs, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 353, in preprocess\n ",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 49,
+      "fingerprint": "b07442fd0c92b35a5cedcdfd9c68ba12eec5ca3777fee90402537b96333305a2",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 68,
+      "fingerprint": "b59b6cb1d75647528ab5ce4a05cd78672bf757f969afc474ca4a2d58e87f644a",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 72,
+      "fingerprint": "b667b08d2cbb45a43dc518317a138d391b0b8e9fa449295d02f9feca4d826bd9",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 58,
+      "fingerprint": "bab6da2409fb3f3ccb9ee8df932bc8eae8117b5af1ba916f487802779f2ad5fa",
+      "state": "FAILED_TERMINAL",
+      "lastError": "retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 33,
+      "fingerprint": "c89cdc739cb1157d1c225bb0a2df197a26adec8fc65cbc85e44c4ad0ed46b64a",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 118,
+      "fingerprint": "c8e0fa020f33e218e41d9b07b21b6f44888409d58b10c69249d562f4e4f7bd49",
+      "state": "BLOCKED_INPUT",
+      "lastError": "input:pinned cross-product reuse requires accessible exact AVORA render/GLB and Blender-authoritative masks or approved reference; no rescout or TESTED_PASS",
+      "nextAction": "Provide approved exact input/runtime"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 68,
+      "fingerprint": "cbac35d46a8db88874d9fbff0a29ae3d04db79b3c0fddc25000e00ac12324b2f",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-media-ai",
+      "sourceIssue": 2,
+      "fingerprint": "cc77e8fd8cc25007c89487e8efd9904d2af22d11fded8ad58cecd85da8fe6ded",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/adam-build",
+      "sourceIssue": 42,
+      "fingerprint": "cd2e2834d51d7c299f6d71333c63eee3f58119eebea31f7b352da8afb0538f16",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 134,
+      "fingerprint": "d64933b94eae4030129906d0dcb66c8434f4619343f6e6916e02bccceb6de4f4",
+      "state": "FAILED_TERMINAL",
+      "lastError": "search:ValueError: search produced no executable candidates; query_plan=['controlnet inpainting', 'image-to-image', 'diffusers controlnet']; searched=30; candidate_count=0; retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 55,
+      "fingerprint": "dfd149b6ee66d1561b5df225a8ae2afe66c0536c28ee112a01cdf3e8311130d1",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": null,
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 82,
+      "fingerprint": "e304409e1ba86145b3d334ba1b2994e591906559763333a3f9222ce5f6f55eed",
+      "state": "MISROUTED",
+      "lastError": "misrouted: fetched Issue is a team input route or independent direct acquisition track",
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 136,
+      "fingerprint": "edab72777e0f91533555d936b0542cc2451f64222ecc47174a2ee4f6b254127c",
+      "state": "BLOCKED_INPUT",
+      "lastError": "runtime:RuntimeInputUnavailable: AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; the configured generic huggingface-model worker only runs text-classification",
+      "nextAction": "Provide approved exact input/runtime"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 50,
+      "fingerprint": "f001d1b84a4b191a1917922aa7c30262191bcf35a883e9050129a560bcd28ec4",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "runtime:RuntimeError: executor exited 1: rmers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\automatic_speech_recognition.py\", line 362, in preprocess\n    inputs = ffmpeg_read(inputs, self.feature_extractor.sampling_rate)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\audio_utils.py\", line 37, in ffmpeg_read\n    raise ValueError(\"ffmpeg was not found but is required to load audio files from filename\") from error\nValueError: ffmpeg was not found but is r",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "sourceIssue": 139,
+      "fingerprint": "f0b86ca4d7e146b252f1022ee5ce1df0613b010e3e38a97ab94b8c800e2490c8",
+      "state": "FAILED_TERMINAL",
+      "lastError": "runtime:RuntimeExecutorUnavailable: scout returned no runnable candidate with allowed license, immutable revision, supported adapter, and pinned weights; skipped=[{'model_id': 'Qwen/Qwen3-0.6B', 'reason': 'unknown_or_oversize_pinned_weights:1503300328:limit=650000000'}, {'model_id': 'Qwen/Qwen3-8B', 'reason': 'unknown_or_oversize_pinned_weights:16381516776:limit=650000000'}, {'model_id': 'Qwen/Qwen3-4B', 'reason': 'unknown_or_oversize_pinned_weights:8044982000:limit=650000000'}, {'model_id': 'Qwen/Qwen2.5-7B-Instruct', 'reason': 'unknown_or_oversize_pinned_weights:15231271888:limit=650000000'}, {'model_id': 'Qwen/Qwen2.5-0.5B-Instruct', 'reason': 'unknown_or_oversize_pinned_weights:988097824:limit=650000000'}, {'model_id': 'Qwen/Qwen2.5-1.5B-Instruct', 'reason': 'unknown_or_oversize_pinned_weights:3087467144:limit=650000000'}, {'model_id': 'Qwen/Qwen3-14B', 'reason': 'unknown_or_oversize_pinned_weights:29536665640:limit=650000000'}, {'model_id': 'Qwen/Qwen3-32B', 'reason': 'unknown_or_oversize_pinned_weights:65524328560:limit=650000000'}, {'model_id': 'Qwen/Qwen3-1.7B', 'reason': 'unknown_or_oversize_pinned_weights:4063515592:limit=650000000'}, {'model_id': 'Qwen/Qwen3-14B-AWQ', 'reason': 'unknown_or_oversize_pinned_weights:9976690240:limit=650000000'}]; retry limit reached (3)",
+      "nextAction": "Repair exact failure before bounded replay"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 54,
+      "fingerprint": "f4b90caacd9e96ab35257c31d01da87d0e042f85f5113def272bd00229b620b5",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "sourceIssue": 47,
+      "fingerprint": "fb68ad4e948c4a9cebd936c4bdcf56af2194a54db13ee89bdd8303fefc997ec5",
+      "state": "DELIVERED",
+      "lastError": null,
+      "nextAction": "Preserve existing evidence; state is not current asset proof"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "sourceIssue": 35,
+      "fingerprint": "ff7f1c9be4f600c739078a33377040a3d5dd1b1ab3c8ee5733016309a4902a68",
+      "state": "ACQUIRED_VERIFIED",
+      "lastError": "reviewed replay: aura-35-transformers-compat-v1-20260927; prior failure in failure_replays",
+      "nextAction": "Verify live asset inventory and consumer acceptance"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "cause": "CONTROL_ISSUE_MISROUTED",
+      "evidence": "#139 searched as a model request, hit embedding 650000000 byte limit; FAILED_TERMINAL",
+      "fix": "Exclude [CONTROL] from generic discovery; existing quarantine preserves old error"
+    },
+    {
+      "id": "F02",
+      "cause": "HEALTH_REPORTING_GAP",
+      "evidence": "Actions success + NO_ELIGIBLE_REQUESTS with BLOCKED_INPUT4 and FAILED_TERMINAL14",
+      "fix": "Export operational health/action list in canonical cycle and Actions summary"
+    },
+    {
+      "id": "F03",
+      "cause": "ASSET_DURABILITY_HANDOFF_GAP",
+      "evidence": "Historical AURA3 temporary Linux model paths; no current Windows file/runtime receipt",
+      "fix": "Offline byte/hash inventory verifier provided; actual assets still required"
+    },
+    {
+      "id": "F04",
+      "cause": "GENERATION_EXECUTOR_MISSING",
+      "evidence": "#136 classifier-only guard remains BLOCKED_INPUT",
+      "fix": "Preserve guard; explicit approved pinned local generative model/runtime required, never classifier substitution"
+    },
+    {
+      "id": "F05",
+      "cause": "CONFIGURATION_DRIFT_NOT_DISCOVERY_FAILURE",
+      "evidence": {
+        "auto_completed_repositories": [
+          "adambuild-ai/adraw-engine",
+          "adambuild-ai/arcos-engine",
+          "adambuild-ai/aura-engine",
+          "adambuild-ai/avora-engine",
+          "adambuild-ai/axiom-engine",
+          "adambuild-ai/kimserv-core",
+          "adambuild-ai/mindle-media-ai"
+        ],
+        "configured_repositories": [
+          "adambuild-ai/adam-build",
+          "adambuild-ai/agri-ai-business-platform",
+          "adambuild-ai/mindle-model-scout"
+        ],
+        "effective_repositories": [
+          "adambuild-ai/adam-build",
+          "adambuild-ai/adraw-engine",
+          "adambuild-ai/agri-ai-business-platform",
+          "adambuild-ai/arcos-engine",
+          "adambuild-ai/aura-engine",
+          "adambuild-ai/avora-engine",
+          "adambuild-ai/axiom-engine",
+          "adambuild-ai/kimserv-core",
+          "adambuild-ai/mindle-media-ai",
+          "adambuild-ai/mindle-model-scout"
+        ],
+        "missing_repositories": [
+          "adambuild-ai/adraw-engine",
+          "adambuild-ai/arcos-engine",
+          "adambuild-ai/aura-engine",
+          "adambuild-ai/avora-engine",
+          "adambuild-ai/axiom-engine",
+          "adambuild-ai/kimserv-core",
+          "adambuild-ai/mindle-media-ai"
+        ],
+        "required_team_repositories": [
+          "adambuild-ai/adam-build",
+          "adambuild-ai/adraw-engine",
+          "adambuild-ai/agri-ai-business-platform",
+          "adambuild-ai/arcos-engine",
+          "adambuild-ai/aura-engine",
+          "adambuild-ai/avora-engine",
+          "adambuild-ai/axiom-engine",
+          "adambuild-ai/kimserv-core",
+          "adambuild-ai/mindle-media-ai"
+        ],
+        "status": "PASS_AUTO_COMPLETED_FROM_TEAM_REGISTRY"
+      },
+      "fix": "Correct previous diagnosis; team registry actually completes 10 repositories"
+    }
+  ],
+  "deploymentState": "BRANCH_CANDIDATE_NOT_LIVE",
+  "allPathsRecovered": false
+}
