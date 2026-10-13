@@ -1,0 +1,36 @@
+name: aura136-pinned-generative-acquisition
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/acquire_aura136_pinned_qwen4b.py'
+      - '.github/workflows/aura136-pinned-generative-acquisition.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: aura136-pinned-generative-acquisition
+  cancel-in-progress: false
+jobs:
+  acquire-one-existing-qualified-candidate:
+    runs-on: [self-hosted, model-scout]
+    timeout-minutes: 90
+    env:
+      MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Acquire and verify exactly pinned existing Qwen3 4B
+        shell: powershell
+        run: |
+          $python = 'C:\actions-runner\_work\_tool\python311-service\python.exe'
+          & $python scripts/acquire_aura136_pinned_qwen4b.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload actual acquisition receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura136-pinned-generative-acquisition-receipt
+          path: aura136-pinned-acquisition-receipt.json
+          if-no-files-found: error
+          retention-days: 90
