@@ -1,0 +1,128 @@
+{
+  "observedAt": "2026-10-13T15:24:03.423579+00:00",
+  "models": [
+    {
+      "modelId": "Qwen/Qwen3-0.6B",
+      "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+      "status": "EXISTING_BYTES_OBSERVED",
+      "searchedRoots": [
+        "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen3-0.6B\\snapshots\\c1899de289a04d12100db370d81485cdf75e47ca",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\hf-cache\\hub\\models--Qwen--Qwen3-0.6B\\snapshots\\c1899de289a04d12100db370d81485cdf75e47ca",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\cache\\models--Qwen--Qwen3-0.6B\\snapshots\\c1899de289a04d12100db370d81485cdf75e47ca"
+      ],
+      "snapshots": [
+        {
+          "root": "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen3-0.6B\\snapshots\\c1899de289a04d12100db370d81485cdf75e47ca",
+          "files": [
+            {
+              "path": "config.json",
+              "bytes": 726,
+              "sha256": "660db3b73d788119c04535e48cf9be5f55bc3100841a718637ae695b442f27dd"
+            }
+          ],
+          "missing": [
+            "LICENSE",
+            "README.md",
+            "generation_config.json",
+            "merges.txt",
+            "model.safetensors",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "vocab.json"
+          ],
+          "mismatched": [],
+          "unexpected": [],
+          "status": "BLOCKED_INCOMPLETE_OR_MISMATCH"
+        }
+      ],
+      "registryMatches": 0
+    },
+    {
+      "modelId": "Qwen/Qwen3-1.7B",
+      "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "status": "EXISTING_BYTES_OBSERVED",
+      "searchedRoots": [
+        "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen3-1.7B\\snapshots\\70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\hf-cache\\hub\\models--Qwen--Qwen3-1.7B\\snapshots\\70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\cache\\models--Qwen--Qwen3-1.7B\\snapshots\\70d244cc86ccca08cf5af4e1e306ecf908b1ad5e"
+      ],
+      "snapshots": [
+        {
+          "root": "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen3-1.7B\\snapshots\\70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+          "files": [
+            {
+              "path": "config.json",
+              "bytes": 726,
+              "sha256": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197"
+            }
+          ],
+          "missing": [
+            "LICENSE",
+            "README.md",
+            "generation_config.json",
+            "merges.txt",
+            "model-00001-of-00002.safetensors",
+            "model-00002-of-00002.safetensors",
+            "model.safetensors.index.json",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "vocab.json"
+          ],
+          "mismatched": [],
+          "unexpected": [],
+          "status": "BLOCKED_INCOMPLETE_OR_MISMATCH"
+        }
+      ],
+      "registryMatches": 0
+    },
+    {
+      "modelId": "Qwen/Qwen2.5-1.5B-Instruct",
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "status": "EXISTING_BYTES_OBSERVED",
+      "searchedRoots": [
+        "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen2.5-1.5B-Instruct\\snapshots\\989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\hf-cache\\hub\\models--Qwen--Qwen2.5-1.5B-Instruct\\snapshots\\989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\cache\\models--Qwen--Qwen2.5-1.5B-Instruct\\snapshots\\989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+      ],
+      "snapshots": [
+        {
+          "root": "%OWNER_HOME%\\.cache\\huggingface\\hub\\models--Qwen--Qwen2.5-1.5B-Instruct\\snapshots\\989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+          "files": [
+            {
+              "path": "config.json",
+              "bytes": 660,
+              "sha256": "98d2ff8cc47488d08a2b0b3acf4eb99ef210779b42bd48605f6b8e36acdbf670"
+            }
+          ],
+          "missing": [
+            "LICENSE",
+            "README.md",
+            "generation_config.json",
+            "merges.txt",
+            "model.safetensors",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "vocab.json"
+          ],
+          "mismatched": [],
+          "unexpected": [],
+          "status": "BLOCKED_INCOMPLETE_OR_MISMATCH"
+        }
+      ],
+      "registryMatches": 0
+    }
+  ],
+  "modelCalls": 0,
+  "downloads": 0,
+  "productPass": false,
+  "scope": "exact pinned Hub snapshots and matching canonical registry cache locations; not all host disks/NAS",
+  "runtime": {
+    "os": "Windows-10-10.0.19045-SP0",
+    "pythonVersion": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "pythonExe": "C:\\actions-runner\\_work\\_tool\\python311-service\\python.exe",
+    "packages": {
+      "torch": "2.14.0",
+      "transformers": "4.56.2"
+    }
+  }
+}

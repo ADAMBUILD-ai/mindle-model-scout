@@ -1,0 +1,58 @@
+{
+  "observedDate": "2026-10-14 KST",
+  "operationalControlRouting": "PASS_LIVE_VERIFIED",
+  "mainMergeCommits": [
+    "79c2cf64586fbe3b2f6b0156030662cb2dcd7721",
+    "e1fd3a167532ec37648f3b6211bed40b80ec3139",
+    "03637ac60dd9e130aef22d10f3da8872b123cbc9"
+  ],
+  "controlRun": 38420524232,
+  "currentAssetRun": 38421573453,
+  "currentAssetArtifact": 11826937421,
+  "currentAssetArtifactSha256": "e41205d50741896f3eb5b41483854bd7bbae1cf7cc3d373f5cd6e30a99366559",
+  "smallModelsCurrentScope": "CONFIG_ONLY_WEIGHTS_TOKENIZERS_LICENSE_MISSING",
+  "smallModelsHistoricalQuality": {
+    "sourceCommit": "e8da02bd3ac47d219c614657338666b8f836e5c1",
+    "sourcePath": "docs/evidence/aura-pc-architectural-model-quality-v9-20261001/MODEL_CANDIDATE_BENCHMARK_MATRIX.json",
+    "actualLexicalCalls": 30,
+    "explicitArchitectureCalls": 3,
+    "real20Calls": 0,
+    "productionPassed": 0,
+    "models": [
+      {
+        "modelId": "Qwen/Qwen3-0.6B",
+        "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+        "actualCalls": 10,
+        "schemaCompletions": 10,
+        "architectureSemanticGate": "FAIL",
+        "productionEligible": false
+      },
+      {
+        "modelId": "Qwen/Qwen3-1.7B",
+        "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+        "actualCalls": 10,
+        "schemaCompletions": 10,
+        "architectureSemanticGate": "FAIL",
+        "productionEligible": false
+      },
+      {
+        "modelId": "Qwen/Qwen2.5-1.5B-Instruct",
+        "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "actualCalls": 10,
+        "schemaCompletions": 2,
+        "architectureSemanticGate": "FAIL",
+        "productionEligible": false
+      }
+    ],
+    "strongerModels": [
+      "Qwen/Qwen3-4B",
+      "Qwen/Qwen2.5-7B-Instruct",
+      "Qwen/Qwen3-8B"
+    ]
+  },
+  "qwen4bAcquisitionRun": 38423942725,
+  "qwen4bAcquisitionStatus": "RUNNING_NOT_CLAIMED_COMPLETE",
+  "actualNewModelInferenceCalls": 0,
+  "AURA_TESTED_PASS": false,
+  "AURA_DELIVERED": false
+}
