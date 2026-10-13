@@ -11,5 +11,15 @@
   "registryArtifact": 11829644496,
   "registryArtifactSha256": "893e8c64954c54e49456ce55866258fb4cee66eee5091cb4a2d2d97d84857965",
   "actualModelCallsThisRecovery": 0,
-  "allRequestsDelivered": false
+  "allRequestsDelivered": false,
+  "liveRegistryModelRecordCount": 10,
+  "qwen4b": {
+    "modelId": "Qwen/Qwen3-4B",
+    "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+    "acquisitionStatus": "ACQUIRED_VERIFIED",
+    "validationStatus": "PENDING",
+    "fileCount": 12,
+    "currentRootMatchesAcquisitionReceipt": true
+  },
+  "countScope": "Current canonical runner registry rows; not historical repository catalog13, queue61, or current verified binary count"
 }
