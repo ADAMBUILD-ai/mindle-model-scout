@@ -50,9 +50,36 @@
       "Qwen/Qwen3-8B"
     ]
   },
-  "qwen4bAcquisitionRun": 38423942725,
-  "qwen4bAcquisitionStatus": "RUNNING_NOT_CLAIMED_COMPLETE",
+  "qwen4bAcquisitionRun": 38428438316,
+  "qwen4bAcquisitionStatus": "ACQUIRED_PINNED_FULL_FILES_VERIFIED_NOT_PRODUCT_PASS",
   "actualNewModelInferenceCalls": 0,
   "AURA_TESTED_PASS": false,
-  "AURA_DELIVERED": false
+  "AURA_DELIVERED": false,
+  "qwen4bAcquisitionSourceCommit": "54e1cdfea0714102820626a8a19d9a366b439a72",
+  "qwen4bReceiptArtifact": 11829742746,
+  "qwen4bReceiptArtifactSha256": "ac4bf3968d67d380d32410abb1c5f74dac2c6155c434ff9220ef4ef8e688d0f0",
+  "qwen4bFileCount": 12,
+  "qwen4bTotalBytes": 8060925056,
+  "qwen4bModelRoot": "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\aura136-pinned-models\\Qwen--Qwen3-4B\\1cfa9a7208912126459214e8b04321603b3df60c",
+  "currentWindowsPython": {
+    "os": "Windows-10-10.0.19045-SP0",
+    "pythonExe": "C:\\actions-runner\\_work\\_tool\\python311-service\\python.exe",
+    "pythonVersion": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "packages": {
+      "torch": "2.14.0",
+      "transformers": "4.56.2"
+    }
+  },
+  "acquisitionVerifierCorrection": {
+    "cause": "LFS tokenizer body was compared against Git pointer hash",
+    "failedRun": 38423942725,
+    "failedReceiptArtifact": 11828797677,
+    "fixSourceCommit": "4f29ba71b78613a8ffbad2dd2a7063525192c871",
+    "resumedRun": 38428438316,
+    "actualSuccess": true
+  },
+  "status": "PASS_CONTROL_AND_PINNED_ACQUISITION_RECOVERY_NOT_AURA_QUALITY",
+  "allModelScoutRequestsDelivered": false,
+  "desktopExecutionIsSeparateGate": true,
+  "nextAction": "AURA Desktop Work receives the current durable 4B manifest/files and performs owner-resource review and actual lexical/source-bound quality tests under existing scope"
 }

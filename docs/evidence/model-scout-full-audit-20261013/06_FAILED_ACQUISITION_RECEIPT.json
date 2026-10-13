@@ -1,0 +1,16 @@
+{
+  "status": "BLOCKED_PINNED_ACQUISITION",
+  "modelId": "Qwen/Qwen3-4B",
+  "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+  "modelCalls": 0,
+  "broadSearchCalls": 0,
+  "paidServices": false,
+  "productPass": false,
+  "desktopInferenceReleased": false,
+  "startedAt": "2026-10-13T15:39:59.882788+00:00",
+  "modelRoot": "C:\\actions-runner\\_work\\_state\\mindle-model-scout\\aura136-pinned-models\\Qwen--Qwen3-4B\\1cfa9a7208912126459214e8b04321603b3df60c",
+  "diskFreeBytesBefore": 185169936384,
+  "errorType": "ValueError",
+  "exactError": "official pinned Git blob mismatch: tokenizer.json",
+  "finishedAt": "2026-10-13T16:03:30.854918+00:00"
+}
