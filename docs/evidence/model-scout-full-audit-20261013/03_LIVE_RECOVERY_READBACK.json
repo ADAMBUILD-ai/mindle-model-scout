@@ -1,0 +1,261 @@
+{
+  "status": "PASS_LIVE_CONTROL_ROUTING_AND_HEALTH_REPORTING",
+  "mergeCommit": "79c2cf64586fbe3b2f6b0156030662cb2dcd7721",
+  "runId": 38420524232,
+  "jobId": 115376307654,
+  "runnerResult": "success",
+  "control139State": "MISROUTED",
+  "quarantinedFingerprints": [
+    "f0b86ca4d7e146b252f1022ee5ce1df0613b010e3e38a97ab94b8c800e2490c8"
+  ],
+  "operationalHealth": {
+    "counts_are_queue_records_not_unique_models": true,
+    "process_success_is_product_pass": false,
+    "requests": [
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "04793d1f69075a2d20adc93f4b1783589ffded41bc95c3913360adf72315fb35",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 33,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "search:ValueError: search produced no executable candidates; query_plan=['floorplan/2D', 'PENDING/VERIFY_REQUIRED', 'QA/semantic']; searched=0; candidate_count=0; retry limit reached (3)",
+        "fingerprint": "093bbd78fd07122d444d853d5647bf40d6a85d066e356c45e215abca3dca1825",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 135,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "2ac976d61838fc24ade03f0872199047b8719a786d7837b4454cfd567bddc41a",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 50,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "35716d1f9a1a74679f3ce8130ce30362aa7ff08c93e5ea8950999f5195e15650",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 54,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "42a3ccbf68f2104f96cb040b53f66e3475fec98824b44de1827876e8f67b4e6d",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 55,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "watchdog stale queued request",
+        "fingerprint": "46ecf280e06e4aa1536bc6f63f14747637841738c3e5638457f9893a4a9fc850",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 57,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED",
+        "fingerprint": "49fe7cde12c2a439a8169a4a56c212839e2ffbcf74bc7d8860a70f6599837ab2",
+        "next_action": "provide exact approved input/runtime evidence",
+        "source_issue": 47,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "BLOCKED_INPUT"
+      },
+      {
+        "exact_error": "watchdog stale queued request",
+        "fingerprint": "4d61e51800123a54c5ad84741fbd855eb22ca64461a175a7fc7afd3b4f9ac33e",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 38,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "watchdog stale queued request",
+        "fingerprint": "4f6db200a67433f02a171636ff4d38df52b073b66dbca3a2ab76cb4f7706104c",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 71,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "search:ValueError: search produced no executable candidates; query_plan=['segmentation/safe-scope', 'QA/reference', 'generator/editor.']; searched=1; candidate_count=0; retry limit reached (3)",
+        "fingerprint": "510b9c31d0eb6358e1b993248f9b80892be91073b2163a8259133d5182f82b5d",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 134,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "534ceb8f9fbb70c2622d35f2fd41a77da50eec4a8db547710dfea0fe1cb8f00b",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 51,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "watchdog stale queued request",
+        "fingerprint": "57e5012864a79589ffe252808ca730b6d65ea813c489f643b143000a3628c0b0",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 73,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "runtime:RuntimeExecutorUnavailable: scout returned candidates but none had an allowed license and immutable revision; retry limit reached (3)",
+        "fingerprint": "59ced00583198a18a55b59e660048f49a6fcb51da92db4f2b014184d8221c247",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 36,
+        "source_repo": "adambuild-ai/aura-engine",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "65b9cfa80dea25faed7cc3ac21537ade9ec0179612d6a8c1511d493a108db4cd",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 133,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "6c7ce9cfd9db16d55c832fc93e64704e736c3bc861dae90fabfd9a81dc1a36f3",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 52,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "7936c38e423268fc4b7014e97ecbf8e7f7b20bb85a04edbab3f3b01dc220cfab",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 48,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "7af3bc5bdebc6fbd5244cf4dadadc146b35ddd30282acdaa6f297f02a405f026",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 51,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "8e120e7638ab3b2872ed61834b688e1d37598af74acbf6ae05d0be5f2a37b52d",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 33,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED",
+        "fingerprint": "8ecfe72289b5b8027e7b6348a4821125a6405eba167843a090b0f559e6ebfd92",
+        "next_action": "provide exact approved input/runtime evidence",
+        "source_issue": 115,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "BLOCKED_INPUT"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "a884008dbedef515df7730f584cbb02cda6776911e85209e4e079cb099b65b14",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 32,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "runtime:RuntimeError: executor exited 1 for model=impira/layoutlm-document-qa@beed3c4d02d86017ebca5bd0fdf210046b907aa6 pipeline=document-question-answering: ions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 308, in __call__\n    return super().__call__(inputs, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 353, in preprocess\n ",
+        "fingerprint": "ad82e6efa270894a3924826aeae00cec75eed0369aafb7e16382fa4c2e5317a2",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 133,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "b07442fd0c92b35a5cedcdfd9c68ba12eec5ca3777fee90402537b96333305a2",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 49,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": "retry limit reached (3)",
+        "fingerprint": "bab6da2409fb3f3ccb9ee8df932bc8eae8117b5af1ba916f487802779f2ad5fa",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 58,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "c89cdc739cb1157d1c225bb0a2df197a26adec8fc65cbc85e44c4ad0ed46b64a",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 33,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "input:pinned cross-product reuse requires accessible exact AVORA render/GLB and Blender-authoritative masks or approved reference; no rescout or TESTED_PASS",
+        "fingerprint": "c8e0fa020f33e218e41d9b07b21b6f44888409d58b10c69249d562f4e4f7bd49",
+        "next_action": "provide exact approved input/runtime evidence",
+        "source_issue": 118,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "BLOCKED_INPUT"
+      },
+      {
+        "exact_error": "search:ValueError: search produced no executable candidates; query_plan=['controlnet inpainting', 'image-to-image', 'diffusers controlnet']; searched=30; candidate_count=0; retry limit reached (3)",
+        "fingerprint": "d64933b94eae4030129906d0dcb66c8434f4619343f6e6916e02bccceb6de4f4",
+        "next_action": "inspect preserved failure; do not reopen until cause is repaired",
+        "source_issue": 134,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "FAILED_TERMINAL"
+      },
+      {
+        "exact_error": null,
+        "fingerprint": "dfd149b6ee66d1561b5df225a8ae2afe66c0536c28ee112a01cdf3e8311130d1",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 55,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "runtime:RuntimeInputUnavailable: AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; the configured generic huggingface-model worker only runs text-classification",
+        "fingerprint": "edab72777e0f91533555d936b0542cc2451f64222ecc47174a2ee4f6b254127c",
+        "next_action": "provide exact approved input/runtime evidence",
+        "source_issue": 136,
+        "source_repo": "adambuild-ai/mindle-model-scout",
+        "state": "BLOCKED_INPUT"
+      },
+      {
+        "exact_error": "runtime:RuntimeError: executor exited 1: rmers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\automatic_speech_recognition.py\", line 362, in preprocess\n    inputs = ffmpeg_read(inputs, self.feature_extractor.sampling_rate)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\audio_utils.py\", line 37, in ffmpeg_read\n    raise ValueError(\"ffmpeg was not found but is required to load audio files from filename\") from error\nValueError: ffmpeg was not found but is r",
+        "fingerprint": "f001d1b84a4b191a1917922aa7c30262191bcf35a883e9050129a560bcd28ec4",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 50,
+        "source_repo": "ADAMBUILD-ai/mindle-model-scout",
+        "state": "ACQUIRED_VERIFIED"
+      },
+      {
+        "exact_error": "reviewed replay: aura-35-transformers-compat-v1-20260927; prior failure in failure_replays",
+        "fingerprint": "ff7f1c9be4f600c739078a33377040a3d5dd1b1ab3c8ee5733016309a4902a68",
+        "next_action": "verify current files and consumer acceptance; acquisition alone is not delivery",
+        "source_issue": 35,
+        "source_repo": "adambuild-ai/aura-engine",
+        "state": "ACQUIRED_VERIFIED"
+      }
+    ],
+    "status": "ACTION_REQUIRED",
+    "unresolved_request_count": 30
+  },
+  "productInferenceCalls": 0,
+  "allModelRequestsDelivered": false
+}

@@ -180,6 +180,12 @@ jobs:
           & $env:PYTHON_EXE -c $runnerCode | Tee-Object -FilePath autonomous-cycle-evidence.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Inspect existing AURA 136 assets and runtime without inference
+        shell: powershell
+        run: |
+          & $env:PYTHON_EXE scripts/audit_aura136_runner_assets.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Add canonical execution metadata
         shell: powershell
         run: |
@@ -223,7 +229,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model-scout-autonomous-evidence
-          path: autonomous-cycle-evidence.json
+          path: |
+            autonomous-cycle-evidence.json
+            aura136-runner-asset-audit.json
       - name: Upload live model registry
         if: always()
         uses: actions/upload-artifact@v4
