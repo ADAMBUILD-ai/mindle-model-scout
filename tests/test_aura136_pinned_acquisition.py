@@ -1,5 +1,6 @@
 import pytest
 import io
+import hashlib
 from scripts.acquire_aura136_pinned_qwen4b import fetch, git_blob_sha
 from scripts.acquire_aura136_pinned_qwen4b import FILES, WEIGHTS, REVISION, validate_metadata
 
@@ -43,3 +44,17 @@ def test_nonweight_reuse_requires_official_git_blob(tmp_path, monkeypatch):
     monkeypatch.setattr('urllib.request.urlopen', lambda *args, **kwargs: io.BytesIO(b'{}'))
     assert fetch(tmp_path, 'config.json', official)['sha256']
     assert path.read_bytes() == b'{}'
+
+
+def test_lfs_tokenizer_is_verified_by_body_digest_and_stage_reused(tmp_path, monkeypatch):
+    body = b'{"tokenizer":"pinned-existing-lfs-body"}'
+    staged = tmp_path / 'tokenizer.json.acquiring'
+    staged.write_bytes(body)
+    metadata = {'blobId': 'pointer-is-not-body-sha', 'lfs': {'size': len(body), 'sha256': hashlib.sha256(body).hexdigest()}}
+    def forbid(*args, **kwargs):
+        raise AssertionError('matching staged LFS body must be reused')
+    monkeypatch.setattr('urllib.request.urlopen', forbid)
+    record = fetch(tmp_path, 'tokenizer.json', metadata)
+    assert record['sha256'] == metadata['lfs']['sha256']
+    assert not staged.exists()
+    assert (tmp_path / 'tokenizer.json').read_bytes() == body

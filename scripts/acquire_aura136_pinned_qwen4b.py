@@ -52,22 +52,34 @@ def git_blob_sha(path):
     return digest.hexdigest()
 
 
+def matches_official(path, name, official):
+    if not path.is_file():
+        return False
+    if name in WEIGHTS:
+        return (path.stat().st_size, sha(path)) == WEIGHTS[name]
+    lfs = official.get('lfs')
+    if lfs:
+        return (path.stat().st_size, sha(path)) == (lfs['size'], lfs['sha256'])
+    return git_blob_sha(path) == official.get('blobId')
+
+
 def fetch(root, name, official):
     target = root / name
-    existing_matches = target.is_file() and ((target.stat().st_size, sha(target)) == WEIGHTS[name] if name in WEIGHTS else git_blob_sha(target) == official.get('blobId'))
+    stage = target.with_suffix(target.suffix + '.acquiring')
+    if not matches_official(target, name, official) and matches_official(stage, name, official):
+        stage.replace(target)
+        print(json.dumps({'file': name, 'status': 'REUSED_VERIFIED_STAGING'}), flush=True)
+    existing_matches = matches_official(target, name, official)
     if existing_matches:
         print(json.dumps({'file': name, 'status': 'REUSED_EXISTING'}), flush=True)
     else:
-        stage = target.with_suffix(target.suffix + '.acquiring')
         print(json.dumps({'file': name, 'status': 'FETCH_PINNED'}), flush=True)
         request = urllib.request.Request(f'https://huggingface.co/{MODEL}/resolve/{REVISION}/{name}', headers={'User-Agent': 'mindle-aura136-pinned-acquisition/1.0'})
         with urllib.request.urlopen(request, timeout=120) as response, stage.open('wb') as stream:
             while chunk := response.read(4 * 1024 * 1024):
                 stream.write(chunk)
-        if name in WEIGHTS and (stage.stat().st_size, sha(stage)) != WEIGHTS[name]:
-            raise ValueError('weight bytes/hash mismatch: ' + name)
-        if name not in WEIGHTS and git_blob_sha(stage) != official.get('blobId'):
-            raise ValueError('official pinned Git blob mismatch: ' + name)
+        if not matches_official(stage, name, official):
+            raise ValueError('official pinned file size/hash mismatch: ' + name)
         if stage.stat().st_size == 0:
             raise ValueError('empty pinned file: ' + name)
         stage.replace(target)
@@ -82,7 +94,7 @@ def main():
         root.mkdir(parents=True, exist_ok=True)
         receipt['modelRoot'] = str(root)
         free = shutil.disk_usage(root).free
-        required = sum(size for size, _ in WEIGHTS.values()) + 2 * 1024 ** 3
+        required = sum(size for name, (size, digest) in WEIGHTS.items() if not (root / name).is_file() or ((root / name).stat().st_size, sha(root / name)) != (size, digest)) + 2 * 1024 ** 3
         receipt['diskFreeBytesBefore'] = free
         if free < required:
             raise RuntimeError(f'BLOCKED_SAFE_DISK_BUDGET: required={required}, available={free}')
