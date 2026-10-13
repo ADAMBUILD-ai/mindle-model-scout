@@ -1,4 +1,6 @@
 import pytest
+import io
+from scripts.acquire_aura136_pinned_qwen4b import fetch, git_blob_sha
 from scripts.acquire_aura136_pinned_qwen4b import FILES, WEIGHTS, REVISION, validate_metadata
 
 
@@ -27,3 +29,17 @@ def test_no_changed_weight_license_or_missing_loader_allowed():
     changed['siblings'].pop(0)
     with pytest.raises(ValueError, match='incomplete'):
         validate_metadata(changed)
+
+
+def test_nonweight_reuse_requires_official_git_blob(tmp_path, monkeypatch):
+    path = tmp_path / 'config.json'
+    path.write_bytes(b'{}')
+    official = {'blobId': git_blob_sha(path)}
+    def forbid(*args, **kwargs):
+        raise AssertionError('verified existing file should not download')
+    monkeypatch.setattr('urllib.request.urlopen', forbid)
+    assert fetch(tmp_path, 'config.json', official)['bytes'] == 2
+    path.write_bytes(b'tampered')
+    monkeypatch.setattr('urllib.request.urlopen', lambda *args, **kwargs: io.BytesIO(b'{}'))
+    assert fetch(tmp_path, 'config.json', official)['sha256']
+    assert path.read_bytes() == b'{}'

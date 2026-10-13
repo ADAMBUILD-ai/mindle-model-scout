@@ -99,7 +99,12 @@ def main():
         if not any('CausalLM' in name for name in config.get('architectures', [])) or config.get('max_position_embeddings', 0) < 32768:
             raise ValueError('causal architecture or configured context is unsuitable')
         receipt.update({'status': 'ACQUIRED_PINNED_FULL_FILES_VERIFIED_NOT_PRODUCT_PASS', 'files': records, 'license': 'apache-2.0', 'licenseSnapshotSha256': license_record['sha256'], 'configuredContextTokens': config['max_position_embeddings'], 'usableContextMeasured': False, 'totalBytes': sum(r['bytes'] for r in records), 'runtime': {'os': platform.platform(), 'pythonExe': sys.executable, 'pythonVersion': sys.version, 'packages': {name: importlib.metadata.version(name) for name in ('torch', 'transformers')}}, 'nextAction': 'Desktop owner resource review and actual architecture/source-bound benchmark; do not mark TESTED_PASS or DELIVERED'})
-        (root / 'AURA136_MODEL_MANIFEST.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+        unexpected = sorted(str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and str(p.relative_to(root)) not in FILES)
+        if unexpected:
+            raise ValueError('unlisted files in immutable loader root: ' + repr(unexpected))
+        manifest_path = root.parent / ('AURA136_MODEL_MANIFEST_' + REVISION + '.json')
+        receipt['manifestPath'] = str(manifest_path)
+        manifest_path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
         from src.model_scout.acquisition import ModelRegistry
         registry = ModelRegistry(durable / 'model-registry.json')
