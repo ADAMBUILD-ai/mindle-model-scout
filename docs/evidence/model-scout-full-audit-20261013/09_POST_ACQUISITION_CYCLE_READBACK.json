@@ -1,0 +1,15 @@
+{
+  "status": "PASS_CURRENT_CYCLE_AND_REGISTRY_REOBSERVATION",
+  "sourceCommit": "54e1cdfea0714102820626a8a19d9a366b439a72",
+  "runId": 38430165701,
+  "jobId": 115409949084,
+  "actualRunner": "mindle-model-scout",
+  "repositoryAccess": "PASS",
+  "effectiveRepositoryCount": 10,
+  "control139": "MISROUTED_PRESERVED_QUARANTINE",
+  "operationalHealth": "ACTION_REQUIRED",
+  "registryArtifact": 11829644496,
+  "registryArtifactSha256": "893e8c64954c54e49456ce55866258fb4cee66eee5091cb4a2d2d97d84857965",
+  "actualModelCallsThisRecovery": 0,
+  "allRequestsDelivered": false
+}
