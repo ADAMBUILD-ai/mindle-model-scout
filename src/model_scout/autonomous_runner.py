@@ -139,6 +139,7 @@ def run_autonomous_cycle(
         "failed_repositories": discovery_failures,
     }
     return {
+        "operational_health": summarize_operational_health(queue_snapshot, discovery_access),
         "watchdog_requeued": requeued,
         "terminal_recovered_once": recovered,
         "failure_replayed_once": replayed,
@@ -153,4 +154,25 @@ def run_autonomous_cycle(
         "intake_coverage": intake_coverage,
         "discovery_access": discovery_access,
         "discovery_diagnostics": discovery_diagnostics,
+    }
+
+
+def summarize_operational_health(queue, discovery_access):
+    """Process success is separate from unresolved request delivery."""
+    pending = [item for item in queue if item["state"] in {
+        "BLOCKED_INPUT", "FAILED_TERMINAL", "FAILED_RETRYABLE", "ACQUIRED_VERIFIED"
+    }]
+    return {
+        "status": "ACTION_REQUIRED" if pending or discovery_access["status"] != "PASS" else "NO_UNRESOLVED_REQUESTS_IN_QUEUE",
+        "unresolved_request_count": len(pending),
+        "requests": [{
+            "source_repo": item.get("source_repo"), "source_issue": item.get("source_issue"),
+            "fingerprint": item.get("fingerprint"), "state": item["state"],
+            "exact_error": item.get("last_error"),
+            "next_action": "provide exact approved input/runtime evidence" if item["state"] == "BLOCKED_INPUT" else (
+                "verify current files and consumer acceptance; acquisition alone is not delivery" if item["state"] == "ACQUIRED_VERIFIED" else
+                "inspect preserved failure; do not reopen until cause is repaired"),
+        } for item in pending],
+        "counts_are_queue_records_not_unique_models": True,
+        "process_success_is_product_pass": False,
     }

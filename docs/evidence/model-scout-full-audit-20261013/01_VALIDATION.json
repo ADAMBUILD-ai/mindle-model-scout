@@ -1,0 +1,13 @@
+{
+  "status": "PASS_PATCH_VALIDATION_NOT_LIVE_RECOVERY",
+  "tests": {"command": "python -m pytest -q tests/test_runtime_executors.py tests/test_live_automation.py tests/test_callback_delivery.py tests/test_control_health.py tests/test_existing_asset.py tests/test_github_request_discovery.py tests/test_autonomous_recovery.py tests/test_persistent_queue.py", "passed": 84, "failed": 0, "exitCode": 0},
+  "diffCheck": "PASS",
+  "modelCalls": 0,
+  "modelDownloads": 0,
+  "productionDeploy": false,
+  "mainMerge": false,
+  "currentModelAssetCount": "UNVERIFIED",
+  "currentWindowsRuntime": "UNVERIFIED",
+  "liveOperationalRecovery": false,
+  "regressionCoverage": ["control issue excluded; primary request retained", "prior queued control quarantined idempotently", "successful process cannot hide unresolved delivery", "missing/tampered/unlisted asset files blocked", "manifest path traversal blocked", "runtime routing", "callback delivery", "watchdog and persistent queue"]
+}
