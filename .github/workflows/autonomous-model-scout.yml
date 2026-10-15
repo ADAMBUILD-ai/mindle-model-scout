@@ -239,3 +239,10 @@ jobs:
           name: model-scout-live-registry
           path: C:\actions-runner\_work\_state\mindle-model-scout\model-registry.json
           if-no-files-found: warn
+
+      - name: Enforce verified request discovery
+        if: always()
+        shell: powershell
+        run: |
+          & $env:PYTHON_EXE scripts/check_discovery_access.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

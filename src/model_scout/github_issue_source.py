@@ -29,6 +29,8 @@ class GitHubIssueSource:
         self,
         *,
         token: str | None = None,
+        local_token: str | None = None,
+        local_repository: str | None = None,
         api_base: str | None = None,
         timeout: float = 15.0,
         client: httpx.Client | None = None,
@@ -38,6 +40,9 @@ class GitHubIssueSource:
         if not resolved_base.startswith(("https://", "http://")):
             raise ValueError("GitHub API base must be an http(s) URL")
         self._token = resolved_token or None
+        self._local_token = str(local_token or os.getenv("MODEL_SCOUT_LOCAL_GITHUB_TOKEN") or "").strip()
+        self._local_repository = str(local_repository or os.getenv("GITHUB_REPOSITORY") or
+                                     "ADAMBUILD-ai/mindle-model-scout").strip().casefold()
         self._api_base = resolved_base.rstrip("/")
         self._timeout = float(timeout)
         self._client = client
@@ -50,8 +55,12 @@ class GitHubIssueSource:
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "mindle-model-scout",
         }
-        if self._token:
-            headers["Authorization"] = f"Bearer {self._token}"
+        # The workflow token is valid only for its own repository. Never retry a
+        # rejected cross-repository credential anonymously or broaden its scope.
+        local_prefix = f"{self._api_base}/repos/{self._local_repository}/"
+        token = self._local_token if self._local_token and url.casefold().startswith(local_prefix.casefold()) else self._token
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         if self._client is not None:
             return self._client.get(url, headers=headers, timeout=self._timeout)
         with httpx.Client(timeout=self._timeout) as client:
