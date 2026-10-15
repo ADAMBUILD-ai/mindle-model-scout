@@ -1,0 +1,310 @@
+{
+  "status": "VERIFY_REQUIRED",
+  "authentication": {
+    "status": "PASS_REPOSITORY_DISCOVERY",
+    "runId": 38783408591,
+    "jobId": 116589802450,
+    "repositoryCount": 10,
+    "failedRepositories": [],
+    "artifact": {
+      "id": 11996479415,
+      "name": "model-scout-autonomous-evidence",
+      "digest": "sha256:8bb6202144bf948543abd0802eab9b172e918ea36a70e99b0984a12dd50de18c"
+    },
+    "actualRequestDelivery": "NOT_DEMONSTRATED_NO_ELIGIBLE_REQUESTS"
+  },
+  "queueCounts": {
+    "MISROUTED": 16,
+    "FAILED_TERMINAL": 13,
+    "DELIVERED": 10,
+    "SUPERSEDED": 5,
+    "ACQUIRED_VERIFIED": 13,
+    "BLOCKED_INPUT": 4
+  },
+  "countsMeaning": "Queue records, not unique models or product passes",
+  "rootCauses": [
+    {
+      "request": 136,
+      "cause": "DIRECTIVE_HANDOFF_FAILURE",
+      "evidence": "Read-only preflight directive existed as issue comment; no actual preflight run receipt. Frozen preflight expects family causal-lm, acquisition manifest has no family.",
+      "fix": "Execute pinned read-only scripts through a non-mutating schema bridge using existing config architecture. A separate branch runs without model download/install/inference."
+    },
+    {
+      "request": "136 preflight first execution",
+      "cause": "GITHUB_WRITE_PATH_FAILURE",
+      "runId": 38784314429,
+      "error": "preflight source hash mismatch before model file reads",
+      "fix": "Exact script paths text eol=lf via .gitattributes; original expected hashes unchanged."
+    },
+    {
+      "request": "47/115",
+      "cause": "BLOCKED_INPUT",
+      "nextAction": "Exact approved GLB and verified render package/license required. No synthetic substitution."
+    },
+    {
+      "request": 118,
+      "cause": "BLOCKED_INPUT",
+      "nextAction": "Exact AVORA GLB/render and Blender-authoritative masks/reference required."
+    },
+    {
+      "request": "134/135",
+      "cause": "SEARCH_NORMALIZATION_AND_PRODUCT_FIXTURE_UNRESOLVED",
+      "nextAction": "No blind replay or new broad search. Preserve existing failures; split product capability/input requirements before executable candidate reuse."
+    },
+    {
+      "request": 133,
+      "cause": "DOCUMENT_QA_RUNTIME_FAILURE",
+      "nextAction": "Preserve trace and existing acquisition; AURA136 control excludes #133."
+    }
+  ],
+  "unresolvedRecords": [
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 33,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 135,
+      "state": "FAILED_TERMINAL",
+      "error": "search:ValueError: search produced no executable candidates; query_plan=['floorplan/2D', 'PENDING/VERIFY_REQUIRED', 'QA/semantic']; searched=0; candidate_count=0; retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 50,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 54,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 55,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 57,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "watchdog stale queued request"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 47,
+      "state": "BLOCKED_INPUT",
+      "error": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 38,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "watchdog stale queued request"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 71,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "watchdog stale queued request"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 134,
+      "state": "FAILED_TERMINAL",
+      "error": "search:ValueError: search produced no executable candidates; query_plan=['segmentation/safe-scope', 'QA/reference', 'generator/editor.']; searched=1; candidate_count=0; retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 51,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 73,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "watchdog stale queued request"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "issue": 36,
+      "state": "FAILED_TERMINAL",
+      "error": "runtime:RuntimeExecutorUnavailable: scout returned candidates but none had an allowed license and immutable revision; retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 133,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 52,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 48,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 51,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 33,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 115,
+      "state": "BLOCKED_INPUT",
+      "error": "runtime:RuntimeInputUnavailable: render tool discovery candidates=['pypi/pyrender@0.1.45', 'pypi/trimesh@5.1.0', 'pypi/open3d@0.20.0']; exact request GLB and a verified program package/license/runtime are required before CPU execution or ACQUIRED_VERIFIED"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 32,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 133,
+      "state": "FAILED_TERMINAL",
+      "error": "runtime:RuntimeError: executor exited 1 for model=impira/layoutlm-document-qa@beed3c4d02d86017ebca5bd0fdf210046b907aa6 pipeline=document-question-answering: ions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 308, in __call__\n    return super().__call__(inputs, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\document_question_answering.py\", line 353, in preprocess\n "
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 49,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 58,
+      "state": "FAILED_TERMINAL",
+      "error": "retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 33,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 118,
+      "state": "BLOCKED_INPUT",
+      "error": "input:pinned cross-product reuse requires accessible exact AVORA render/GLB and Blender-authoritative masks or approved reference; no rescout or TESTED_PASS"
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 134,
+      "state": "FAILED_TERMINAL",
+      "error": "search:ValueError: search produced no executable candidates; query_plan=['controlnet inpainting', 'image-to-image', 'diffusers controlnet']; searched=30; candidate_count=0; retry limit reached (3)"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 55,
+      "state": "ACQUIRED_VERIFIED",
+      "error": null
+    },
+    {
+      "sourceRepo": "adambuild-ai/mindle-model-scout",
+      "issue": 136,
+      "state": "BLOCKED_INPUT",
+      "error": "runtime:RuntimeInputUnavailable: AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; the configured generic huggingface-model worker only runs text-classification"
+    },
+    {
+      "sourceRepo": "ADAMBUILD-ai/mindle-model-scout",
+      "issue": 50,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "runtime:RuntimeError: executor exited 1: rmers\\pipelines\\base.py\", line 1459, in __call__\n    return next(\n           ^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 126, in __next__\n    item = next(self.iterator)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 271, in __next__\n    processed = self.infer(next(self.iterator), **self.params)\n                           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 725, in __next__\n    data = self._next_data()\n           ^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\dataloader.py\", line 785, in _next_data\n    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\torch\\utils\\data\\_utils\\fetch.py\", line 35, in fetch\n    data.append(next(self.dataset_iter))\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\pt_utils.py\", line 188, in __next__\n    processed = next(self.subiterator)\n                ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\automatic_speech_recognition.py\", line 362, in preprocess\n    inputs = ffmpeg_read(inputs, self.feature_extractor.sampling_rate)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\actions-runner\\_work\\_tool\\python311-service\\Lib\\site-packages\\transformers\\pipelines\\audio_utils.py\", line 37, in ffmpeg_read\n    raise ValueError(\"ffmpeg was not found but is required to load audio files from filename\") from error\nValueError: ffmpeg was not found but is r"
+    },
+    {
+      "sourceRepo": "adambuild-ai/aura-engine",
+      "issue": 35,
+      "state": "ACQUIRED_VERIFIED",
+      "error": "reviewed replay: aura-35-transformers-compat-v1-20260927; prior failure in failure_replays"
+    }
+  ],
+  "mainMerged": false,
+  "paidApiUsed": false,
+  "newModelSearches": 0,
+  "inferenceReleased": false,
+  "auraProductPass": false,
+  "preflight": {
+    "sourceCommit": "dee71364c6145ace6ff3acd35db7f22a44610151",
+    "runId": 38785275753,
+    "jobId": 116595558300,
+    "status": "PASS_READ_ONLY_LOCAL_FILES_VERIFIED",
+    "frozenSourcesSHA256": {
+      "preflight": "fde48a50826e5a81b2d8e3364820f11a44abb517910433c4015620a4383db414",
+      "benchmarkHelper": "4c3f12e52d1781e99f55fdbf5c84b0c1465b3fca0f5cdd05495f5c7f88aca944"
+    },
+    "failedRuns": [
+      {
+        "runId": 38784314429,
+        "error": "preflight source hash mismatch"
+      },
+      {
+        "runId": 38784616789,
+        "error": "preflight source hash mismatch"
+      },
+      {
+        "runId": 38784952508,
+        "error": "ModuleNotFoundError: No module named 'aura_136_existing_asset_preflight'"
+      },
+      {
+        "runId": 38784952508,
+        "error": "ModuleNotFoundError after strict frozen source hashes passed"
+      }
+    ],
+    "fixes": [
+      "Explicit frozen Git blob materialization before strict original source-hash checks",
+      "Explicit sibling script path in isolated service Python",
+      "Read-only projection from existing acquisition receipt; no original manifest changes"
+    ],
+    "offlineChecks": [
+      "Frozen helper SHA256 exact match",
+      "Schema bridge preserves source and rejects classifier config",
+      "Verifier corruption fixture rejected; no torch module imported"
+    ],
+    "modelCalls": 0,
+    "artifactId": 11998276280,
+    "artifactZipSha256": "7d4e479806fc79a20a36d706ee9b725fd528821f877fe23c4f1e4978a728aa04",
+    "receiptSha256": "0a9eb6b194e36dd505fb92d62f363627e10e283a5b7907b53c3f131072fb0d56",
+    "fileCount": 12,
+    "totalBytes": 8060925056,
+    "exitCode": 0,
+    "finishedAtUTC": "2026-10-15T18:25:45Z",
+    "remainingAURA136Blocker": {
+      "cause": "AURA_136_RUNTIME_EXECUTOR_NOT_AVAILABLE",
+      "stage": "OWNER_DESKTOP_RUNTIME_RELEASE",
+      "why": "Runner service file integrity is now verified. Actual consumer PC access, hardware suitability and exact inference release remain unverified; current AURA instruction permits read-only checks only.",
+      "nextSafeAction": "Consumer PC reads the exact pinned model root with the same frozen preflight; compare host/context and approved access evidence. Inference requires the separate exact release and verified actual benchmark inputs."
+    }
+  },
+  "resolvedNow": [
+    "Expired-token repository intake restored",
+    "CONTROL directive now has actual runner execution and raw receipt",
+    "Acquisition/preflight manifest schema mismatch bridged without source mutation",
+    "Frozen source byte checkout and isolated Python sibling module resolution repaired"
+  ],
+  "operationalFixPR145": {
+    "commit": "f3bb749ed9e5934523dd43687c0ca9384746ca05",
+    "state": "OPEN_NOT_MAIN_APPLIED",
+    "reason": "No direct main merge performed"
+  }
+}
