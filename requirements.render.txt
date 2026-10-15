@@ -1,0 +1,5 @@
+# Web service runtime only. Keep desktop/CAD/inference dependencies in requirements.txt.
+# This avoids installing GPU/CUDA packages for the lightweight Render API.
+fastapi==0.117.0
+uvicorn[standard]==0.34.0
+huggingface-hub==0.34.4
