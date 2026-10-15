@@ -1,6 +1,7 @@
 """Read-only bridge for acquisition receipts and AURA's frozen preflight."""
 import hashlib,json,os,sys,time
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from aura_136_existing_asset_preflight import inspect_existing
 from run_aura_136_local_benchmark import digest
 
