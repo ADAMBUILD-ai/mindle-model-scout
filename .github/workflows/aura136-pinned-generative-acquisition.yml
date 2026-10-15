@@ -1,36 +1,30 @@
 name: aura136-pinned-generative-acquisition
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/acquire_aura136_pinned_qwen4b.py'
-      - '.github/workflows/aura136-pinned-generative-acquisition.yml'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: aura136-pinned-generative-acquisition
+  group: model-scout-autonomous
   cancel-in-progress: false
 jobs:
-  acquire-one-existing-qualified-candidate:
+  readonly-existing-asset-preflight:
     runs-on: [self-hosted, model-scout]
-    timeout-minutes: 90
+    timeout-minutes: 15
     env:
-      MODEL_SCOUT_STATE_DIR: 'C:\actions-runner\_work\_state\mindle-model-scout'
       PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
-      - name: Acquire and verify exactly pinned existing Qwen3 4B
+      - name: Verify frozen AURA scripts and existing files without inference
         shell: powershell
         run: |
-          $python = 'C:\actions-runner\_work\_tool\python311-service\python.exe'
-          & $python scripts/acquire_aura136_pinned_qwen4b.py
+          if ((Get-FileHash scripts/aura_136_existing_asset_preflight.py -Algorithm SHA256).Hash.ToLower() -ne 'fde48a50826e5a81b2d8e3364820f11a44abb517910433c4015620a4383db414') { throw 'preflight source hash mismatch' }
+          if ((Get-FileHash scripts/run_aura_136_local_benchmark.py -Algorithm SHA256).Hash.ToLower() -ne '4c3f12e52d1781e99f55fdbf5c84b0c1465b3fca0f5cdd05495f5c7f88aca944') { throw 'benchmark helper source hash mismatch' }
+          & 'C:\actions-runner\_work\_tool\python311-service\python.exe' scripts/run_aura136_readonly_bridge.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Upload actual acquisition receipt
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: aura136-pinned-generative-acquisition-receipt
-          path: aura136-pinned-acquisition-receipt.json
+          name: aura136-existing-asset-readonly-preflight
+          path: aura136-existing-asset-preflight-*.json
           if-no-files-found: error
           retention-days: 90
