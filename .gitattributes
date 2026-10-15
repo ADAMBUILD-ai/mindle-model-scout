@@ -1,0 +1,3 @@
+scripts/aura_136_existing_asset_preflight.py text eol=lf
+scripts/run_aura_136_local_benchmark.py text eol=lf
+scripts/run_aura136_readonly_bridge.py text eol=lf
