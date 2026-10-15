@@ -1,0 +1,103 @@
+{
+  "status": "REWORK",
+  "rootCause": "PERMISSION_BLOCK",
+  "underlyingCredentialFailure": "GitHub rejected the configured cross-repository bearer credential with HTTP 401; expiry/revocation reason is not observable and is not asserted.",
+  "failingStage": "GitHubIssueSource.list_open_issues",
+  "credentialReference": "secrets.MODEL_SCOUT_CROSS_REPO_TOKEN",
+  "exactPath": "src/model_scout/github_issue_source.py",
+  "httpOperation": "GET https://api.github.com/repos/{owner}/{repo}/issues?state=open&per_page=100",
+  "specifiedRun": {
+    "runId": 38732645020,
+    "jobId": 116413962596,
+    "timeUTC": "2026-10-15T12:11:55Z",
+    "failedRepositoryCount": 10,
+    "artifactId": 11970282729,
+    "artifactZipSHA256": "3045e45f9c189f12cbe1b8eb1706363b44e0b2c054a73cf6e92945f8657d5a1c"
+  },
+  "latestVerifiedRun": {
+    "runId": 38773007089,
+    "jobId": 116553414206,
+    "timeUTC": "2026-10-15T16:55:23Z",
+    "discoveryAccess": {
+      "failed_repositories": [
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/adam-build",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/adraw-engine",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/agri-ai-business-platform",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/arcos-engine",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/aura-engine",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/avora-engine",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/axiom-engine",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/kimserv-core",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/mindle-media-ai",
+          "status_code": 401
+        },
+        {
+          "reason": "repository_issue_discovery_rejected",
+          "repository_full_name": "adambuild-ai/mindle-model-scout",
+          "status_code": 401
+        }
+      ],
+      "status": "DEGRADED_REPOSITORY_ACCESS"
+    },
+    "idleReason": "DISCOVERY_PARTIAL_FAILURE",
+    "processedResults": 0
+  },
+  "runner": "online and executed job; not RUNNER_OFFLINE",
+  "secondaryDefects": [
+    "Discovery uses cross-repository credential even for workflow's own repository.",
+    "Discovery rejection only warned; workflow still returned success."
+  ],
+  "fixesPrepared": [
+    "Route local repository reads to workflow-local token; retain cross-repository credential for other repositories, without anonymous fallback.",
+    "Fail final workflow gate after evidence uploads when discovery_access is absent or not PASS."
+  ],
+  "validation": {
+    "command": "python -m pytest -q tests/test_discovery_auth_gate.py tests/test_issue_source_pagination.py tests/test_github_request_discovery.py tests/test_github_callback_transport.py tests/test_autonomous_recovery.py",
+    "passed": 34,
+    "type": "offline regression; not live authentication proof"
+  },
+  "remainingSingleBlocker": {
+    "cause": "PERMISSION_BLOCK",
+    "error": "HTTP 401 on all 10 repository issue-list requests",
+    "nextAction": "Repository secret administrator must securely repair the configured cross-repository credential. Current connector cannot access secrets APIs; no secret value was read, disclosed, or rotated. Then use canonical self-hosted cycle to verify every discovery response and actual request handoff."
+  },
+  "aura136": {
+    "qualityPass": false,
+    "newInferenceCalls": 0,
+    "unchanged": "Existing pinned Qwen3-4B acquisition evidence is preserved; intake failure does not establish model quality."
+  }
+}
