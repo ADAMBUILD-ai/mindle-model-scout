@@ -1,0 +1,47 @@
+{
+  "status": "BLOCKED_PERMISSION_BLOCK",
+  "verifiedCause": "EXPIRED_FINE_GRAINED_PERSONAL_ACCESS_TOKEN",
+  "tokenDisplayName": "MODEL SCOUT cross-repo CI",
+  "lastVerifiedHealthy": {
+    "runId": 38688045768,
+    "startUTC": "2026-10-15T05:40:28Z",
+    "timeKST": "2026-10-15 14:40",
+    "discovery": "PASS"
+  },
+  "firstObservedFailure": {
+    "runId": 38689434866,
+    "startUTC": "2026-10-15T05:55:29Z",
+    "timeKST": "2026-10-15 14:55",
+    "allTenRepositoriesHTTP": 401
+  },
+  "sameSourceCommit": "54e1cdfea0714102820626a8a19d9a366b439a72",
+  "credentialExpiryNotice": {
+    "sender": "GitHub noreply@github.com",
+    "subject": "[GitHub] Your fine-grained personal access token has expired",
+    "receivedUTC": "2026-10-15T08:12:07Z",
+    "verification": "Original email explicitly names MODEL SCOUT cross-repo CI. Delivery timestamp is not asserted as the exact expiry instant.",
+    "priorWarnings": "Seven-day and one-day expiry warning emails found."
+  },
+  "priorHealthyEvidence": [
+    38430165701,
+    38549456396,
+    38631929664,
+    38680067359,
+    38688045768
+  ],
+  "patch": {
+    "commit": "f3bb749ed9e5934523dd43687c0ca9384746ca05",
+    "pullRequest": 145,
+    "offlineTestsPassed": 34,
+    "hostedTests": "success",
+    "cliSmoke": "success",
+    "hfE2E": "failed at Team Router GitHub issue lookup HTTP 401; model smoke itself succeeded; no quality claim"
+  },
+  "recovery": {
+    "required": "Regenerate equivalent expired token using owner's GitHub security settings; update MODEL_SCOUT_CROSS_REPO_TOKEN securely, preserve existing repository scope and issue permissions; rerun canonical discovery and actual handoff verification.",
+    "currentConnector": "Installed GitHub connector excludes secrets and account security APIs; plugin discovery found no additional enabled repair capability.",
+    "secretValuesReadOrChanged": false,
+    "mainMerged": false,
+    "normalizationPass": false
+  }
+}
