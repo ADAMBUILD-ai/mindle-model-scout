@@ -18,6 +18,7 @@ from .runtime_validation import RuntimeInputUnavailable
 
 
 EXECUTOR_KINDS = (
+    "generative-text",
     "huggingface-model",
     "embedding-reranker",
     "ocr-vision",
@@ -83,7 +84,7 @@ def classify_executor_kind(envelope: RequestEnvelope) -> str:
     capability = envelope.requested_capability.casefold()
     family = envelope.requested_model_family.casefold()
     if capability == "aura_generative_architectural_corpus_analysis_model":
-        return "huggingface-model"
+        return "generative-text"
     structured = f"{capability} {family}".replace("_", " ")
     task = re.search(r"(?im)^\s*(?:task|modality|requested modality)\s*:\s*([^\n;]+)", envelope.acceptance_criteria)
     if task:
@@ -433,13 +434,17 @@ class RuntimeExecutorRegistry:
         scout_result: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         kind = classify_executor_kind(envelope)
-        # The current generic worker is a sentiment classifier, not a causal LLM.
-        # Never acquire/run it as proof of AURA's generative analysis contract.
+        # The generic worker is a sentiment classifier, not a causal LLM.  AURA
+        # #136 may only use the dedicated generative adapter, which in turn
+        # requires real source-bound benchmark records.
         if envelope.requested_capability.casefold() == "aura_generative_architectural_corpus_analysis_model":
-            raise RuntimeInputUnavailable(
-                "AURA #136 requires a generative-text executor and real KR10+GLOBAL10 benchmark inputs; "
-                "the configured generic huggingface-model worker only runs text-classification"
-            )
+            if kind != "generative-text":
+                raise RuntimeInputUnavailable("AURA #136 must route only to the generative-text executor")
+            if "generative-text" not in self.adapters:
+                raise RuntimeInputUnavailable(
+                    "AURA #136 requires a configured generative-text executor and real KR10+GLOBAL10 benchmark inputs; "
+                    "the generic huggingface-model worker is text-classification and is forbidden"
+                )
         adapter = self.adapters.get(kind)
         if adapter is None:
             raise RuntimeExecutorUnavailable(f"no configured local executor for {kind}")

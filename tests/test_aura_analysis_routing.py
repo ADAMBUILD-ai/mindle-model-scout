@@ -11,7 +11,7 @@ CAPABILITY = 'AURA_GENERATIVE_ARCHITECTURAL_CORPUS_ANALYSIS_MODEL'
 def test_explicit_text_identity_outranks_incidental_prose(prose):
     request = replace(normalize_request(project='AURA', request_text=prose),
                       requested_capability=CAPABILITY, requested_model_family='GENERATIVE_TEXT_REASONING')
-    assert classify_executor_kind(request) == 'huggingface-model'
+    assert classify_executor_kind(request) == 'generative-text'
 
 @pytest.mark.parametrize('prose', ['pin revision', 'preview license', 'supervision required'])
 def test_revision_is_not_vision(prose):
@@ -66,3 +66,4 @@ def test_aura_never_runs_generic_sentiment_worker(tmp_path):
     registry = RuntimeExecutorRegistry({'huggingface-model': WrongWorker()}, work_root=tmp_path)
     with pytest.raises(RuntimeInputUnavailable, match='generative-text executor'):
         registry(request, {'candidates': []})
+
