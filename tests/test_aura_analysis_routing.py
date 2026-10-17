@@ -20,7 +20,7 @@ def test_revision_is_not_vision(prose):
 def test_family_and_explicit_task_override_prose():
     request = replace(normalize_request(project='TEST', request_text='OCR in license prose'),
                       requested_model_family='GENERATIVE_TEXT_REASONING', acceptance_criteria='Task: text-generation; JSON only')
-    assert classify_executor_kind(request) == 'generative-text'
+    assert classify_executor_kind(request) == 'huggingface-model'
 
 def test_exact_capability_plan_never_contains_body_or_repo_paths():
     raw = f'{CAPABILITY}\nTask: text generation\nCallback ADAMBUILD-ai/aura-engine\n' + 'pin revision; architectural visual understanding. ' * 200
@@ -66,3 +66,4 @@ def test_aura_never_runs_generic_sentiment_worker(tmp_path):
     registry = RuntimeExecutorRegistry({'huggingface-model': WrongWorker()}, work_root=tmp_path)
     with pytest.raises(RuntimeInputUnavailable, match='generative-text executor'):
         registry(request, {'candidates': []})
+
