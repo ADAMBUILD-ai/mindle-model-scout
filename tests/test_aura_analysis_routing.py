@@ -11,7 +11,7 @@ CAPABILITY = 'AURA_GENERATIVE_ARCHITECTURAL_CORPUS_ANALYSIS_MODEL'
 def test_explicit_text_identity_outranks_incidental_prose(prose):
     request = replace(normalize_request(project='AURA', request_text=prose),
                       requested_capability=CAPABILITY, requested_model_family='GENERATIVE_TEXT_REASONING')
-    assert classify_executor_kind(request) == 'huggingface-model'
+    assert classify_executor_kind(request) == 'generative-text'
 
 @pytest.mark.parametrize('prose', ['pin revision', 'preview license', 'supervision required'])
 def test_revision_is_not_vision(prose):
@@ -20,7 +20,7 @@ def test_revision_is_not_vision(prose):
 def test_family_and_explicit_task_override_prose():
     request = replace(normalize_request(project='TEST', request_text='OCR in license prose'),
                       requested_model_family='GENERATIVE_TEXT_REASONING', acceptance_criteria='Task: text-generation; JSON only')
-    assert classify_executor_kind(request) == 'huggingface-model'
+    assert classify_executor_kind(request) == 'generative-text'
 
 def test_exact_capability_plan_never_contains_body_or_repo_paths():
     raw = f'{CAPABILITY}\nTask: text generation\nCallback ADAMBUILD-ai/aura-engine\n' + 'pin revision; architectural visual understanding. ' * 200
