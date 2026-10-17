@@ -7,12 +7,14 @@ import struct
 import sys
 import time
 import wave
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.model_scout.request_profiles import run_request_profile
 from src.model_scout.runtime_samples import _embedding_sample_sentences
+from src.model_scout.aura136_contract import ANALYSIS_FIELDS, real_sources, sha256_text, validate_source_citations
 
 
 def _model_files(model) -> list[str]:
@@ -85,6 +87,76 @@ def _huggingface_model(model_id: str, revision: str | None = None) -> dict:
         "task": "huggingface-model",
         "prediction": result,
         "latency_seconds": time.perf_counter() - started,
+        "revision": getattr(model.config, "_commit_hash", None),
+        "_downloaded_files": _model_files(model),
+    }
+
+
+def _generative_text(model_id: str, revision: str, input_payload: dict) -> dict:
+    """Run source-bound causal generation; never accepts a synthetic benchmark."""
+    sources = real_sources(input_payload)
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    import torch
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=False)
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision=revision, trust_remote_code=False)
+    source_tokens = {
+        source["source_id"]: len(tokenizer.encode(source["verifiedContent"], add_special_tokens=False))
+        for source in sources
+    }
+    undersized = {source_id: count for source_id, count in source_tokens.items() if count < 1000}
+    if undersized:
+        raise RuntimeError(
+            "AURA_136_REAL_BENCHMARK_INPUT_INCOMPLETE: each source requires >=1000 tokens; "
+            f"undersized={undersized}"
+        )
+    corpus = "\n\n".join(
+        f"[SOURCE {source['source_id']}]\n{source['verifiedContent']}" for source in sources
+    )
+    schema = ", ".join(ANALYSIS_FIELDS)
+    prompt = (
+        "Return JSON only. Analyze the verified Korean and global architectural sources below. "
+        "Every inferential claim must cite only source_id values supplied below. "
+        f"Required top-level fields: {schema}.\n\n{corpus}"
+    )
+    encoded = tokenizer(prompt, return_tensors="pt", truncation=False)
+    context_limit = int(getattr(model.config, "max_position_embeddings", 0) or 0)
+    if context_limit < 32768:
+        raise RuntimeError(f"AURA_136_RUNTIME_EXECUTOR_NOT_AVAILABLE: model context={context_limit}, require >=32768")
+    input_tokens = int(encoded["input_ids"].shape[-1])
+    output_budget = 2048
+    if input_tokens + output_budget > context_limit:
+        raise RuntimeError(
+            f"AURA_136_REAL_BENCHMARK_INPUT_INCOMPLETE: context overflow input={input_tokens} output_budget={output_budget} limit={context_limit}; no silent truncation"
+        )
+    started = time.perf_counter()
+    with torch.no_grad():
+        generated = model.generate(**encoded, max_new_tokens=output_budget, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+    output = tokenizer.decode(generated[0][input_tokens:], skip_special_tokens=True).strip()
+    try:
+        analysis = json.loads(output)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"AURA_136_MODEL_QUALITY_FAILED: malformed JSON: {exc.msg}") from exc
+    missing = [name for name in ANALYSIS_FIELDS if name not in analysis]
+    if missing:
+        raise RuntimeError(f"AURA_136_MODEL_QUALITY_FAILED: missing output fields={missing}")
+    allowed_ids = {source["source_id"] for source in sources}
+    cited_ids = validate_source_citations(analysis, allowed_ids)
+    return {
+        "task": "generative-text",
+        "providerId": "transformers-local-cpu",
+        "invocationId": str(uuid.uuid4()),
+        "analysis": analysis,
+        "prompt_sha256": sha256_text(prompt),
+        "output_sha256": sha256_text(output),
+        "input_tokens": input_tokens,
+        "output_tokens": int(generated.shape[-1] - input_tokens),
+        "truncation": {"occurred": False, "reason": "input+output budget verified before generation"},
+        "wait_ms": round((time.perf_counter() - started) * 1000),
+        "source_ids": sorted(allowed_ids),
+        "source_token_counts": source_tokens,
+        "cited_source_ids": sorted(cited_ids),
+        "zero_invented_source_ids": True,
         "revision": getattr(model.config, "_commit_hash", None),
         "_downloaded_files": _model_files(model),
     }
@@ -211,6 +283,8 @@ def main() -> int:
         pass
     elif args.kind == "huggingface-model":
         result = _huggingface_model(args.model_id or "distilbert/distilbert-base-uncased-finetuned-sst-2-english", args.revision)
+    elif args.kind == "generative-text":
+        result = _generative_text(args.model_id, args.revision, input_payload)
     elif args.kind == "embedding-reranker":
         result = _embedding_reranker(args.model_id or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", args.revision,
                                      request=input_payload.get("request") if isinstance(input_payload.get("request"), dict) else {})
